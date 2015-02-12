@@ -1,9 +1,15 @@
-var vg = (function () {
-    var STYP = {CMP: 1, MAN: 0, };
-    var SANZ = 7;
-    var ZANZ = 7;
 
- var model = {
+require(["/js/vendor/qunit.js"]);
+require(["/js/vendor/underscore.js"]);
+require(["/js/vendor/jquery-1.9.1.min.js"]);
+require(["/js/vg/staticModelInfo.js"]);
+       
+var vg = (function () {
+    var STYP = {CMP: 1, MAN: 0};
+    var DIM = staticModel.getDIM();
+    var SANZ = DIM.SANZ;
+    var ZANZ = DIM.ZANZ;
+    var model = {
         amzug: STYP.CMP,
         hoehe: [], // Hoehe von Spalten
         sfeld: [], // Spielfeld
@@ -18,45 +24,43 @@ var vg = (function () {
         wert: 0,
         aktZug: -1,
         aktWert: 0,
-        ziehe: function ziehe(c) {
+        ziehe: function (c) {
             this.s[c][hoehe[c]] = this.amzug;
             this.hoehe[c] += 1;
             this.amzug = this.amzug === STYP.MAN ? STYP.CMP : STYP.MAN;
         },
-        init: function init(amzug) {
+        init: function (amzug) {
             this.amzug = amzug;
             for (var s = 0; s < SANZ; s++) {
                 this.hoehe.push(0);
-                this.s.push([]);
+                this.sfeld.push([]);
             }
         }
     };
     var view = {
-        setSpielstein: function setSpielstein(col, row) {
+        setSpielstein: function (col, row) {
             $($("#vg tr > td:nth-child(" + col + ")")[row]).css('background-image', "url(img/playera.gif)");
         },
-        render: function render(divid, model) {
+        render: function () {
             var table = $('<table id="vg"></table>');
             for (var i = 0; i < 6; i++) {
-                var row = $('<tr></tr>');
                 for (var j = 0; j < 7; j++) {
-                    row.append($('<td></td>'));
+                    $('<tr></tr>').append($('<td></td>'));
                 }
                 table.append(row);
             }
-            var foot = $('<tfoot></tfoot>');
-            row = $('<tr></tr>');
+            var row = $('<tr></tr>');
             for (var j = 0; j < 7; j++) {
                 var butt = $('<button id=id' + j + '/>').on('click',
                         function (col) {
                             return function () {
                                 model.ziehe(col);
-                                //view.render()
+                                render()
                             };
                         }(j));
-                foot.append($('<td></td>').append(butt));
+                row.append($('<td></td>').append(butt));
             }
-            foot.append(row);
+            $('<tfoot></tfoot>').append(row);
             table.append(foot);
             $(divid).append(table);
         }
