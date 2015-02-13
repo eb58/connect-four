@@ -1,9 +1,7 @@
-
-require(["/js/vendor/qunit.js"]);
 require(["/js/vendor/underscore.js"]);
 require(["/js/vendor/jquery-1.9.1.min.js"]);
 require(["/js/vg/staticModelInfo.js"]);
-       
+
 var vg = (function () {
     var STYP = {CMP: 1, MAN: 0};
     var DIM = staticModel.getDIM();

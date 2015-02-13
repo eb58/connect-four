@@ -31,7 +31,7 @@ var staticModel = (function () {
         for (i = 0; i < SANZ * ZANZ; i++) {
             var arr = [];
             for (j = 0; j < gr.length; j++) {
-                if (_.contains(gr[j], i)) {
+                if (1){ // _.contains(gr[j], i)) {
                     arr.push(j);
                 }
             }
@@ -48,11 +48,10 @@ var staticModel = (function () {
         });
     }
     test: function test() {
-        QUnit.test("hello test", function (assert) {
-            assert.ok(1 == "1", "Passed!");
-        });
+       init();
+       return gr.length===88;
     }
-
+// Interface
     return {
         getDIM: function(){ return DIM; },
         init: init,
@@ -60,4 +59,9 @@ var staticModel = (function () {
         test: test
     };
 }());
+
+test('staticModel', function () {
+    equal(staticModel.getDIM().SANZ, 7, 'Dimension ok.');
+    equal(staticModel.getDIM().ZANZ, 7, 'Dimension ok.');
+});
    

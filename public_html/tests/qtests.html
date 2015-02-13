@@ -6,17 +6,29 @@ and open the template in the editor.
 -->
 <html>
     <head>
-        <title>TODO supply a title</title>
+        <title>QUNIT TESTS</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="/css/qunit.css">
         <script src="/js/vendor/require.js"></script>
         <script src="/js/vendor/qunit.js"></script>
+        <script src="/js/vendor/underscore.js"></script>
+        <script src="/js/vendor/jquery-1.9.1.min.js"></script>
+        <script src="/js/vg/staticModelInfo.js"></script>
         <script src="/js/vg/vg.js"></script>
         <script>
-            QUnit.test("hello test", function (assert) {
-                assert.ok(1 == "1", "Passed!");
+            QUnit.test("hello test1", function (assert) {
+                assert.ok(1 === 1, "Passed!");
             });
+            QUnit.test("hello test2", function (assert) {
+                assert.ok(1 !== "1", "Passed!");
+            });
+            QUnit.test("hello test3", function (assert) {
+                assert.ok(2 !== "3", "Passed!");
+            });
+            QUnit.test("StaticModule", function (assert) {
+                assert.ok(staticModel.test(), "Passed!");
+            })
         </script>
     </head>
     <body>
