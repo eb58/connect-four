@@ -1,50 +1,76 @@
 var vgmodel = (function () {
+    "use strict";
     var NCOL = staticModel.getDIM().NCOL;
     var NROW = staticModel.getDIM().NROW;
-    var STYP = {CMP: 1, MAN: 0};
+    var STYP = {empty: 0, player1: 1, player2: 2, neutral: 3};
 
     var state = {
-        amzug: STYP.CMP,
-        hoehe: [], // Hoehe von Spalten
-        sfeld: [], // Spielfeld
-        isMuehle: false,
+        hcol: [], // heigth of cols
+        fld: [], // Spielfeld
+        grstate: [],
+        whosTurn: STYP.player1,
+        isMill: 0,
         cr: 0,
         czwei: 0,
         cdrei: 0,
         sr: 0,
         szwei: 0,
         sdrei: 0,
-        zugnr: 0,
-        wert: 0,
-        aktZug: -1,
-        aktWert: 0
+        cntMove: 0,
+        actMove: -1,
     };
+    var transitionGR = function (a, e) {
+        if (a === STYP.empty)
+            return e;
+        if (a === e)
+            return a; // or e
+        if (a !== e)
+            return STYP.neutral;
+        if (a === STYP.neutral)
+            return  a === STYP.neutral;
+    };
+
     function move(c) {
-        if (state.hoehe[c] === NROW)
+        if (state.hcol[c] === NROW)
             return false;
-        state.sfeld[c + NCOL * state.hoehe[c]] = state.amzug;
-        state.hoehe[c] += 1;
-        state.amzug = state.amzug === STYP.MAN ? STYP.CMP : STYP.MAN;
+        state.actMove = c + NCOL * state.hcol[c]
+        state.grstate[state.actMove] = state.whosTurn;
+        state.cntMove += 1;
+        $.each(staticModel.grs[state.actMove], function (n) {
+//            var x = state.grstate[n];
+//            x.cnt++;
+//            x.occupiedBy = transitionGR(x.occupiedBy, state.whosTurn);
+//            if (x.cnt >= 4){
+//                state.isMill = true;
+//            }
+        });
+        state.hcol[c] += 1;
+        state.whosTurn = state.whosTurn === STYP.player1 ? STYP.player2 : STYP.player1;
+
         return true;
     }
     function init(amzug) {
-        state.amzug = amzug || STYP.CMP;
+        state.whosTurn = amzug || STYP.player1;
         for (var s = 0; s < NCOL; s++) {
-            state.hoehe.push(0);
+            state.hcol.push(0);
         }
+        $.each(staticModel.gr, function () {
+            state.grstate.push({occupiedBy: STYP.empty, cnt: 0});
+        });
     }
-    function getField(r, c) {
-        var x = state.sfeld[c + NCOL * r];
-        if (x === undefined)
-            return " ";
-        return x === STYP.CMP ? "X" : "O"
-    }
+
     // API
     return {
-        getRowOfCol: function(c){ return NROW - state.hoehe[c]},
-        amzug: function(){ return state.amzug; },
+        getRowOfCol: function (c) {
+            return NROW - state.hcol[c]
+        },
+        whosTurn: function () {
+            return state.whosTurn === STYP.player1 ? 'player1' : 'player2';
+        },
+        getField: function () {
+            return  state.sfeld[c + NCOL * r];
+        },
         move: move,
-        init: init,
-        getField: getField
+        init: init
     };
 }());

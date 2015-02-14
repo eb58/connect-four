@@ -57,7 +57,9 @@ var staticModel = (function () {
         },
         init: init,
         dump: dump,
-        test: test
+        test: test,
+        gr: gr,
+        grs: grs
     };
 }());
 

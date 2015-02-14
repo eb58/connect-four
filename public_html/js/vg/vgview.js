@@ -1,3 +1,4 @@
+"use strict";
 var vgview = function (m) {
     return function (model) {
         var NCOL = staticModel.getDIM().NCOL;
@@ -5,14 +6,13 @@ var vgview = function (m) {
 
         function setSpielstein(c) {
             var r = model.getRowOfCol(c);
-            var amzug = model.amzug();
-            var cls = amzug ? "playera" : "playerb";
+            var cls = model.whosTurn();
             $($("#vg tr > td:nth-child(" + (c + 1) + ")")[r]).addClass(cls);
         }
-        function render(divid, divbtns) {
+        function render(divid) {
             var table = $('<table id="vg"></table>');
             for (var r = 0; r < NROW; r++) {
-                var row = $('<tr></tr>');
+                var $row = $('<tr></tr>');
                 for (var c = 0; c < NCOL; c++) {
                     var x = '';//model.getValOfField(r, c);
                     var td = $('<td>' + x + '</td>');
@@ -24,29 +24,11 @@ var vgview = function (m) {
                             setSpielstein(c);
                         };
                     }(c));
-                    row.append(td);
+                    $row.append(td);
                 }
-                table.append(row);
+                table.append($row);
             }
             $(divid).empty().append(table);
-
-            var btntable = $('<table id="btns"></table>');
-            var btnrow = $('<tr></tr>');
-            for (var c = 0; c < NCOL; c++) {
-                var butt = $('<button id=id' + c + '/>');
-                butt.on('click',
-                        function (c) {
-                            return function () {
-                                if (!model.move(c)) {
-                                    return alert("Move not allowed");
-                                }
-                                setSpielstein(c);
-                            };
-                        }(c));
-                btnrow.append($('<td></td>').append(butt));
-            }
-            btntable.append(btnrow);
-            $(divbtns).empty().append(btntable);
         }
         return {
             render: render

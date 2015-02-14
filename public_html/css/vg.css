@@ -31,11 +31,11 @@ and open the template in the editor.
     padding-bottom: 33%; /* = width for a square aspect ratio */
 }
 
-.playera {
+.player1 {
     background: #ff0;
     border-radius: 50%;
 }
-.playerb {
+.player2 {
     background: #0ff;
     border-radius: 50%;
 }
