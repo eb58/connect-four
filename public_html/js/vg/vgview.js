@@ -18,7 +18,7 @@ var vgview = function (m) {
                     var td = $('<td>' + x + '</td>');
                     $(td).on('click', function (c) {
                         return function () {
-                            var state = model.move(c).state;
+                            var state = model.move(c).mstate;
                             if (state==='notallowed') {
                                 return alert("Move not allowed");
                             }
