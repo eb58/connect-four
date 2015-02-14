@@ -18,10 +18,14 @@ var vgview = function (m) {
                     var td = $('<td>' + x + '</td>');
                     $(td).on('click', function (c) {
                         return function () {
-                            if (!model.move(c)) {
+                            var state = model.move(c).state;
+                            if (state==='notallowed') {
                                 return alert("Move not allowed");
                             }
                             setSpielstein(c);
+                            if (state==='ismill') {
+                                return alert("Mühle");
+                            }
                         };
                     }(c));
                     $row.append(td);
