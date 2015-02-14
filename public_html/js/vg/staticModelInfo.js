@@ -1,45 +1,44 @@
 var staticModel = (function () {
-    var DIM = {SANZ:7, ZANZ:7 };
-    var SANZ = DIM.SANZ;
-    var ZANZ = DIM.ZANZ;
+    "use strict";
+    var DIM = {NCOL: 7, NROW: 7};
     var gr = []; // Gewinnreihen
     var grs = []; // Gewinnreihen pro Feld  
 
-    berechneGRs: function berechneGRs(dx, dy, s, z) {
+    function berechneGRs(r, c, dr, dc) { // dr = delta row,  dc = delta col
         var arr = [];
-        while (s >= 0 && s < SANZ && z >= 0 && z < ZANZ) {
-            arr.push(s + SANZ * z);
+        while (r >= 0 && r < DIM.NROW && c >= 0 && c < DIM.NCOL) {
+            arr.push(c + DIM.NCOL * r);
             if (arr.length === 4) {
                 gr.push(arr);
                 return;
             }
-            s += dx;
-            z += dy;
+            c += dc;
+            r += dr;
         }
     }
-    init: function init() {
+    function init() {
         gr = [];
-        for (var s = 0; s < SANZ; s++) {
-            for (var z = 0; z < ZANZ; z++) {
-                berechneGRs(0, 1, s, z);
-                berechneGRs(1, 1, s, z);
-                berechneGRs(1, 0, s, z);
-                berechneGRs(-1, 1, s, z);
+        for (var r = 0; r < DIM.NROW; r++) {
+            for (var c = 0; c < DIM.NCOL; c++) {
+                berechneGRs(r, c, 0, 1);
+                berechneGRs(r, c, 1, 1);
+                berechneGRs(r, c, 1, 0);
+                berechneGRs(r, c, -1, 1);
             }
         }
         grs = [];
-        for (i = 0; i < SANZ * ZANZ; i++) {
+        for (var i = 0; i < DIM.NCOL * DIM.NROW; i++) {
             var arr = [];
-            for (j = 0; j < gr.length; j++) {
-                if (1){ // _.contains(gr[j], i)) {
+            for (var j = 0; j < gr.length; j++) {
+                if (_.contains(gr[j], i)) {
                     arr.push(j);
                 }
             }
             grs[i] = arr;
         }
-        dump();
+        //dump();
     }
-    dump: function dump() {
+    function dump() {
         $.each(gr, function (idx, val) {
             console.log("gr: " + val);
         });
@@ -47,21 +46,24 @@ var staticModel = (function () {
             console.log("grs: " + val);
         });
     }
-    test: function test() {
-       init();
-       return gr.length===88;
+    function test() {
+        return gr.length === 88;
     }
+    init();
 // Interface
     return {
-        getDIM: function(){ return DIM; },
+        getDIM: function () {
+            return DIM;
+        },
         init: init,
         dump: dump,
         test: test
     };
 }());
 
-test('staticModel', function () {
-    equal(staticModel.getDIM().SANZ, 7, 'Dimension ok.');
-    equal(staticModel.getDIM().ZANZ, 7, 'Dimension ok.');
+QUnit.test('staticModel', function () {
+    equal(staticModel.getDIM().NCOL, 7, 'Dimension ok.');
+    equal(staticModel.getDIM().NROW, 7, 'Dimension ok.');
+    ok(staticModel.test, "Interne Tests ok");
 });
    

@@ -10,16 +10,26 @@
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/main.css">
         <link rel="stylesheet" href="css/qunit.css">
+        <link rel="stylesheet" href="css/vg.css">
         <script src="/js/vendor/require.js"></script>
+        <script src="/js/vendor/qunit.js"></script>
+        <script src="/js/vendor/jquery-1.9.1.min.js"></script>
+        <script src="/js/vendor/underscore.js"></script>
+        <script src="/js/vg/staticModelInfo.js"></script>
+        <script src="/js/vg/vgmodel.js"></script>
+        <script src="/js/vg/vgview.js"></script>
         <script src="/js/vg/vg.js"></script>
         <script>
             $(function () {
-                vg.view.render('#div1', vg.model);
+                vg.init('#field');
             });
         </script>
     </head>
     <body>
         <h3 style="text-align: center; ">Vier Gewinnt</h3>
-        <div id="div1"></div>
+        <div>
+            <div id="field"></div>
+            <div id="buttons"></div>
+        </div>
     </body>
 </html>

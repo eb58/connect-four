@@ -1,0 +1,41 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 14.02.2015, 15:47:06
+    Author     : A403163
+*/
+
+#field table{
+    background-color: #999;
+    width: 30%;
+    //  height: 80%;
+    margin: auto;
+}
+
+#field table tbody tr td {
+    border: 1px solid black; 
+    padding-bottom: 15%; /* = width for a square aspect ratio */
+}
+
+#buttons table {
+    margin: auto;
+    width: 30%;
+}
+
+#buttons table tbody tr td button{
+    border: 1px solid black; 
+    width: 100%;
+    padding-bottom: 33%; /* = width for a square aspect ratio */
+}
+
+.playera {
+    background: #ff0;
+    border-radius: 50%;
+}
+.playerb {
+    background: #0ff;
+    border-radius: 50%;
+}
