@@ -7,12 +7,11 @@ var vgmodel = (function () {
     var NROWNCOL = NROW * NCOL;
     var STYP = {empty: 0, player1: 1, player2: 2, neutral: 3};
     var ord = [3, 4, 2, 5, 1, 6, 0];
-    var maxLev = 4;
+    var maxLev = 6;
 
-    var state;
     var initState = {
         hcol: [], // height of cols
-        fld: [], // playing field
+        //fld: [], // playing field
         whosTurn: STYP.player1,
         isMill: 0,
         cntMove: 0,
@@ -21,6 +20,7 @@ var vgmodel = (function () {
         maxVal: -MAXVAL,
         grstate: []
     };
+    var state;
 
     for (var s = 0; s < NCOL; s++) {
         initState.hcol.push(0);
@@ -104,63 +104,7 @@ var vgmodel = (function () {
     function evalState() {
         //var lstate = $.extend(true, {}, state);
         miniMax(state, 0, -MAXVAL, +MAXVAL);
-        return   
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        state.bestMove;
-
+        return state.bestMove;
     }
 
     function alpha_betax(state, lev, alpha, beta) {
