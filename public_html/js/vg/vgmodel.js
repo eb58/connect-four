@@ -7,7 +7,7 @@ var vgmodel = (function () {
     var NROWNCOL = NROW * NCOL;
     var STYP = {empty: 0, player1: 1, player2: 2, neutral: 3};
     var ord = [3, 4, 2, 5, 1, 6, 0];
-    var maxLev = 6;
+    var maxLev = 8;
 
     var initState = {
         hcol: [], // height of cols
@@ -47,7 +47,9 @@ var vgmodel = (function () {
         if (mstate === undefined)
             mstate = state;
         if (mstate.hcol[c] === NROW)
-            return {mstate: 'notallowed'};
+            return 'notallowed';
+        if (mstate.isMill )
+            return 'notallowed';
         mstate.actMove = c + NCOL * mstate.hcol[c]
         mstate.cntMove += 1;
         var sgrs = vgmodelstatic.grs[mstate.actMove];
@@ -62,7 +64,7 @@ var vgmodel = (function () {
         });
         mstate.hcol[c] += 1;
         mstate.whosTurn = mstate.whosTurn === STYP.player1 ? STYP.player2 : STYP.player1;
-        return mstate.isMill ? {mstate: 'ismill'} : {mstate: 'ok'};
+        return 'ok';
     }
 
     function init(whosTurn) {

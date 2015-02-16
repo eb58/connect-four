@@ -1,5 +1,5 @@
-"use strict";
 var vgview = function (m) {
+    "use strict";
     return function (m) {
         var NCOL = vgmodelstatic.getDIM().NCOL;
         var NROW = vgmodelstatic.getDIM().NROW;
@@ -10,21 +10,18 @@ var vgview = function (m) {
         }
         function onClickHandler(c) {
             return function () {
-                if (m.isMill()) {
-                    return alert("Mühle -- Spiel ist beendet!");
-                }
-                if (m.move(c).mstate === 'notallowed') {
-                    return alert("Move not allowed");
+                if (m.move(c) === 'notallowed') {
+                    return; // alert("Zug is nicht");
                 }
                 setSpielstein(c);
                 if (m.isMill()) {
-                    return alert("Mühle");
+                    return alert("Gratuliere, du hast gewonnen!");
                 }
                 var bestMove = m.evalState();
                 m.move(bestMove);
                 setSpielstein(bestMove);
                 if (m.isMill()) {
-                    return alert("Mühle");
+                    return alert("Bedaure, du hast verloren!");
                 }
             }
         }
@@ -33,10 +30,8 @@ var vgview = function (m) {
             for (var r = 0; r < NROW; r++) {
                 var $row = $('<tr></tr>');
                 for (var c = 0; c < NCOL; c++) {
-                    var x = ''; //m.getValOfField(r, c);
-                    var td = $('<td>' + x + '</td>');
-                    $(td).on('click', onClickHandler(c));
-                    $row.append(td);
+                    //$(td).on('click', onClickHandler(c));
+                    $row.append( $('<td></td>').on('click', onClickHandler(c)));
                 }
                 table.append($row);
             }
