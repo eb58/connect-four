@@ -1,8 +1,12 @@
-var staticModel = (function () {
+var vgmodelstatic = (function () {
     "use strict";
     var DIM = {NCOL: 7, NROW: 7};
     var gr = []; // Gewinnreihen
     var grs = []; // Gewinnreihen pro Feld  
+
+    function getDIM() {
+        return DIM;
+    }
 
     function berechneGRs(r, c, dr, dc) { // dr = delta row,  dc = delta col
         var arr = [];
@@ -46,26 +50,31 @@ var staticModel = (function () {
             console.log("grs: " + val);
         });
     }
-    function test() {
-        return gr.length === 88;
+    function internalTests() {
+        return gr.length === 88
+                && _.isEqual(gr[0], [0, 1, 2, 3])
+                && _.isEqual(gr[1], [0, 8, 16, 24])
+                && _.isEqual(grs[0], [0, 1, 2])
+                && _.isEqual(grs[1], [0, 3, 4, 5])
+                ;
     }
     init();
 // Interface
     return {
-        getDIM: function () {
-            return DIM;
-        },
-        init: init,
+        // Test + Debug
         dump: dump,
-        test: test,
+        internalTests: internalTests,
+        // Public
+        getDIM: getDIM,
         gr: gr,
         grs: grs
     };
 }());
 
 QUnit.test('staticModel', function () {
-    equal(staticModel.getDIM().NCOL, 7, 'Dimension ok.');
-    equal(staticModel.getDIM().NROW, 7, 'Dimension ok.');
-    ok(staticModel.test, "Interne Tests ok");
+    //vgmodelstatic.dump();
+    equal(vgmodelstatic.getDIM().NCOL, 7, 'Dimension ok.');
+    equal(vgmodelstatic.getDIM().NROW, 7, 'Dimension ok.');
+    ok(vgmodelstatic.internalTests, "Interne Tests ok");
 });
    
