@@ -1,6 +1,7 @@
 var vgmodelstatic = (function () {
     "use strict";
     var DIM = {NCOL: 7, NROW: 7};
+    var STYP = {empty: 0, player1: 1, player2: 2, neutral: 3};
     var gr = []; // Gewinnreihen
     var grs = []; // Gewinnreihen pro Feld  
 
@@ -20,7 +21,7 @@ var vgmodelstatic = (function () {
             r += dr;
         }
     }
-    function init() {
+    function initGRs() {
         gr = [];
         for (var r = 0; r < DIM.NROW; r++) {
             for (var c = 0; c < DIM.NCOL; c++) {
@@ -58,7 +59,24 @@ var vgmodelstatic = (function () {
                 && _.isEqual(grs[1], [0, 3, 4, 5])
                 ;
     }
-    init();
+    initGRs();
+    var initialState = {
+        hcol: _.range(DIM.NCOL).map(function () {
+            return 0;
+        }), // height of cols
+        grstate: _.range(gr.length).map(function () {
+            return {
+                occupiedBy: STYP.empty,
+                cnt: 0
+            };
+        }),
+        whosTurn: STYP.player1,
+        isMill: 0,
+        cntMoves: 0,
+        bestMove: -1,
+        maxVal: -1
+    };
+
 // Interface
     return {
         // Test + Debug
@@ -66,8 +84,12 @@ var vgmodelstatic = (function () {
         internalTests: internalTests,
         // Public
         getDIM: getDIM,
+        getInitialState: function () {
+            return $.extend(true, {}, initialState);
+        },
         gr: gr,
-        grs: grs
+        grs: grs,
+        STYP: STYP
     };
 }());
 

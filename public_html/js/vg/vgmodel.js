@@ -4,43 +4,36 @@ var vgmodel = (function () {
     var MAXVAL = 1000000;
     var NCOL = vgmodelstatic.getDIM().NCOL;
     var NROW = vgmodelstatic.getDIM().NROW;
+    var STYP = vgmodelstatic.STYP;
+
     var NROWNCOL = NROW * NCOL;
-    var STYP = {empty: 0, player1: 1, player2: 2, neutral: 3};
     var ord = [3, 4, 2, 5, 1, 6, 0];
-    var maxLev = 8;
+    var maxLev = 2;
+    var state = vgmodelstatic.getInitialState();
 
-    var initState = {
-        hcol: [], // height of cols
-        //fld: [], // playing field
-        whosTurn: STYP.player1,
-        isMill: 0,
-        cntMove: 0,
-        actMove: -1,
-        bestMove: -1,
-        maxVal: -MAXVAL,
-        grstate: []
-    };
-    var state;
-
-    for (var s = 0; s < NCOL; s++) {
-        initState.hcol.push(0);
-    }
-    for (var i = 0; i < vgmodelstatic.gr.length; i++) {
-        initState.grstate[i] = {
-            occupiedBy: STYP.empty,
-            cnt: 0
-        };
+    function init(whosTurn) {
+        state = vgmodelstatic.getInitialState();
+        state.whosTurn = whosTurn === 'player1' ? STYP.player1 : STYP.player2;
+        state.cnt = { player1:0, player2:0 };
     }
 
-    function transitionGR(a, e) {
-        if (a === STYP.empty)
-            return e;
-        if (a === e)
+    function transitionGR(state, a) {
+        if (a === STYP.empty){
+            var cnt = state.whosTurn===STYP.player1? state.cnt.player1:state.cnt.player2 ;
+            cnt++;
+            return state.whosTurn;
+        }
+        if (a === state.whosTurn){
             return a; // or e
-        if (a !== e)
+        }
+        if (a !== state.whosTurn ){
+            var cnt = state.whosTurn===STYP.player1? state.cnt.player1:state.cnt.player2 ;
+            cnt--;
             return STYP.neutral;
-        if (a === STYP.neutral)
-            return  a === STYP.neutral;
+        }
+        if (a === STYP.neutral){
+            return a === STYP.neutral;
+        }
     }
 
     function move(c, mstate) {
@@ -48,14 +41,14 @@ var vgmodel = (function () {
             mstate = state;
         if (mstate.hcol[c] === NROW)
             return 'notallowed';
-        if (mstate.isMill )
+        if (mstate.isMill)
             return 'notallowed';
-        mstate.actMove = c + NCOL * mstate.hcol[c]
+        var fldnr = c + NCOL * mstate.hcol[c];
         mstate.cntMove += 1;
-        var sgrs = vgmodelstatic.grs[mstate.actMove];
-        $.each(sgrs, function (n, v) {
+        var grs = vgmodelstatic.grs[fldnr];
+        $.each(grs, function (n, v) {
             var x = mstate.grstate[v];
-            x.occupiedBy = transitionGR(x.occupiedBy, mstate.whosTurn);
+            x.occupiedBy = transitionGR(mstate, x.occupiedBy );
             if (x.occupiedBy !== STYP.neutral)
                 x.cnt++;
             if (x.cnt >= 4) {
@@ -67,33 +60,29 @@ var vgmodel = (function () {
         return 'ok';
     }
 
-    function init(whosTurn) {
-        state = $.extend(true, {}, initState);
-        state.whosTurn = whosTurn === 'player2' ? STYP.player2 : STYP.player1;
+    function computeVal(state) {  	
+        return state.isMill * MAXVAL;
     }
 
-    function computeVal(state, lev) {  	// Wert der Stellung aus Sicht Spielers am Zug
-        var v = state.isMill * MAXVAL;
-        return lev % 2 ? v : -v;
-    }
-
-    function miniMax(state, lev, alpha, beta) { // bewerte state aus Sicht von player1
+    function miniMax(state, lev, alpha, beta) { // bewerte state rekursiv, Negamax!
         if (state.cntMove >= NROWNCOL) {
-            return 0; // Remis!
+            return 0;
         }
 
-        if (state.isMill || lev === maxLev) {
-            return computeVal(state);
+        if (state.isMill || lev === 0) {
+            return -(computeVal(state) + lev);
         }
+
         state.maxVal = alpha;
         for (var c = 0; c < NCOL; c++) {
-            if (state.hcol[ord[c]] < NROW) { // Untersuche alle möglichen Züge 
+            var ordc = ord[c];
+            if (state.hcol[ordc] < NROW) { // Untersuche alle möglichen Züge 
                 var lstate = $.extend(true, {}, state);
-                move(ord[c], lstate);
-                var val = -miniMax(lstate, lev + 1, -beta, -state.maxVal);
+                move(ordc, lstate);
+                var val = -miniMax(lstate, lev - 1, -beta, -state.maxVal);
                 if (val > state.maxVal) {
                     state.maxVal = val;
-                    state.bestMove = ord[c];
+                    state.bestMove = ordc;
                     if (state.maxVal >= beta) {
                         return state.maxVal;
                     }
@@ -103,64 +92,17 @@ var vgmodel = (function () {
         return state.maxVal;
     }
 
-    function evalState() {
-        //var lstate = $.extend(true, {}, state);
-        miniMax(state, 0, -MAXVAL, +MAXVAL);
+    function bestMove() {
+        var lstate = $.extend(true, {}, state);
+        miniMax(lstate, 1, -MAXVAL, +MAXVAL);
+        if (lstate.isMill)            
+            return lstate.bestMove;
+        miniMax(state, maxLev, -MAXVAL, +MAXVAL);
         return state.bestMove;
     }
-
-    function alpha_betax(state, lev, alpha, beta) {
-        // Liefert Wert der Stellung ss aus Sicht der Seite, die am Zug ist!
-        // Setzt außerdem den Wert ss->zug als dem besten Zug für diese Stellung!
-
-        if (state.cntMove >= NROWNCOL)
-            return 0; // Remis!
-
-        if (lev >= maxLev) {
-            var v = computeVal(state);
-            return lev % 2 === 0 ? v : -v;
-        }
-
-        var maxVal = -MAXVAL + lev; // wir gehen vom schlimmsten aus; (+lev siehe Kommentar unten)
-
-        var lstates = [];
-        for (var c = 0; c < NCOL; c++) {
-            if (state.hcol[c] < NROW) { // Untersuche alle möglichen Zuege 
-                lstate = $.extend(true, {}, state);
-                move(c, lstate);
-                if (lstate.isMill) {
-                    state.bestMove = c;
-                    // Wert aus Sicht der Seite, die am Zug war; 
-                    // -lev, damit Züge, die möglichst schnell zum MATT führen, bevorzugt werden!
-                    return MAXVAL - lev;
-                }
-                lstates[c] = lstate;
-            }
-        }
-        for (var c = 0; c < NCOL; c++) {
-            if (state.hcol[ord[c]] < NROW) {
-                var val = -alpha_beta(lstates[c], lev + 1, -beta, -alpha);
-                if (val > maxVal) {  // neuer bester Wert gefunden 
-                    maxVal = val;
-                    state.bestMove = ord[i];
-
-                    if (val >= beta) {
-                        state.bestMove = bestMove;
-                        state.maxVal = maxVal;
-                        return state;
-                    }
-                    if (val > alpha)
-                        alpha = val;// Verbesserter alpha Wert 
-                }
-            }
-        }
-        state.bestMove = bestMove;
-        state.bestVal = maxVal;
-        return maxVal;
-    }
     init();
-    // API
-    return {
+    ////////////////////////////////////////////////////////////
+    return { 
         isMill: function () {
             return state.isMill;
         },
@@ -178,7 +120,7 @@ var vgmodel = (function () {
         },
         move: move,
         init: init,
-        evalState: evalState
+        bestMove: bestMove
     };
 }());
 
@@ -187,7 +129,7 @@ QUnit.test('model', function () {
 
     equal(model.setMaxLevel(3), 3, 'SetMaxLevel ok.');
     equal(model.setMaxLevel(4), 4, 'SetMaxLevel ok.');
-    model.init();
+    model.init('player1');
     equal(model.whosTurn(), 'player1', 'WhosTurn1 ok.');
     model.init('player2');
     equal(model.whosTurn(), 'player2', 'WhosTurn2 ok.');
@@ -202,9 +144,8 @@ QUnit.test('model', function () {
     equal(model.whosTurn(), 'player1', 'WhosTurn6 ok.');
     model.move(4);
     model.move(3);
-    ok(model.evalState() > 0, 'Evaluate ok');
     equal(model.whosTurn(), 'player1', 'WhosTurn7 ok.');
-    ok(model.evalState() >= 1000, 'Evaluate ok');
+    //ok(model.bestMove() > 0, 'Evaluate ok');
     model.init();
 });
 

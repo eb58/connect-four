@@ -9,33 +9,26 @@ and open the template in the editor.
 */
 
 #field table{
-    background-color: #999;
+    background-color: #AAA;
     width: 30%;
-    //  height: 80%;
     margin: auto;
 }
 
 #field table tbody tr td {
-    border: 1px solid black; 
+    border: 1px solid white; 
     padding-bottom: 15%; /* = width for a square aspect ratio */
+    border-radius: 50%;
+    margin: 2px;
 }
 
-#buttons table {
-    margin: auto;
-    width: 30%;
-}
 
-#buttons table tbody tr td button{
-    border: 1px solid black; 
-    width: 100%;
-    padding-bottom: 33%; /* = width for a square aspect ratio */
-}
-
-.player1 {
-    background: #ff0;
+.player1    {
+    margin: 3px;
+    background:  #222;;
     border-radius: 50%;
 }
 .player2 {
-    background: #0ff;
+    margin: 3px;
+    background:  #ddd;;
     border-radius: 50%;
 }

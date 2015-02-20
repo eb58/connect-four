@@ -17,7 +17,7 @@ var vgview = function (m) {
                 if (m.isMill()) {
                     return alert("Gratuliere, du hast gewonnen!");
                 }
-                var bestMove = m.evalState();
+                var bestMove = m.bestMove();
                 m.move(bestMove);
                 setSpielstein(bestMove);
                 if (m.isMill()) {
