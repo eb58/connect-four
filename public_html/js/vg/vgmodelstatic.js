@@ -39,7 +39,7 @@ var vgmodelstatic = (function () {
                     arr.push(j);
                 }
             }
-            grs[i] = arr;
+            grs[i] = arr;   
         }
         //dump();
     }

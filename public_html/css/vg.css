@@ -1,12 +1,10 @@
-/*
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
-*/
 /* 
     Created on : 14.02.2015, 15:47:06
     Author     : A403163
 */
+#title {
+    
+}
 
 #field table{
     background-color: #AAA;
@@ -21,13 +19,12 @@ and open the template in the editor.
     margin: 2px;
 }
 
-
-.player1    {
+td.player1    {
     margin: 3px;
     background:  #222;;
     border-radius: 50%;
 }
-.player2 {
+td.player2 {
     margin: 3px;
     background:  #ddd;;
     border-radius: 50%;

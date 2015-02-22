@@ -8,10 +8,15 @@ var vgview = function (m) {
             var cls = m.whosTurn();
             $($("#vg tr > td:nth-child(" + (c + 1) + ")")[r]).addClass(cls);
         }
+        function makeMove(c) {
+            var bestMove = m.bestMove();
+            m.move(bestMove);
+            setSpielstein(bestMove);
+        }
         function onClickHandler(c) {
             return function () {
                 if (m.move(c) === 'notallowed') {
-                    return; // alert("Zug is nicht");
+                    return;
                 }
                 setSpielstein(c);
                 if (m.isMill()) {
@@ -28,12 +33,11 @@ var vgview = function (m) {
         function render(divid) {
             var table = $('<table id="vg"></table>');
             for (var r = 0; r < NROW; r++) {
-                var $row = $('<tr></tr>');
+                var row = $('<tr></tr>');
                 for (var c = 0; c < NCOL; c++) {
-                    //$(td).on('click', onClickHandler(c));
-                    $row.append( $('<td></td>').on('click', onClickHandler(c)));
+                    row.append($('<td></td>').on('click', onClickHandler(c)));
                 }
-                table.append($row);
+                table.append(row);
             }
             $(divid).empty().append(table);
         }
