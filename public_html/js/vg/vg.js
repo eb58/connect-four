@@ -1,4 +1,4 @@
-var vg = (function () {
+   var vg = (function () {
     "use strict";
     var model = vgmodel;
     model.init();
