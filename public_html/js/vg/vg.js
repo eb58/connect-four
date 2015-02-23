@@ -1,9 +1,11 @@
-   var vg = (function () {
+var vg = (function () {
     "use strict";
-    var model = vgmodel;
-    model.init();
-    var view = vgview(model); 
+    var m = vgmodel;
+    var v = vgview(m);
     return {
-        init: view.render
+        init: function (id) {
+            m.init();
+            v.render(id)
+        }
     };
 }());

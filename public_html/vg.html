@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Vier Gewinnt</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/qunit.css">
+        <link rel="stylesheet" href="css/jquery-ui.min.css">
+        <link rel="stylesheet" href="css/vg.css">
+        <script src="/js/vendor/qunit.js"></script>
+        <script src="/js/vendor/jquery-1.9.1.min.js"></script>
+        <script src="/js/vendor/jquery-ui.min.js"></script>
+        <script src="/js/vendor/underscore.js"></script>
+        <script src="/js/vg/vgmodelstatic.js"></script>
+        <script src="/js/vg/vgmodel.js"></script>
+        <script src="/js/vg/vgview.js"></script>
+        <script src="/js/vg/vg.js"></script>
+        <script>
+            $(function () {
+                vg.init('#field');
+                $("#radio").buttonset();
+                $("#newgame").button().click(function () {
+                    $('<div></div').dialog({
+                        buttons: {
+                            Ja: function () {
+                                vg.init('#field');
+                                $(this).dialog("close");
+                            },
+                            Nein: function () {
+                                $(this).dialog("close");
+                            }
+                        },
+                        autoOpen: false,
+                        title: 'Neues Spiel'
+                    }).text("Neues Spiel").dialog("open");
+                });
+                $("#undo").button().click(function () {
+                     $('<div></div').dialog({
+                        buttons: {
+                            Ja: function () {
+                                $(this).dialog("close");
+                            },
+                            Nein: function () {
+                                $(this).dialog("close");
+                            }
+                        },
+                        autoOpen: false,
+                        title: 'Undo'
+                    }).text("Undo").dialog("open");
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <h3 style="text-align:left;">Vier Gewinnt</h3>
+        <div style="text-align:left;">
+            <div style="alignment-adjust:left" id="field"></div>
+            <h2></h2>
+            <div>
+                <button id="undo">Zug zurücknehmen</button>
+                <button id="newgame">Neu starten</button>
+                <div id="radio">         
+                    Wer fängt an:
+                    <input type="radio" id="radio1" name="radio"><label for="radio1">Computer</label>
+                    <input type="radio" id="radio2" name="radio" checked="checked"><label for="radio2">Spieler</label>
+                    <div id='info'></div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

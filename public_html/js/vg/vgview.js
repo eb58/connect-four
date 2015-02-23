@@ -3,10 +3,23 @@ var vgview = function (m) {
     return function (m) {
         var NCOL = vgmodelstatic.getDIM().NCOL;
         var NROW = vgmodelstatic.getDIM().NROW;
+
+        function myAlert(msg) {
+            $('<div></div').dialog({
+                buttons: {
+                    OK: function () {
+                        $(this).dialog("close");
+                    },
+                },
+                autoOpen: false,
+                title: 'Meldung'
+            }).text(msg).dialog("open");
+        }
         function setSpielstein(c) {
             var r = m.getRowOfCol(c);
             var cls = m.whosTurn();
             $($("#vg tr > td:nth-child(" + (c + 1) + ")")[r]).addClass(cls);
+            $("#info").html("Mein letzter Zug:" + (c + 1));
         }
         function makeMove(c) {
             var bestMove = m.bestMove();
@@ -19,16 +32,15 @@ var vgview = function (m) {
                     return;
                 }
                 setSpielstein(c);
-                if (m.isMill()) {
-                    return alert("Gratuliere, du hast gewonnen!");
-                }
                 var bestMove = m.bestMove();
-                m.move(bestMove);
+                if (m.move(bestMove) === 'notallowed') {
+                    return myAlert("Gratuliere, du hast gewonnen!");
+                }
                 setSpielstein(bestMove);
                 if (m.isMill()) {
-                    return alert("Bedaure, du hast verloren!");
+                    return myAlert("Bedaure, du hast verloren!");
                 }
-            }
+            };
         }
         function render(divid) {
             var table = $('<table id="vg"></table>');

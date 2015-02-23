@@ -5,33 +5,37 @@ var vgmodel = (function () {
     var NROW = vgmodelstatic.getDIM().NROW;
     var STYP = vgmodelstatic.STYP;
 
-    var NROWNCOL = NROW * NCOL;
     var ord = [3, 4, 2, 5, 1, 6, 0];
+    var whoBegins;
+    var courseOfGame = [];
     var maxLev = 4;
     var state = vgmodelstatic.getInitialState();
 
+    function possibleMoves(state) {
+        var mvs = _.range(NCOL).filter(function (c) {
+            state.hcol[c] < NROW;
+        });
+        return mvs;
+    }
     function init(whosTurn) {
         state = vgmodelstatic.getInitialState();
         state.whosTurn = whosTurn === 'player1' ? STYP.player1 : STYP.player2;
         state.cnt = {player1: 0, player2: 0};
+        whoBegins = state.whosTurn;
     }
 
-    function transitionGR(state, a) {
+    function transitionGR(e, a) {
         if (a === STYP.empty) {
-            var cnt = state.whosTurn === STYP.player1 ? state.cnt.player1 : state.cnt.player2;
-            cnt++;
-            return state.whosTurn;
+            return e;
         }
-        if (a === state.whosTurn) {
+        if (a === e) {
             return a; // or e
         }
-        if (a !== state.whosTurn) {
-            var cnt = state.whosTurn === STYP.player1 ? state.cnt.player1 : state.cnt.player2;
-            cnt--;
+        if (a !== e) {
             return STYP.neutral;
         }
         if (a === STYP.neutral) {
-            return a === STYP.neutral;
+            return STYP.neutral;
         }
     }
 
@@ -42,40 +46,53 @@ var vgmodel = (function () {
             return 'notallowed';
         if (mstate.isMill)
             return 'notallowed';
-        var fldnr = c + NCOL * mstate.hcol[c];
         mstate.cntMoves += 1;
-        var grs = vgmodelstatic.grs[fldnr];
+        var grs = vgmodelstatic.grs[c + NCOL * mstate.hcol[c]];
         $.each(grs, function (n, v) {
-            var x = mstate.grstate[v];
-            x.occupiedBy = transitionGR(mstate, x.occupiedBy);
-            if (x.occupiedBy !== STYP.neutral)
-                x.cnt++;
-            if (x.cnt >= 4) {
+            var gr = mstate.grstate[v];
+            gr.occupiedBy = transitionGR(mstate.whosTurn, gr.occupiedBy);
+            if (gr.occupiedBy !== STYP.neutral)
+                gr.cnt++;
+            if (gr.cnt >= 4) {
                 mstate.isMill = true;
             }
         });
         mstate.hcol[c] += 1;
         mstate.whosTurn = mstate.whosTurn === STYP.player1 ? STYP.player2 : STYP.player1;
+        courseOfGame.push(c);
         return 'ok';
     }
 
-    function computeVal(state) {
-        return state.isMill * MAXVAL;
+    function undoLastMove() {
+        init(whoBegins);
+        courseOfGame.pop();
     }
 
-    function miniMax(state, lev, alpha, beta) { // bewerte state rekursiv, Negamax!
-        if (state.cntMove >= NROWNCOL) {
-            return 0;
-        }
+    function computeVal(state) {
+        var v = 0;
+        $.each(state.grstate, function (idx, gr) {
+            if (gr.occupiedBy === STYP.player1)
+                v += Math.pow(4, gr.cnt);
+            if (gr.occupiedBy === STYP.player2)
+                v -= Math.pow(4, gr.cnt);
+        });
+        return state.whosTurn === STYP.player2 ? v : -v;
+        ;
+    }
 
-        if (state.isMill || lev === 0) {
-            return -(computeVal(state) + lev);
-        }
+    function miniMax(state, lev, alpha, beta) { // evaluate state recursive, negamax algorithm!
+        state.bestMove = -1;
 
+        if (state.isMill) {
+            return -(MAXVAL + lev);
+        }
+        if (lev === 0) {
+            return -computeVal(state);
+        }
         state.maxVal = alpha;
         for (var c = 0; c < NCOL; c++) {
             var ordc = ord[c];
-            if (state.hcol[ordc] < NROW) { // Untersuche alle möglichen Züge 
+            if (state.hcol[ordc] < NROW) { // try all possible moves
                 var lstate = $.extend(true, {}, state);
                 move(ordc, lstate);
                 var val = -miniMax(lstate, lev - 1, -beta, -state.maxVal);
@@ -96,8 +113,13 @@ var vgmodel = (function () {
         miniMax(lstate, 1, -MAXVAL, +MAXVAL);
         if (lstate.isMill)
             return lstate.bestMove;
-        miniMax(state, maxLev, -MAXVAL, +MAXVAL);
-        return state.bestMove;
+        lstate = $.extend(true, {}, state);
+        miniMax(lstate, maxLev, -MAXVAL, +MAXVAL);
+        if (lstate.bestMove !== -1)
+            return lstate.bestMove;
+        // there is no best move, just take first possible,
+        var mvs = possibleMoves();
+        return mvs.length ? mvs[0] : -1;
     }
     init();
     ////////////////////////////////////////////////////////////
@@ -118,8 +140,10 @@ var vgmodel = (function () {
             return  state.sfeld[c + NCOL * r];
         },
         move: move,
+        undoLastMove: undoLastMove,
         init: init,
         bestMove: bestMove
+
     };
 }());
 

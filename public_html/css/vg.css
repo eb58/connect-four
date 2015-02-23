@@ -1,15 +1,10 @@
-/* 
-    Created on : 14.02.2015, 15:47:06
-    Author     : A403163
-*/
-#title {
-    
+body {
+   margin-left: 10%;      
 }
 
 #field table{
-    background-color: #AAA;
-    width: 30%;
-    margin: auto;
+    background-color: #CCC;
+    width: 90%;
 }
 
 #field table tbody tr td {
@@ -20,12 +15,11 @@
 }
 
 td.player1    {
-    margin: 3px;
-    background:  #222;;
+    background:  #a00;
     border-radius: 50%;
 }
 td.player2 {
-    margin: 3px;
-    background:  #ddd;;
+    background:  #00a;
     border-radius: 50%;
 }
+
