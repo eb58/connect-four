@@ -84,7 +84,7 @@ var vgmodel = (function () {
         state.bestMove = -1;
 
         if (state.isMill) {
-            return -(MAXVAL + lev);
+            return -MAXVAL - lev;
         }
         if (lev === 0) {
             return -computeVal(state);
