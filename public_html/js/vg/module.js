@@ -16,6 +16,6 @@ var myModule = (function () {
     };
 }());
 test('Module pattern', function () {
-    equal(myModule.hello(), 'Hello, world!', 'Module works.');
+    equal(myModule.hello(),      'Hello, world!', 'hello works.');
     equal(myModule.testForLoop(), 'testForLoop!', 'testForloop works.');
 });
