@@ -1,18 +1,9 @@
-
-
-
 function qsort(arr, cmp) {
     if (arr.length <= 1) return arr;
     var pivot = arr[Math.floor(Math.random() * arr.length)];
-    var eq = arr.filter(function (n) {
-        return cmp(n, pivot) === 0;
-    });
-    var lt = qsort(arr.filter(function (n) {
-        return cmp(n, pivot) < 0;
-    }), cmp);
-    var gt = qsort(arr.filter(function (n) {
-        return cmp(n, pivot) > 0;
-    }), cmp);
+    var eq = arr.filter(function (n) {return cmp(n, pivot) === 0; });
+    var lt = qsort(arr.filter(function (n) {return cmp(n, pivot) < 0;}), cmp);
+    var gt = qsort(arr.filter(function (n) {return cmp(n, pivot) > 0;}), cmp);
     return [].concat(lt, eq, gt);
 }
 
