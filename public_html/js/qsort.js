@@ -1,3 +1,6 @@
+
+
+
 function qsort(arr, cmp) {
     if (arr.length <= 1) return arr;
     var pivot = arr[Math.floor(Math.random() * arr.length)];
