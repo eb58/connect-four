@@ -1,5 +1,4 @@
- 
- function qsort(arr, cmp) {
+function qsort(arr, cmp) {
     if (arr.length <= 1) return arr;
     var pivot = arr[Math.floor(Math.random() * arr.length)];
     var eq = arr.filter(function (n) {
