@@ -1,3 +1,4 @@
+//
 var vg = (function () {
     "use strict";
     var m = vgmodel;
