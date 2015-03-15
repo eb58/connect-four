@@ -8,7 +8,7 @@ var vgmodel = (function () {
     var ord = [3, 4, 2, 5, 1, 6, 0];
     var whoBegins;
     var courseOfGame = [];
-    var maxLev = 6;
+    var maxLev = 4;
     var state = vgmodelstatic.getInitialState();
 
     function possibleMoves(state) {
@@ -77,6 +77,7 @@ var vgmodel = (function () {
                 v -= Math.pow(4, gr.cnt);
         });
         return state.whosTurn === STYP.player2 ? v : -v;
+        ;
     }
 
     function miniMax(state, lev, alpha, beta) { // evaluate state recursive, negamax algorithm!
@@ -109,7 +110,7 @@ var vgmodel = (function () {
 
     function bestMove() {
         var lstate = $.extend(true, {}, state);
-        miniMax(lstate, 2, -MAXVAL, +MAXVAL);
+        miniMax(lstate, 1, -MAXVAL, +MAXVAL);
         if (lstate.isMill)
             return lstate.bestMove;
         lstate = $.extend(true, {}, state);
