@@ -15,17 +15,14 @@ var vgview = function (m) {
                 title: 'Meldung'
             }).text(msg).dialog("open");
         }
-        function setSpielstein(c) {
-            var r = m.getRowOfCol(c);
+        
+       function setSpielstein(c) {
+            var row = m.getRowOfCol(c);
             var cls = m.whosTurn();
-            $($("#vg tr > td:nth-child(" + (c + 1) + ")")[r]).addClass(cls);
+            $($("#vg tr > td:nth-child(" + (c + 1) + ")")[row]).addClass(cls);
             $("#info").html("Mein letzter Zug:" + (c + 1));
         }
-        function makeMove(c) {
-            var bestMove = m.bestMove();
-            m.move(bestMove);
-            setSpielstein(bestMove);
-        }
+        
         function onClickHandler(c) {
             return function () {
                 if (m.move(c) === 'notallowed') {
@@ -42,6 +39,7 @@ var vgview = function (m) {
                 }
             };
         }
+        
         function render(divid) {
             var table = $('<table id="vg"></table>');
             for (var r = 0; r < NROW; r++) {
