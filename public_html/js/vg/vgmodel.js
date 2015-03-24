@@ -1,3 +1,5 @@
+/* global vgmodelstatic, _, QUnit */
+
 var vgmodel = (function () {
    "use strict";
    var MAXVAL = 1000000;
@@ -8,7 +10,7 @@ var vgmodel = (function () {
    var ord = [3, 4, 2, 5, 1, 6, 0];
    var whoBegins;
    var courseOfGame = [];
-   var maxLev = 4;
+   var maxLev = 3;
    var state = vgmodelstatic.getInitialState();
 
    function possibleMoves(state) {
@@ -17,6 +19,7 @@ var vgmodel = (function () {
       });
       return mvs;
    }
+   
    function init(whosTurn) {
       state = vgmodelstatic.getInitialState();
       state.whosTurn = whosTurn === 'player1' ? STYP.player1 : STYP.player2;
@@ -48,7 +51,7 @@ var vgmodel = (function () {
          return 'notallowed';
       mstate.cntMoves += 1;
       var grs = vgmodelstatic.grs[c + NCOL * mstate.hcol[c]];
-      forEach(grs, function (v) {
+      grs.forEach( function (v) {
          var gr = mstate.grstate[v];
          gr.occupiedBy = transitionGR(mstate.whosTurn, gr.occupiedBy);
          if (gr.occupiedBy !== STYP.neutral)
@@ -70,10 +73,11 @@ var vgmodel = (function () {
 
    function computeVal(state) {
       var v = 0;
-      $.each(state.grstate, function (idx, gr) {
+      state.grstate.forEach(function (gr,idx) {
          var n = gr.cnt;
-         v += gr.occupiedBy === STYP.player1 ? n*n*n*n : 0;
-         v -= gr.occupiedBy === STYP.player2 ? n*n*n*n : 0;
+         var factor = n===3 ? vgmodelstatic.gr[idx].val : 1;
+         v += gr.occupiedBy === STYP.player1 ? n * n * n * n * factor : 0;
+         v -= gr.occupiedBy === STYP.player2 ? n * n * n * n * factor : 0;
       });
       return state.whosTurn === STYP.player1 ? v : -v;
    }
@@ -108,15 +112,15 @@ var vgmodel = (function () {
 
    function bestMove() {
       var lstate = $.extend(true, {}, state);
-      var val = miniMax(lstate, 2, -MAXVAL, +MAXVAL);
-      if (val >= MAXVAL)
-         return lstate.bestMove;
+//      var val = miniMax(lstate, 2, -MAXVAL, +MAXVAL);
+//      if (val >= MAXVAL)
+//         return lstate.bestMove;
       lstate = $.extend(true, {}, state);
       miniMax(lstate, maxLev, -MAXVAL, +MAXVAL);
       if (lstate.bestMove !== -1)
          return lstate.bestMove;
       // there is no best move, just take first possible,
-      var mvs = possibleMoves();
+      var mvs = possibleMoves(state);
       return mvs.length ? mvs[0] : -1;
    }
    init();
@@ -134,7 +138,7 @@ var vgmodel = (function () {
       whosTurn: function () {
          return state.whosTurn === STYP.player1 ? 'player1' : 'player2';
       },
-      getField: function () {
+      getField: function (r,c) {
          return  state.sfeld[c + NCOL * r];
       },
       move: move,
@@ -147,9 +151,9 @@ var vgmodel = (function () {
 
 QUnit.test('model', function () {
    function move(m, arr) {
-      $.each(arr, function (i, v) {
+      arr.forEach(function (v) {
          m.move(v);
-      })
+      });
    }
    var model = vgmodel;
    equal(model.setMaxLevel(3), 3, 'SetMaxLevel ok.');
@@ -182,4 +186,3 @@ QUnit.test('model', function () {
    model.init();
 }
 );
-
