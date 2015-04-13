@@ -7,6 +7,9 @@ var vg = (function () {
         init: function (id) {
             m.init();
             v.render(id)
+        },
+        setLevel:function(n){
+           m.setMaxLevel(n);
         }
     };
 }());

@@ -79,7 +79,10 @@
          $("#newgame").button().click(newGameDlg);
          $("#undo").button().click(undoDlg);
          $("#whobegins").selectmenu();
-         $("#level").selectmenu();
+         $("#level").selectmenu({
+            change: function (event, data) {
+               vg.setLevel(data.item.value);
+            }});
       });
    </script>
 </head>
@@ -96,9 +99,11 @@
       </select> 
       <label for="level">Spielstärke:</label>
       <select name="level" id="level">
-         <option>Anfänger</option>
-         <option selected="selected">Amateur</option>
-         <option>Meister</option>
+         <option value="2">Anfänger</option>
+         <option value="3">Amateur</option>
+         <option value="4" selected="selected">Fortgeschrittener</option>
+         <option value="5" >Meister</option>
+         <option value="6" >Großmeister</option>
       </select> 
    </div>
    <div id='info'></div>

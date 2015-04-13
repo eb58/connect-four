@@ -10,7 +10,7 @@ var vgmodel = (function () {
    var ord = [3, 4, 2, 5, 1, 6, 0];
    var whoBegins;
    var courseOfGame = [];
-   var maxLev = 3;
+   var maxLev = 4;
    var state = vgmodelstatic.getInitialState();
 
    function possibleMoves(state) {
