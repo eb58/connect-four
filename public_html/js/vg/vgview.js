@@ -9,7 +9,7 @@ var vgview = function (m) {
                 buttons: {
                     OK: function () {
                         $(this).dialog("close");
-                    },
+                    }
                 },
                 autoOpen: false,
                 title: 'Meldung'

@@ -1,27 +1,78 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>QUNIT TESTS</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="/css/qunit.css">
-        <script src="/js/vendor/qunit.js"></script>
-        <script src="/js/vendor/underscore.js"></script>
-        <script src="/js/vendor/jquery-1.9.1.min.js"></script>
-        <script>
-            QUnit.test("hello test1", function (assert) {
-                assert.ok(1 === 1, "Passed!");
-            });
-            QUnit.test("hello test2", function (assert) {
-                assert.ok(1 !== "1", "Passed!");
-            });
-            QUnit.test("hello test3", function (assert) {
-                assert.ok(2 !== "3", "Passed!");
-            });
-        </script>
-    </head>
-    <body>
-        <div id="qunit"></div>
-        <div id="qunit-fixture"></div>
-    </body>
+   <head>
+      <title>QUNIT TESTS</title>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="stylesheet" href="/css/qunit.css">
+      <script src="/js/vendor/qunit.js"></script>
+      <script src="/js/vendor/underscore.js"></script>
+      <script src="/js/vendor/jquery-1.9.1.min.js"></script>
+      <script src="/js/vg/vgmodelstatic.js"></script>
+      <script src="/js/vg/vgmodel.js"></script>
+      <script src="/js/vg/vgview.js"></script>
+
+      <script>
+         QUnit.test("hello test1", function (assert) {
+            assert.ok(1 === 1, "Passed!");
+         });
+         QUnit.test("hello test2", function (assert) {
+            assert.ok(1 !== "1", "Passed!");
+         });
+         QUnit.test("hello test3", function (assert) {
+            assert.ok(2 !== "3", "Passed!");
+         });
+
+         QUnit.test('staticModel', function () {
+            //vgmodelstatic.dump();
+            equal(vgmodelstatic.getDIM().NCOL, 7, 'Dimension ok.');
+            equal(vgmodelstatic.getDIM().NROW, 7, 'Dimension ok.');
+            ok(vgmodelstatic.internalTests, "Interne Tests ok");
+         });
+
+
+         QUnit.test('model', function () {
+            function move(m, arr) {
+               arr.forEach(function (v) {
+                  m.move(v);
+               });
+            }
+            var model = vgmodel;
+            equal(model.setLevel(3), 3, 'SetLevel ok.');
+            equal(model.setLevel(4), 4, 'SetLevel ok.');
+            model.init('player1');
+            equal(model.whosTurn(), 'player1', 'WhosTurn1 ok.');
+            model.init('player2');
+            equal(model.whosTurn(), 'player2', 'WhosTurn2 ok.');
+            model.init('player1');
+            equal(model.whosTurn(), 'player1', 'WhosTurn3 ok.');
+            model.move(4);
+            equal(model.whosTurn(), 'player2', 'WhosTurn4 ok.');
+            model.move(3); // p2
+            equal(model.whosTurn(), 'player1', 'WhosTurn5 ok.');
+            model.move(4);
+            model.move(3);
+            equal(model.whosTurn(), 'player1', 'WhosTurn6 ok.');
+            model.move(4);
+            model.move(3);
+            equal(model.whosTurn(), 'player1', 'WhosTurn7 ok.');
+            //ok(model.bestMove() > 0, 'Evaluate ok');
+            model.init();
+            move(model, [0, 6, 0, 6, 0, 6]);
+            ok(model.bestMove() === 0, 'Evaluate ok');
+            move(model, [1]);
+            ok(model.bestMove() === 6, 'Evaluate ok');
+            model.init();
+            move(model, [3, 3, 4, 4]);
+            var bm = model.bestMove();
+            ok(bm === 2 || bm === 5, 'Evaluate ok');
+            model.init();
+         }
+         );
+      </script>
+   </head>
+   <body>
+      <div id="qunit"></div>
+      <div id="qunit-fixture"></div>
+   </body>
 </html>

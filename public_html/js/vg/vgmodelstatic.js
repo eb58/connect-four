@@ -1,3 +1,5 @@
+/* global _, QUnit */
+
 var vgmodelstatic = (function () {
    "use strict";
    var DIM = {NCOL: 7, NROW: 7};
@@ -97,10 +99,4 @@ var vgmodelstatic = (function () {
    };
 }());
 
-QUnit.test('staticModel', function () {
-   vgmodelstatic.dump();
-   equal(vgmodelstatic.getDIM().NCOL, 7, 'Dimension ok.');
-   equal(vgmodelstatic.getDIM().NROW, 7, 'Dimension ok.');
-   ok(vgmodelstatic.internalTests, "Interne Tests ok");
-});
    

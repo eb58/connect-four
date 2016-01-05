@@ -19,7 +19,7 @@ var vgmodel = (function () {
       });
       return mvs;
    }
-   
+
    function init(whosTurn) {
       state = vgmodelstatic.getInitialState();
       state.whosTurn = whosTurn === 'player1' ? STYP.player1 : STYP.player2;
@@ -49,9 +49,11 @@ var vgmodel = (function () {
          return 'notallowed';
       if (mstate.isMill)
          return 'notallowed';
-      mstate.cntMoves += 1;
       var grs = vgmodelstatic.grs[c + NCOL * mstate.hcol[c]];
-      grs.forEach( function (v) {
+      if (!grs)
+         return 'notallowed';
+      mstate.cntMoves += 1;
+      grs.forEach(function (v) {
          var gr = mstate.grstate[v];
          gr.occupiedBy = transitionGR(mstate.whosTurn, gr.occupiedBy);
          if (gr.occupiedBy !== STYP.neutral)
@@ -69,13 +71,14 @@ var vgmodel = (function () {
    function undoLastMove() {
       init(whoBegins);
       courseOfGame.pop();
+      
    }
 
    function computeVal(state) {
       var v = 0;
-      state.grstate.forEach(function (gr,idx) {
+      state.grstate.forEach(function (gr, idx) {
          var n = gr.cnt;
-         var factor = n===3 ? vgmodelstatic.gr[idx].val : 1;
+         var factor = n === 3 ? vgmodelstatic.gr[idx].val : 1;
          v += gr.occupiedBy === STYP.player1 ? n * n * n * n * factor : 0;
          v -= gr.occupiedBy === STYP.player2 ? n * n * n * n * factor : 0;
       });
@@ -126,19 +129,19 @@ var vgmodel = (function () {
    init();
    ////////////////////////////////////////////////////////////
    return {
-      isMill: function () {
+      isMill: function isMill() {
          return state.isMill;
       },
-      setMaxLevel: function (n) {
+      setLevel: function setLevel(n) {
          return state.maxLev = n;
       },
-      getRowOfCol: function (c) {
+      getRowOfCol: function getRowOfCol(c) {
          return NROW - state.hcol[c];
       },
-      whosTurn: function () {
+      whosTurn: function whosTurn() {
          return state.whosTurn === STYP.player1 ? 'player1' : 'player2';
       },
-      getField: function (r,c) {
+      getField: function getField(r, c) {
          return  state.sfeld[c + NCOL * r];
       },
       move: move,
@@ -148,41 +151,3 @@ var vgmodel = (function () {
 
    };
 }());
-
-QUnit.test('model', function () {
-   function move(m, arr) {
-      arr.forEach(function (v) {
-         m.move(v);
-      });
-   }
-   var model = vgmodel;
-   equal(model.setMaxLevel(3), 3, 'SetMaxLevel ok.');
-   equal(model.setMaxLevel(4), 4, 'SetMaxLevel ok.');
-   model.init('player1');
-   equal(model.whosTurn(), 'player1', 'WhosTurn1 ok.');
-   model.init('player2');
-   equal(model.whosTurn(), 'player2', 'WhosTurn2 ok.');
-   model.init('player1');
-   equal(model.whosTurn(), 'player1', 'WhosTurn3 ok.');
-   model.move(4);
-   equal(model.whosTurn(), 'player2', 'WhosTurn4 ok.');
-   model.move(3); // p2
-   equal(model.whosTurn(), 'player1', 'WhosTurn5 ok.');
-   model.move(4);
-   model.move(3);
-   equal(model.whosTurn(), 'player1', 'WhosTurn6 ok.');
-   model.move(4);
-   model.move(3);
-   equal(model.whosTurn(), 'player1', 'WhosTurn7 ok.');
-   //ok(model.bestMove() > 0, 'Evaluate ok');
-   model.init();
-   move(model, [0, 6, 0, 6, 0, 6]);
-   ok(model.bestMove() === 0, 'Evaluate ok');
-   move(model, [1]);
-   ok(model.bestMove() === 6, 'Evaluate ok');
-   model.init();
-   move(model, [3, 3, 4, 4]);
-   ok(model.bestMove() === 5, 'Evaluate ok');
-   model.init();
-}
-);
