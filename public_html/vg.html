@@ -38,34 +38,43 @@
   <script src="/js/vg/vgview.js"></script>
   <script src="/js/vg/vg.js"></script>
   <script>
-    function newGameDlg() {
-      $('<div></div').dialog({
-        buttons: {
-          Ja: function () {
-            vg.init('#field');
-            $(this).dialog("close");
+    $.extend({
+      confirm: function (title, question, callbackYes, callbackNo) {
+        question = question || '';
+        callbackYes = callbackYes || function () {
+          console.log('$.confirm:please provide callback!');
+        };
+        $("<div id='dlgConfirm'></div>").dialog({
+          buttons: {
+            "Ja": function () {
+              callbackYes && (callbackYes());
+              $(this).dialog("close");
+            },
+            "Nein": function () {
+              callbackNo && (callbackNo());
+              $(this).dialog("close");
+            }
           },
-          Nein: function () {
-            $(this).dialog("close");
-          }
-        },
-        autoOpen: false,
-        title: 'Frage'
-      }).text("Neues Spiel?").dialog("open");
+          close: function () {
+            $(this).dialog("destroy");
+          },
+          title: title,
+          modal: true,
+          height: 'auto',
+          closeText: 'Schlie\u00dfen'
+        }).html('<br>' + question.replace(/\n/g, '<br>'));
+      }
+    });
+
+    function newGameDlg() {
+      $.confirm('Frage', 'Neues Spiel', function () {
+        vg.init('#field');
+      });
     }
     function undoDlg() {
-      $('<div></div').dialog({
-        buttons: {
-          Ja: function () {
-            $(this).dialog("close");
-          },
-          Nein: function () {
-            $(this).dialog("close");
-          }
-        },
-        autoOpen: false,
-        title: 'Frage'
-      }).text("Zug zurücknehmen?").dialog("open");
+      $.confirm('Frage', 'Zug zurücknehmen?', function () {
+        vg.undoMove();
+      });
     }
 
     $(function () {

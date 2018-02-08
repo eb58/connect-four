@@ -10,6 +10,9 @@ var vg = (function () {
         },
         setLevel:function setLevel(n){
            m.setLevel(n);
+        },
+        undoMove: function(){
+          m.undoMove();
         }
     };
 }());

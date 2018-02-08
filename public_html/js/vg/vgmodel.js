@@ -62,10 +62,9 @@ var vgmodel = (function () {
     return 'ok';
   }
 
-  function undoLastMove() {
+  function undoMove() {
     init(whoBegins);
     courseOfGame.pop();
-
   }
 
   function computeVal(state) {
@@ -139,7 +138,7 @@ var vgmodel = (function () {
       return  state.sfeld[c + NCOL * r];
     },
     move: move,
-    undoLastMove: undoLastMove,
+    undoMove: undoMove,
     init: init,
     bestMove: bestMove
 
