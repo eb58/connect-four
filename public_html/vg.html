@@ -1,106 +1,106 @@
 <!DOCTYPE html>
 <head>
-   <meta charset="utf-8">
-   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-   <title>Vier Gewinnt</title>
-   <meta name="description" content="">
-   <meta name="viewport" content="width=device-width">
-   <link rel="stylesheet" href="css/jquery-ui.min.css">
-   <link rel="stylesheet" href="css/bootstrap.min.css">
-   <link rel="stylesheet" href="css/vg.css">
-   <style>
-      select {
-         display: block;
-         width: 90%;
-      }
-      .button {
-         display: block;
-         width: 90%;
-         margin-bottom: 5px;
-      }
-      .col1 {
-         float: left;
-         width: 25em;
-      }
-      .col2 {
-         background: #c4ced3;
-         margin-left: 25em;
-         width: 200px;
-         padding: 10px;
-      }
-   </style>
-   <script src="/js/vendor/jquery-1.9.1.min.js"></script>
-   <script src="/js/vendor/jquery-ui.min.js"></script>
-   <script src="/js/vendor/underscore.js"></script>
+  <meta charset="utf-8">
+  <title>Vier Gewinnt</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" href="vendor/jQueryUI-1.12.0/jquery-ui.min.css">
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/vg.css">
+  <style>
+    select {
+      display: block;
+      width: 90%;
+    }
+    .button {
+      display: block;
+      width: 90%;
+      margin-bottom: 5px;
+    }
+    .col1 {
+      float: left;
+      width: 25em;
+    }
+    .col2 {
+      background: #c4ced3;
+      margin-left: 25em;
+      width: 200px;
+      padding: 10px;
+    }
+  </style>
+  <script src="/vendor/underscore-1.8.3/underscore.js"></script>
+  <script src="/vendor/jQuery-1.11.3/jquery.min.js"></script>
+  <script src="/vendor/jQueryUI-1.12.0/jquery-ui.min.js"></script>
+  <script src="/vendor/qunit/qunit.js"></script>
 
-   <script src="/js/vg/vgmodelstatic.js"></script>
-   <script src="/js/vg/vgmodel.js"></script>
-   <script src="/js/vg/vgview.js"></script>
-   <script src="/js/vg/vg.js"></script>
-   <script>
-      function newGameDlg() {
-         $('<div></div').dialog({
-            buttons: {
-               Ja: function () {
-                  vg.init('#field');
-                  $(this).dialog("close");
-               },
-               Nein: function () {
-                  $(this).dialog("close");
-               }
-            },
-            autoOpen: false,
-            title: 'Frage'
-         }).text("Neues Spiel?").dialog("open");
-      }
-      function undoDlg() {
-         $('<div></div').dialog({
-            buttons: {
-               Ja: function () {
-                  $(this).dialog("close");
-               },
-               Nein: function () {
-                  $(this).dialog("close");
-               }
-            },
-            autoOpen: false,
-            title: 'Frage'
-         }).text("Zug zurücknehmen?").dialog("open");
-      }
+  <script src="/js/vg/vgmodelstatic.js"></script>
+  <script src="/js/vg/vgmodel.js"></script>
+  <script src="/js/vg/vgview.js"></script>
+  <script src="/js/vg/vg.js"></script>
+  <script>
+    function newGameDlg() {
+      $('<div></div').dialog({
+        buttons: {
+          Ja: function () {
+            vg.init('#field');
+            $(this).dialog("close");
+          },
+          Nein: function () {
+            $(this).dialog("close");
+          }
+        },
+        autoOpen: false,
+        title: 'Frage'
+      }).text("Neues Spiel?").dialog("open");
+    }
+    function undoDlg() {
+      $('<div></div').dialog({
+        buttons: {
+          Ja: function () {
+            $(this).dialog("close");
+          },
+          Nein: function () {
+            $(this).dialog("close");
+          }
+        },
+        autoOpen: false,
+        title: 'Frage'
+      }).text("Zug zurücknehmen?").dialog("open");
+    }
 
-      $(function () {
-         vg.init('#field');
-         $("#radio").selectmenu();
-         $("#newgame").button().click(newGameDlg);
-         $("#undo").button().click(undoDlg);
-         $("#whobegins").selectmenu();
-         $("#level").selectmenu({
-            change: function (event, data) {
-               vg.setLevel(data.item.value);
-            }});
-      });
-   </script>
+    $(function () {
+      vg.init('#field');
+      $("#radio").selectmenu();
+      $("#newgame").button().click(newGameDlg);
+      $("#undo").button().click(undoDlg);
+      $("#whobegins").selectmenu();
+      $("#level").selectmenu({
+        change: function (event, data) {
+          vg.setLevel(data.item.value);
+        }});
+    });
+  </script>
 </head>
 <body>
-   <h3 style="text-align:left;">Vier Gewinnt</h3>
-   <div  class="col1" id="field"></div>
-   <div  class="col2">
-      <button class="button" id="undo">Zug zurücknehmen</button>
-      <button class="button" id="newgame">Neu starten</button>
-      <label for="whobegins">Wer fängt an:</label>
-      <select name="whobegins" id="whobegins">
-         <option>Computer</option>
-         <option selected="selected">Spieler</option>
-      </select> 
-      <label for="level">Spielstärke:</label>
-      <select name="level" id="level">
-         <option value="2">Anfänger</option>
-         <option value="3">Amateur</option>
-         <option value="4" selected="selected">Fortgeschrittener</option>
-         <option value="5" >Meister</option>
-         <option value="6" >Großmeister</option>
-      </select> 
-   </div>
-   <div id='info'></div>
+  <h3 style="text-align:left;">Vier Gewinnt</h3>
+  <div  class="col1" id="field"></div>
+  <div  class="col2">
+    <button class="button" id="undo">Zug zurücknehmen</button>
+    <button class="button" id="newgame">Neu starten</button>
+    <label for="whobegins">Wer fängt an:</label>
+    <select name="whobegins" id="whobegins">
+      <option>Computer</option>
+      <option selected="selected">Spieler</option>
+    </select> 
+    <label for="level">Spielstärke:</label>
+    <select name="level" id="level">
+      <option value="2">Anfänger</option>
+      <option value="3">Amateur</option>
+      <option value="4" selected="selected">Fortgeschrittener</option>
+      <option value="5" >Meister</option>
+      <option value="6" >Großmeister</option>
+    </select> 
+  </div>
+  <div id='info'></div>
 </body>
 </html>
