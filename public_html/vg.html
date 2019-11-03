@@ -8,24 +8,10 @@
   <link rel="stylesheet" href="css/bootstrap.min.css">
   <link rel="stylesheet" href="css/vg.css">
   <style>
-    select {
-      display: block;
-      width: 90%;
-    }
-    .button {
-      display: block;
-      width: 90%;
-      margin-bottom: 5px;
-    }
-    .col1 {
-      float: left;
-      width: 25em;
-    }
-    .col2 {
-      background: #c4ced3;
-      margin-left: 25em;
-      width: 200px;
-      padding: 10px;
+    select {  display: block; width: 90%;    }
+    .button { display: block; width: 90%; margin-bottom: 5px; }
+    .col1 { float: left;width: 25em; }
+    .col2 { background: #c4ced3; margin-left: 25em; width: 200px; padding: 10px;
     }
   </style>
   <script src="/vendor/underscore-1.8.3/underscore.js"></script>
@@ -45,13 +31,14 @@
           console.log('$.confirm:please provide callback!');
         };
         $("<div id='dlgConfirm'></div>").dialog({
+          open:  () => $('#dlgConfirm').parent().css('font-size', '12px'),
           buttons: {
             "Ja": function () {
-              callbackYes && (callbackYes());
+              callbackYes && callbackYes();
               $(this).dialog("close");
             },
             "Nein": function () {
-              callbackNo && (callbackNo());
+              callbackNo && callbackNo();
               $(this).dialog("close");
             }
           },
@@ -67,26 +54,19 @@
     });
 
     function newGameDlg() {
-      $.confirm('Frage', 'Neues Spiel', function () {
-        vg.init('#field');
-      });
+      $.confirm('Frage', 'Neues Spiel', () => vg.init('#field'));
     }
     function undoDlg() {
-      $.confirm('Frage', 'Zug zurücknehmen?', function () {
-        vg.undoMove();
-      });
+      $.confirm('Frage', 'Zug zurücknehmen?', vg.undoMove);
     }
 
-    $(function () {
+    $(() => {
       vg.init('#field');
       $("#radio").selectmenu();
       $("#newgame").button().click(newGameDlg);
       $("#undo").button().click(undoDlg);
       $("#whobegins").selectmenu();
-      $("#level").selectmenu({
-        change: function (event, data) {
-          vg.setLevel(data.item.value);
-        }});
+      $("#level").selectmenu({change: (event, data) => vg.setLevel(data.item.value)});
     });
   </script>
 </head>
