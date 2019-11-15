@@ -34,7 +34,7 @@ const vgview = function (m) {
           return myAlert("Gratuliere, du hast gewonnen!");
         }
         setSpielstein(bestMove);
-        if (m.isMill()) {
+        if (m.isMill) {
           return myAlert("Bedaure, du hast verloren!");
         }
       };
