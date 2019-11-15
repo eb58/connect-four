@@ -1,26 +1,26 @@
 body {
-    margin-left: 10%;  
-    /*padding-left: 30px;*/
+  margin-left: 10%;  
+  /*padding-left: 30px;*/
 }
 
 #field table{
-    background-color: #CCC;
-    width: 90%;
+  background-color: #CCC;
+  width: 90%;
 }
 
 #field table tbody tr td {
-    border: 1px solid white; 
-    padding-bottom: 15%; /* = width for a square aspect ratio */
-    border-radius: 50%;
-    margin: 2px;
+  border: 1px solid white; 
+  padding-bottom: 15%; /* = width for a square aspect ratio */
+  border-radius: 50%;
+  margin: 2px;
 }
 
 td.player1    {
-    background:  #a00;
-    border-radius: 50%;
+  background:  #a00;
+  border-radius: 50%;
 }
 td.player2 {
-    background:  #00a;
-    border-radius: 50%;
+  background:  #00a;
+  border-radius: 50%;
 }
 

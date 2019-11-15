@@ -12,9 +12,8 @@
     .button { display: block; width: 90%; margin-bottom: 5px; }
     .col1 { float: left;width: 25em; }
     .col2 { background: #c4ced3; margin-left: 25em; width: 200px; padding: 10px;
-    }
   </style>
-  <script src="/vendor/underscore-1.8.3/underscore.js"></script>
+  <script src="/vendor/underscore-1.8.3/underscore-1.8.3.js"></script>
   <script src="/vendor/jQuery-1.11.3/jquery.min.js"></script>
   <script src="/vendor/jQueryUI-1.12.0/jquery-ui.min.js"></script>
   <script src="/vendor/qunit/qunit.js"></script>
@@ -62,7 +61,6 @@
 
     $(() => {
       vg.init('#field');
-      $("#radio").selectmenu();
       $("#newgame").button().click(newGameDlg);
       $("#undo").button().click(undoDlg);
       $("#whobegins").selectmenu();

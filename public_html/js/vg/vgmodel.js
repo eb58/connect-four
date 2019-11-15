@@ -12,9 +12,7 @@ const vgmodel = (function () {
   const maxLev = 4;
   let state = vgmodelstatic.getInitialState();
 
-  function possibleMoves(state) {
-    return _.range(NCOL).filter(c => state.hcol[c] < NROW);
-  }
+  const possibleMoves = state => _.range(NCOL).filter(c => state.hcol[c] < NROW);
 
   function init(whosTurn) {
     state = vgmodelstatic.getInitialState();
@@ -72,7 +70,7 @@ const vgmodel = (function () {
     return state.whosTurn === STYP.player1 ? v : -v;
   }
 
-  function miniMax(state, lev, alpha, beta) { // evaluate state recursive, negamax algorithm!
+  const miniMax = (state, lev, alpha, beta) => { // evaluate state recursive, negamax algorithm!
     state.bestMove = -1;
 
     if (state.isMill) {
@@ -120,10 +118,10 @@ const vgmodel = (function () {
     getRowOfCol: c => NROW - state.hcol[c],
     whosTurn: () => state.whosTurn === STYP.player1 ? 'player1' : 'player2',
     getField: (r, c)  =>  state.sfeld[c + NCOL * r],
-    move: move,
-    undoMove: undoMove,
-    init: init,
-    bestMove: bestMove
+    move,
+    undoMove,
+    init,
+    bestMove
 
   };
 }());
