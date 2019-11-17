@@ -6,8 +6,8 @@ const vgmodelstatic = (function () {
   const gr = []; // Gewinnreihen
   const grs = []; // Gewinnreihen pro Feld  
 
-  function berechneGRs(r, c, dr, dc) { // dr = delta row,  dc = delta col
-    function valOfGR(dr, dc) {
+  const berechneGRs = (r, c, dr, dc) => { // dr = delta row,  dc = delta col
+    const valOfGR= (dr, dc) => {
       if (dc === 0)
         return 8; // horizontal gr is the best
       if (dr === 0)
@@ -26,7 +26,7 @@ const vgmodelstatic = (function () {
     }
   }
 
-  function initGRs() {
+  const initGRs = () => {
     for (let r = 0; r < DIM.NROW; r++) {
       for (let c = 0; c < DIM.NCOL; c++) {
         berechneGRs(r, c, 0, 1);
@@ -52,11 +52,11 @@ const vgmodelstatic = (function () {
     maxVal: -1
   };
   // debug and test
-  function dump() {
+  const  dump = () => {
     gr.forEach(o => console.log("gr: " + o.arr + ' val: ' + o.val));
     grs.forEach(o => console.log("grs: " + o));
   }
-  function internalTests() {
+  const internalTests = () => {
     return gr.length === 88
             && _.isEqual(gr[0].arr, [0, 1, 2, 3])
             && _.isEqual(gr[1].arr, [0, 8, 16, 24])

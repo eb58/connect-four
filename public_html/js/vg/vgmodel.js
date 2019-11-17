@@ -10,17 +10,17 @@ const vgmodel = (function () {
   const ord = [3, 4, 2, 5, 1, 6, 0];
   const courseOfGame = [];
   const maxLev = 4;
-  let state = vgmodelstatic.getInitialState();
+  let state;
 
   const possibleMoves = state => _.range(NCOL).filter(c => state.hcol[c] < NROW);
 
-  function init(whosTurn) {
+  const init = whosTurn => {
     state = vgmodelstatic.getInitialState();
     state.whosTurn = whosTurn === 'player1' ? STYP.player1 : STYP.player2;
     state.cnt = {player1: 0, player2: 0};
   }
 
-  function transitionGR(e, a) { // e eingang   a ausgang
+  const transitionGR = (e, a) => { // e eingang   a ausgang
     if (a === STYP.empty)
       return e;
     if (a === e)
@@ -29,7 +29,7 @@ const vgmodel = (function () {
       return STYP.neutral;
   }
 
-  function move(c, mstate) {
+  const move = (c, mstate) => {
     if (mstate === undefined)
       mstate = state;
     if (mstate.hcol[c] === NROW)
@@ -54,12 +54,12 @@ const vgmodel = (function () {
     return mstate.isMill ? 'endOfGame' : 'ok';
   }
 
-  function undoMove() {
+  const undoMove = ( )=>{
     init(state.whosTurn);
     courseOfGame.pop();
   }
 
-  function computeVal(state) {
+  const computeVal = state => {
     let v = 0;
     state.grstate.forEach((gr, idx) => {
       const n = gr.cnt;
@@ -98,7 +98,7 @@ const vgmodel = (function () {
     return state.maxVal;
   }
 
-  function bestMove() {
+  const bestMove = () => {
     let lstate = $.extend(true, {}, state);
 //      const val = miniMax(lstate, 2, -MAXVAL, +MAXVAL);
 //      if (val >= MAXVAL)
@@ -110,9 +110,11 @@ const vgmodel = (function () {
     const mvs = possibleMoves(state);
     return mvs.length ? mvs[0] : -1;
   }
+  
   init();
+  
   ////////////////////////////////////////////////////////////
-  return {
+  return { // API
     setLevel: n => state.maxLev = n,
     getRowOfCol: c => NROW - state.hcol[c],
     whosTurn: () => state.whosTurn === STYP.player1 ? 'player1' : 'player2',
