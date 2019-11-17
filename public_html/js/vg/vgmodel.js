@@ -40,7 +40,7 @@ const vgmodel = (function () {
     if (!grs)
       return 'notallowed';
     mstate.cntMoves += 1;
-    grs.forEach(function (v) {
+    grs.forEach(v => {
       const gr = mstate.grstate[v];
       gr.occupiedBy = transitionGR(mstate.whosTurn, gr.occupiedBy);
       if (gr.occupiedBy !== STYP.neutral)
@@ -51,7 +51,7 @@ const vgmodel = (function () {
     });
     mstate.hcol[c] += 1;
     mstate.whosTurn = mstate.whosTurn === STYP.player1 ? STYP.player2 : STYP.player1;
-    return 'ok';
+    return mstate.isMill ? 'endOfGame' : 'ok';
   }
 
   function undoMove() {
@@ -61,7 +61,7 @@ const vgmodel = (function () {
 
   function computeVal(state) {
     let v = 0;
-    state.grstate.forEach((gr, idx)=> {
+    state.grstate.forEach((gr, idx) => {
       const n = gr.cnt;
       const factor = n === 3 ? vgmodelstatic.gr[idx].val : 1;
       v += gr.occupiedBy === STYP.player1 ? n * n * n * n * factor : 0;
@@ -113,15 +113,13 @@ const vgmodel = (function () {
   init();
   ////////////////////////////////////////////////////////////
   return {
-    isMill: state.isMill,
     setLevel: n => state.maxLev = n,
     getRowOfCol: c => NROW - state.hcol[c],
     whosTurn: () => state.whosTurn === STYP.player1 ? 'player1' : 'player2',
-    getField: (r, c)  =>  state.sfeld[c + NCOL * r],
+    getField: (r, c) => state.sfeld[c + NCOL * r],
     move,
     undoMove,
     init,
     bestMove
-
   };
 }());

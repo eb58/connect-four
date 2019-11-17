@@ -1,26 +1,21 @@
 body {
   margin-left: 10%;  
-  /*padding-left: 30px;*/
 }
 
 #field table{
-  background-color: #CCC;
+ 
+  background-color: #070;
   width: 90%;
 }
 
-#field table tbody tr td {
-  border: 1px solid white; 
+#field td {
+  border-collapse: separate;
+  border: 2px solid #070; 
   padding-bottom: 15%; /* = width for a square aspect ratio */
+  background: #ddd;
   border-radius: 50%;
-  margin: 2px;
 }
 
-td.player1    {
-  background:  #a00;
-  border-radius: 50%;
-}
-td.player2 {
-  background:  #00a;
-  border-radius: 50%;
-}
+#field td.player1 { background: #a00; }
+#field td.player2 { background: #00a; }
 

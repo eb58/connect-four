@@ -28,13 +28,14 @@ const vgview = function (m) {
         if (m.move(c) === 'notallowed') {
           return;
         }
-        setSpielstein(c);
+        setSpielstein(c); // Player 
         const bestMove = m.bestMove();
-        if (m.move(bestMove) === 'notallowed') {
+        const result = m.move(bestMove);
+        if ( result === 'notallowed') {
           return myAlert("Gratuliere, du hast gewonnen!");
         }
         setSpielstein(bestMove);
-        if (m.isMill) {
+        if (result === 'endOfGame') {
           return myAlert("Bedaure, du hast verloren!");
         }
       };
