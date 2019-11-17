@@ -100,9 +100,6 @@ const vgmodel = (function () {
 
   const bestMove = () => {
     let lstate = $.extend(true, {}, state);
-//      const val = miniMax(lstate, 2, -MAXVAL, +MAXVAL);
-//      if (val >= MAXVAL)
-//         return lstate.bestMove;
     miniMax(lstate, maxLev, -MAXVAL, +MAXVAL);
     if (lstate.bestMove !== -1)
       return lstate.bestMove;
