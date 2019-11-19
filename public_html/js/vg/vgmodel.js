@@ -101,7 +101,7 @@ const vgmodel = (function () {
     const valuesOfMoves = rangeNCOL.map(() => alpha);
 
     for (let i = 0; i < moves.length; i++) {
-      const ordc = ORDER[moves[i]];
+      const ordc = moves[i];
       const lstate = $.extend(true, {}, state);
       move(ordc, lstate);
       const val = -miniMax(lstate, lev - 1, -beta, -maxVal);
