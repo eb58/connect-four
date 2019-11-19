@@ -1,13 +1,13 @@
 /* global vgmodel */
 const vg = (function () {
   "use strict";
-  const v = vgview(vgmodel);
   return {
-    init: id => {
-      vgmodel.init();
-      v.render(id);
+    init: (id, player) => {
+      vgmodel.init(player)
+      vgview(vgmodel).render(id);
     },
     setLevel: vgmodel.setLevel,
     undoMove: vgmodel.undoMove,
+    getStatistics: vgmodel.getStatistics,
   };
 }());

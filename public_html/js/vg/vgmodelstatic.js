@@ -7,10 +7,10 @@ const vgmodelstatic = (function () {
   const grs = []; // Gewinnreihen pro Feld  
 
   const berechneGRs = (r, c, dr, dc) => { // dr = delta row,  dc = delta col
-    const valOfGR = (dr, dc) =>
-      dc === 0 ? 8 // horizontal gr is the best
-              : (dr === 0 ? 1  // vertical gr is not so strong as horizontal or skew ones
-                      : 4); // skew gr is quit good
+    // horizontal gr is the best (8)
+    // skew gr is quit good (4)
+    // vertical gr is not so strong as horizontal or skew ones (1)
+    const valOfGR = (dr, dc) => dc === 0 ? 8 : (dr !== 0 ? 4 : 1);
 
     const arr = [];
     while (r >= 0 && r < DIM.NROW && c >= 0 && c < DIM.NCOL) {
@@ -40,19 +40,10 @@ const vgmodelstatic = (function () {
     //dump();
   }
   initGRs();
-  const initialState = {
-    hcol: _.range(DIM.NCOL).fill(0), // height of cols = [0,0,0,...,0];
-    grstate: _.range(gr.length).fill({occupiedBy: STYP.empty, cnt: 0}),
-    whosTurn: STYP.player1,
-    isMill: 0,
-    cntMoves: 0,
-    bestMove: -1,
-    maxVal: -1
-  };
   // debug and test
   const  dump = () => {
     gr.forEach(o => console.log("gr: " + o.arr + ' val: ' + o.val));
-    grs.forEach(o => console.log("grs: " + o));
+    grs.forEach((o,i) => console.log("grs: ", i, o));
   }
   const internalTests = () => gr.length === 88
             && _.isEqual(gr[0].arr, [0, 1, 2, 3])
@@ -60,17 +51,16 @@ const vgmodelstatic = (function () {
             && _.isEqual(grs[0].arr, [0, 1, 2])
             && _.isEqual(grs[1].arr, [0, 3, 4, 5]);
 
-  return {// API
+  return Object.freeze({// API
     // Test + Debug
     dump: dump,
     internalTests: internalTests,
     // Public
-    getInitialState: () => $.extend(true, {}, initialState),
     DIM,
     gr,
     grs,
     STYP
-  };
+  });
 }());
 
    

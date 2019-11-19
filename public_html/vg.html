@@ -58,12 +58,19 @@
         $.confirm('Frage', 'Zug zurücknehmen?', vg.undoMove);
       }
 
+      let whoBegins ='player1';
       $(() => {
         vg.init('#field');
         $("#newgame").button().click(newGameDlg);
         $("#undo").button().click(undoDlg);
-        $("#whobegins").selectmenu({});
-        $("#level").selectmenu({change: (event, data) => vg.setLevel(data.item.value)});
+        $("#whobegins").selectmenu({change: (event, ui) => {
+            console.log(ui)
+            whoBegins = ui.item.value==='Spieler'?'player1':'player2';
+          }});
+        $("#level").selectmenu({change: (event, data) => {
+            console.log(data.item.value)
+            vg.setLevel(data.item.value)
+        }});
       });
     </script>
   </head>
@@ -71,22 +78,22 @@
     <h3 style="text-align:left;">Vier Gewinnt</h3>
     <div class="col1" id="field"></div>
     <div class="col2" style="width:250px">
-      <button class="button" id="undo">Zug zurücknehmen</button>
-      <button class="button" id="newgame">Neu starten</button>
-      <label for="whobegins">Wer fängt an:</label>
-      <select name="whobegins" id="whobegins">
-        <option>Computer</option>
-        <option selected="selected">Spieler</option>
-      </select> 
-      <label for="level">Spielstärke:</label>
-      <select name="level" id="level">
-        <option value="2">Anfänger</option>
-        <option value="3">Amateur</option>
-        <option value="4" selected="selected">Fortgeschrittener</option>
-        <option value="5" >Meister</option>
-        <option value="6" >Großmeister</option>
-      </select> 
-    </div>
-    <div id='info'></div>
-  </body>
-</html>
+        <button class="button" id="undo">Zug zurücknehmen</button>
+        <button class="button" id="newgame">Neu starten</button>
+        <label for="whobegins">Wer fängt an:</label>
+        <select name="whobegins" id="whobegins">
+          <option>Computer</option>
+          <option selected="selected">Spieler</option>
+        </select> 
+        <label for="level">Spielstärke:</label>
+        <select name="level" id="level">
+          <option value="2">Anfänger</option>
+          <option value="3">Amateur</option>
+          <option value="4" selected="selected">Fortgeschrittener</option>
+          <option value="5" >Meister</option>
+          <option value="6" >Großmeister</option>
+        </select> 
+      </div>
+      <div id='info'></div>
+    </body>
+  </html>

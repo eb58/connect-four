@@ -1,80 +1,75 @@
 <!DOCTYPE html>
 <html>
-   <head>
-      <title>QUNIT TESTS</title>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <title>QUNIT TESTS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/vendor/qunit/qunit.css">
+
+    <script src="/vendor/underscore-1.8.3/underscore.js"></script>
+    <script src="/vendor/jQuery-1.11.3/jquery.min.js"></script>
+    <script src="/vendor/qunit/qunit.js"></script>
+    <script src="/js/vg/vgmodelstatic.js"></script>
+    <script src="/js/vg/vgmodel.js"></script>
+    <script>
+
+      const doMoves = (m, arr) => arr.forEach(v => m.move(v));
+      QUnit.test('staticModel', () => {
+        //vgmodelstatic.dump();
+        equal(vgmodelstatic.DIM.NCOL, 7, 'Dimension ok.');
+        equal(vgmodelstatic.DIM.NROW, 7, 'Dimension ok.');
+        ok(vgmodelstatic.internalTests, "Interne Tests ok");
+      });
+      QUnit.test('model1 setLevel', () => {
+        vgmodel.init();
+        equal(vgmodel.setLevel(3), 3, 'SetLevel ok.');
+        equal(vgmodel.setLevel(4), 4, 'SetLevel ok.');
+      });
+
+      QUnit.test('model - whosTurn is it', () => {
+        vgmodel.init('player1');
+        equal(vgmodel.whosTurn(), 'player1', 'WhosTurn1 ok.');
+        vgmodel.init('player2');
+        equal(vgmodel.whosTurn(), 'player2', 'WhosTurn2 ok.');
+      })
+
+      QUnit.test('model - whosTurn is it2', () => {
+        vgmodel.init('player1');
+        equal(vgmodel.whosTurn(), 'player1', 'WhosTurn3 ok.');
+        vgmodel.move(4);
+        equal(vgmodel.whosTurn(), 'player2', 'WhosTurn4 ok.');
+        vgmodel.move(3); // p2
+        equal(vgmodel.whosTurn(), 'player1', 'WhosTurn5 ok.');
+        vgmodel.move(4);
+        vgmodel.move(3);
+        equal(vgmodel.whosTurn(), 'player1', 'WhosTurn6 ok.');
+        vgmodel.move(4);
+        vgmodel.move(3);
+        equal(vgmodel.whosTurn(), 'player1', 'WhosTurn7 ok.');
+        //ok(model.bestMove() > 0, 'Evaluate ok');
+      });
+
+      QUnit.test('model Eval best Move', () => {
+         vgmodel.init();
+        doMoves(vgmodel, [0, 6, 0, 6, 0, 6]);
+        equal(vgmodel.bestMove(), 0, 'Evaluate ok');
+        vgmodel.move(1);
+        equal(vgmodel.bestMove(), 6, 'Evaluate ok');
+      });
       
-      <link rel="stylesheet" href="/vendor/qunit/qunit.css">
-      
-      <script src="/vendor/underscore-1.8.3/underscore.js"></script>
-      <script src="/vendor/jQuery-1.11.3/jquery.min.js"></script>
-      <script src="/vendor/qunit/qunit.js"></script>
-      <script src="/js/vg/vgmodelstatic.js"></script>
-      <script src="/js/vg/vgmodel.js"></script>
-      <script src="/js/vg/vgview.js"></script>
+      QUnit.test('model4', () => {
+        vgmodel.init();
+        vgmodel.setLevel(4);
+        doMoves(vgmodel, [3, 3, 4, 4]);
+        const bm = vgmodel.bestMove();
+        ok(bm === 2 || bm === 5, 'Evaluate ok');
+      });
 
-      <script>
-         QUnit.test("hello test1", function (assert) {
-            assert.ok(1 === 1, "Passed!");
-         });
-         QUnit.test("hello test2", function (assert) {
-            assert.ok(1 !== "1", "Passed!");
-         });
-         QUnit.test("hello test3", function (assert) {
-            assert.ok(2 !== "3", "Passed!");
-         });
-
-         QUnit.test('staticModel', function () {
-            //vgmodelstatic.dump();
-            equal(vgmodelstatic.DIM.NCOL, 7, 'Dimension ok.');
-            equal(vgmodelstatic.DIM.NROW, 7, 'Dimension ok.');
-            ok(vgmodelstatic.internalTests, "Interne Tests ok");
-         });
-
-
-         QUnit.test('model', function () {
-            function move(m, arr) {
-               arr.forEach(function (v) {
-                  m.move(v);
-               });
-            }
-            var model = vgmodel;
-            equal(model.setLevel(3), 3, 'SetLevel ok.');
-            equal(model.setLevel(4), 4, 'SetLevel ok.');
-            model.init('player1');
-            equal(model.whosTurn(), 'player1', 'WhosTurn1 ok.');
-            model.init('player2');
-            equal(model.whosTurn(), 'player2', 'WhosTurn2 ok.');
-            model.init('player1');
-            equal(model.whosTurn(), 'player1', 'WhosTurn3 ok.');
-            model.move(4);
-            equal(model.whosTurn(), 'player2', 'WhosTurn4 ok.');
-            model.move(3); // p2
-            equal(model.whosTurn(), 'player1', 'WhosTurn5 ok.');
-            model.move(4);
-            model.move(3);
-            equal(model.whosTurn(), 'player1', 'WhosTurn6 ok.');
-            model.move(4);
-            model.move(3);
-            equal(model.whosTurn(), 'player1', 'WhosTurn7 ok.');
-            //ok(model.bestMove() > 0, 'Evaluate ok');
-            model.init();
-            move(model, [0, 6, 0, 6, 0, 6]);
-            ok(model.bestMove() === 0, 'Evaluate ok');
-            move(model, [1]);
-            ok(model.bestMove() === 6, 'Evaluate ok');
-            model.init();
-            move(model, [3, 3, 4, 4]);
-            var bm = model.bestMove();
-            ok(bm === 2 || bm === 5, 'Evaluate ok');
-            model.init();
-         }
-         );
-      </script>
-   </head>
-   <body>
-      <div id="qunit"></div>
-      <div id="qunit-fixture"></div>
-   </body>
+    </script>
+  </head>
+  <body>
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+  </body>
 </html>
