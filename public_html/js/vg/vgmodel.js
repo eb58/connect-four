@@ -1,22 +1,20 @@
-/* global vgmodelstatic, _, QUnit */
 const vgmodel = (function () {
-  "use strict";
-
+  const range = (n) => [...Array(n).keys()]
   const MAXVAL = 100000;
   const [NCOL, NROW] = [vgmodelstatic.DIM.NCOL, vgmodelstatic.DIM.NROW];
   const STYP = vgmodelstatic.STYP;
-  const rangeNCOL = _.range(NCOL);
+  const rangeNCOL = range(NCOL);
   const ORDER = [3, 4, 2, 5, 1, 6, 0];
 
   const origStateOfGame = {
     whoBegins: 'player1',
-    maxLev: 6,
+    maxLev: 4,
     courseOfGame: [],
   };
 
   const origState = {// state that is used for evaluating 
     hcol: rangeNCOL.map(() => 0), // height of cols = [0,0,0,...,0];
-    grstate: _.range(vgmodelstatic.gr.length).map(() => ({occupiedBy: STYP.empty, cnt: 0})),
+    grstate: range(vgmodelstatic.gr.length).map(() => ({ occupiedBy: STYP.empty, cnt: 0 })),
     whosTurn: origStateOfGame.whoBegins === 'player1' ? STYP.player1 : STYP.player2,
     isMill: false,
     bestMove: -1,
@@ -52,8 +50,8 @@ const vgmodel = (function () {
     }
 
     // update state of gewinnreihen attached in move c
-    const grs = vgmodelstatic.grs[c + NCOL * mstate.hcol[c]];
-    grs && grs.forEach(v => {
+    const grs = vgmodelstatic.grs[c + NCOL * mstate.hcol[c]] || [];
+    grs.forEach(v => {
       const gr = mstate.grstate[v];
       gr.occupiedBy = transitionGR(mstate.whosTurn, gr.occupiedBy);
       gr.cnt += gr.occupiedBy !== STYP.neutral;
@@ -65,24 +63,21 @@ const vgmodel = (function () {
     mstate.hcol[c] += 1;
     mstate.whosTurn = mstate.whosTurn === STYP.player1 ? STYP.player2 : STYP.player1;
 
-    return mstate.isMill ? 'isMill' : mstate.cntMoves === NROW * NCOL ? 'draw' : 'notallowed';
-  }
-
-  const undoMove = () => {
+    return mstate.isMill ? 'isMill' : (mstate.cntMoves === NROW * NCOL ? 'draw' : 'notallowed');
   }
 
   const computeValOfNode = state => {
     const v = state.grstate.reduce((acc, gr) => {
       const n = gr.cnt;
-      const factor = 1;//  n === 3 ? vgmodelstatic.gr.val : 1;
+      const factor = 1; //  n === 3 ? vgmodelstatic.gr.val : 1;
       return acc
-              + (gr.occupiedBy === STYP.player1 ? n * n * n * n * factor : 0)
-              - (gr.occupiedBy === STYP.player2 ? n * n * n * n * factor : 0);
+        + (gr.occupiedBy === STYP.player1 ? n * n * n * factor : 0)
+        - (gr.occupiedBy === STYP.player2 ? n * n * n * factor : 0);
     }, 0);
     return state.whosTurn === STYP.player1 ? v : -v;
   }
 
-  const miniMax = (state, lev, alpha, beta) => { // evaluate state recursive, negamax algorithm!
+  const miniMax = (state, lev, alpha, beta) => { // evaluate state recursively, negamax algorithm!
     state.bestMove = -1;
     if (state.isMill) {
       return -(MAXVAL + lev);
@@ -100,43 +95,39 @@ const vgmodel = (function () {
     let maxVal = alpha;
     const valuesOfMoves = rangeNCOL.map(() => alpha);
 
-    for (let i = 0; i < moves.length; i++) {
-      const ordc = moves[i];
+    for (const m of moves) {
       const lstate = $.extend(true, {}, state);
-      move(ordc, lstate);
+      move(m, lstate);
       const val = -miniMax(lstate, lev - 1, -beta, -maxVal);
-      valuesOfMoves[ordc] = val;
+      valuesOfMoves[m] = val;
       if (val > maxVal) {
         maxVal = val;
-        state.bestMove = ordc;
-        if ( maxVal >= beta) {
+        state.bestMove = m;
+        if (maxVal >= beta) {
           break;
         }
       }
     }
-    console.log('LEV:', lev, 'VALS:', valuesOfMoves, 'MAXVAL:', maxVal, 'BESTMOVE', state.bestMove)
+    // console.log('LEV:', lev, 'VALS:', valuesOfMoves, 'MAXVAL:', maxVal, 'BESTMOVE', state.bestMove)
     return maxVal;
   }
-  
-  const bestMove = () => {
-      let lstate = $.extend(true, {}, state);
-      miniMax(lstate, stateOfGame.maxLev, -MAXVAL, +MAXVAL);
-      if (lstate.bestMove !== -1)
-        return lstate.bestMove;
-      // there is no best move, just take first possible,
-      return possibleMoves(state)[0]
-    }
 
-  const api = {
-    init: init,
-    setLevel: n => stateOfGame.maxLev = n,
+  const bestMove = () => {
+    const lstate = $.extend(true, {}, state);
+    miniMax(lstate, stateOfGame.maxLev, -MAXVAL, +MAXVAL);
+    if (lstate.bestMove !== -1)
+      return lstate.bestMove;
+    // there is no best move, just take first possible,
+    return possibleMoves(state)[0]
+  }
+
+  return {
+    init,
+    setLevel: lev => stateOfGame.maxLev = lev,
     setWhoBegins: player => stateOfGame.whoBegins = player,
     getHeightOfCol: c => state.hcol[c],
     whosTurn: () => state.whosTurn === STYP.player1 ? 'player1' : 'player2',
-    undoMove: undoMove,
-    move: move,
-    bestMove: bestMove,
+    move,
+    bestMove,
   }
-
-  return api
 }());

@@ -1,99 +1,76 @@
 <!DOCTYPE html>
+
 <head>
   <meta charset="utf-8">
   <title>Vier Gewinnt</title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width">
   <link rel="stylesheet" href="./vendor/jQueryUI-1.12.0/jquery-ui.min.css">
-  <link rel="stylesheet" href="./css/bootstrap.min.css">
   <link rel="stylesheet" href="./css/vg.css">
-  <style>
-    .button { display: block; width: 95%; margin-bottom: 5px; }
-    .col1 { float: left; width: 300px; }
-    .col2 { background: #c4ced3; margin-left: 25em; width: 200px; padding: 10px;
-    </style>
-    <script src="./vendor/underscore-1.8.3/underscore.js"></script>
-    <script src="./vendor/jQuery-1.11.3/jquery.min.js"></script>
-    <script src="./vendor/jQueryUI-1.12.0/jquery-ui.min.js"></script>
-    <script src="./vendor/qunit/qunit.js"></script>
+  <script src="./vendor/jQuery-1.11.3/jquery.min.js"></script>
+  <script src="./vendor/jQueryUI-1.12.0/jquery-ui.min.js"></script>
+  <script src="./vendor/qunit/qunit.js"></script>
 
-    <script src="./js/vg/vgmodelstatic.js"></script>
-    <script src="./js/vg/vgmodel.js"></script>
-    <script src="./js/vg/vgview.js"></script>
-    <script src="./js/vg/vg.js"></script>
-    <script>
-      $.extend({
-        confirm: function (title, question, callbackYes, callbackNo) {
-          question = question || '';
-          callbackYes = callbackYes || function () {
-            console.log('$.confirm:please provide callback!');
-          };
-          $("<div id='dlgConfirm'></div>").dialog({
-            open: () => $('#dlgConfirm').parent().css('font-size', '12px'),
-            buttons: {
-              "Ja": function () {
-                callbackYes && callbackYes();
-                $(this).dialog("close");
-              },
-              "Nein": function () {
-                callbackNo && callbackNo();
-                $(this).dialog("close");
-              }
-            },
-            close: function () {
-              $(this).dialog("destroy");
-            },
-            title: title,
-            modal: true,
-            height: 'auto',
-            closeText: 'Schlie\u00dfen'
-          }).html('<br>' + question.replace(/\n/g, '<br>'));
-        }
-      });
+  <script src="./js/vg/vgmodelstatic.js"></script>
+  <script src="./js/vg/vgmodel.js"></script>
+  <script src="./js/vg/vgview.js"></script>
+  <script src="./js/vg/vg.js"></script>
+  <script>
 
-      function newGameDlg() {
-        $.confirm('Frage', 'Neues Spiel', () => vg.init('#field'));
-      }
-      function undoDlg() {
-        $.confirm('Frage', 'Zug zurücknehmen?', vg.undoMove);
-      }
 
-      let whoBegins ='player1';
-      $(() => {
-        vg.init('#field');
-        $("#newgame").button().click(newGameDlg);
-        $("#undo").button().click(undoDlg);
-        $("#whobegins").selectmenu({change: (event, ui) => {
-            console.log(ui)
-            whoBegins = ui.item.value==='Spieler'?'player1':'player2';
-          }});
-        $("#level").selectmenu({change: (event, data) => {
-            console.log(data.item.value)
-            vg.setLevel(data.item.value)
-        }});
-      });
-    </script>
-  </head>
-  <body>
-    <h3 style="text-align:left;">Vier Gewinnt</h3>
-    <div class="col1" id="field"></div>
-    <div class="col2" style="width:250px">
-        <button class="button" id="undo">Zug zurücknehmen</button>
-        <button class="button" id="newgame">Neu starten</button>
-        <label for="whobegins">Wer fängt an:</label>
-        <select name="whobegins" id="whobegins">
-          <option>Computer</option>
-          <option selected="selected">Spieler</option>
-        </select> 
-        <label for="level">Spielstärke:</label>
-        <select name="level" id="level">
-          <option value="2">Anfänger</option>
-          <option value="3">Amateur</option>
-          <option value="4" selected="selected">Fortgeschrittener</option>
-          <option value="5" >Meister</option>
-          <option value="6" >Großmeister</option>
-        </select> 
-      </div>
-      <div id='info'></div>
-    </body>
-  </html>
+    const confirm = function (title, question, callbackYes, callbackNo) {
+      question = question || '';
+      callbackYes = callbackYes || (() => console.log('$.confirm:please provide callback!'));
+      $("<div id='dlgConfirm'></div>").dialog({
+        open: () => $('#dlgConfirm').parent().css('font-size', '12px'),
+        close: function () { $(this).dialog("destroy"); },
+        buttons: {
+          "Ja": function () { callbackYes && callbackYes(); $(this).dialog("close"); },
+          "Nein": function () { callbackNo && callbackNo(); $(this).dialog("close"); }
+        },
+        title,
+        modal: true,
+        height: 'auto',
+        closeText: 'Schlie\u00dfen'
+      }).html('<br>' + question.replace(/\n/g, '<br>'));
+    }
+
+
+    const newGameDlg = () => confirm('Frage', 'Neues Spiel', () => vg.init('#field'));
+    const undoDlg = () => confirm('Frage', 'Zug zurücknehmen?', vg.undoMove);
+
+    let whoBegins = 'player1';
+    $(() => {
+      vg.init('#field');
+      $("#newgame").button().click(newGameDlg);
+      $("#undo").button().click(undoDlg);
+      $("#whobegins").selectmenu({ change: (event, ui) => whoBegins = ui.item.value === 'Spieler' ? 'player1' : 'player2' });
+      $("#level").selectmenu({ change: (event, data) => vg.setLevel(data.item.value) });
+    });
+  </script>
+</head>
+
+<body>
+  <h3 style="text-align:left;">Vier Gewinnt</h3>
+  <div class="col1" id="field"></div>
+  <div class="col2" style="width:250px">
+    <button class="button" id="undo">Zug zurücknehmen</button>
+    <button class="button" id="newgame">Neu starten</button>
+    <label for="whobegins">Wer fängt an:</label>
+    <select name="whobegins" id="whobegins">
+      <option>Computer</option>
+      <option selected="selected">Spieler</option>
+    </select>
+    <label for="level">Spielstärke:</label>
+    <select name="level" id="level">
+      <option value="2">Anfänger</option>
+      <option value="3">Amateur</option>
+      <option value="4" selected="selected">Fortgeschrittener</option>
+      <option value="5">Meister</option>
+      <option value="6">Großmeister</option>
+    </select>
+  </div>
+  <div id='info'></div>
+</body>
+
+</html>

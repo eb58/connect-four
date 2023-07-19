@@ -1,15 +1,10 @@
 const vgview = function (m) {
-  "use strict";
   const NCOL = vgmodelstatic.DIM.NCOL;
   const NROW = vgmodelstatic.DIM.NROW;
 
   const myAlert = msg => {
     $('<div></div').dialog({
-      buttons: {
-        OK: function () {
-          $(this).dialog("close");
-        }
-      },
+      buttons: { OK: function () { $(this).dialog("close"); } },
       autoOpen: false,
       title: 'Meldung'
     }).text(msg).dialog("open");
@@ -43,13 +38,12 @@ const vgview = function (m) {
       const bestMove = m.bestMove();
       const res2 = m.move(bestMove);
       setSpielstein(bestMove);
+
       if (res2 === 'isMill') {
         myAlert("Bedaure, du hast verloren!");
-        return;
       }
       if (res2 === 'draw') {
         myAlert("Gratuliere, du hast ein Remis geschafft!");
-        return;
       }
     };
   }
@@ -66,7 +60,7 @@ const vgview = function (m) {
     $(divid).empty().append(table);
   }
 
-  return {// Interface
+  return { // Interface
     render
   };
 };
