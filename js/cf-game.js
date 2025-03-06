@@ -1,4 +1,4 @@
-const vgview = (cfEngine, divId) => {
+const cfGame = (cfEngine, divId) => {
         const gameSettings = JSON.parse(localStorage.getItem('connect-4-settings') || 'false') || {
             beginner: cfEngine.Player.red,
             maxThinkingTime: 100

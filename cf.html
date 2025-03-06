@@ -6,16 +6,16 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/smoothness/jquery-ui.css">
-    <link rel="stylesheet" href="css/vg.css">
+    <link rel="stylesheet" href="css/cf.css">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 <!--    <script src='https://cdn.jsdelivr.net/gh/eb58/vgn/js/vg/public_html/cf-engine.jsalgorithms-js/src/ol.js'></script>-->
 
-    <script src="js/vg/cf-engine.js"></script>
-    <script src="js/vg/vgview.js"></script>
+    <script src="js/cf-engine.js"></script>
+    <script src="js/cf-game.js"></script>
     <script>
-        const vgView = vgview(cfEngine, '#field')
+        const vgView = cfGame(cfEngine, '#field')
         const handleFEN = () => {
             const fen = $('#fen').val()
             const x = fen.split(':')
