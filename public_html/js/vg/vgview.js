@@ -10,7 +10,7 @@ const vgview = (cfEngine, divId) => {
         const myAlert = msg => $('<div></div').dialog({title: 'Meldung'}).text(msg).dialog("open");
         const confirm = function (title, question, callbackYes, callbackNo) {
             question = question || '';
-            callbackYes = callbackYes || (() => console.log('$.confirm:please provide callback!'));
+            if (!callbackYes) throw new Error('confirm: please provide callback!');
             $("<div id='dlgConfirm'></div>").dialog({
                 open: () => $('#dlgConfirm').parent().css('font-size', '12px'),
                 close: function () {
@@ -81,7 +81,7 @@ const vgview = (cfEngine, divId) => {
             render()
         }
 
-        const newGameDlg = () => confirm('Frage', 'Neues Spiel', () => {
+        const newGameDlg = () => confirm('Frage', 'Neues Spiel', 0, () => {
             cfEngine.init(gameSettings.beginner)
             vgView.render(divId)
         });
