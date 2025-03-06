@@ -16,14 +16,6 @@
 
     <script>
         const game = cfGame(cfEngine, '#field')
-        const handleFEN = () => {
-            const fen = $('#fen').val()
-            const x = fen.split(':')
-            const beg = x[0] === 'red' ? cfEngine.Player.red : cfEngine.Player.blue
-            console.log('AAA', fen)
-            game.restart(x[1].split('').map(x => Number(x) - 1), beg);
-        }
-
         $(() => {
             game.renderBoard();
             if (cfEngine.side() === cfEngine.Player.blue) game.actAsAI()
@@ -34,8 +26,10 @@
             $("#beginner").selectmenu({change: (event, ui) => game.setBeginner(Number(ui.item.value) === 1 ? cfEngine.Player.blue : cfEngine.Player.red)})
             $('#level').val(game.gameSettings.maxThinkingTime);
             $("#level").selectmenu({change: (event, data) => game.setMaxThinkingTime(Number(data.item.value))})
-            $("#fen").on('focusout', () => handleFEN())
-            $("#test").button().click(() => handleFEN())
+            $("#fen").on('focusout', () => {
+                const x = $('#fen').val().split(':')
+                game.restart(x[1].split('').map(x => Number(x) - 1), x[0] === 'red' ? cfEngine.Player.red : cfEngine.Player.blue);
+            })
         })
     </script>
 </head>
@@ -60,7 +54,6 @@
         <option value="1000">Meister</option>
         <option value="3000">Großmeister</option>
     </select>
-    <button id="test">TEST</button>
     <label for="fen">FEN:</label><input id="fen" type="text" placeholder="red:124" value="red:124">
 </div>
 </body>

@@ -1,12 +1,12 @@
 body {
-    margin-left: 10%;
+    margin-left: 1%;
     max-width: 800px;
-    min-width: 320px;
+    min-width: 300px;
 }
 
 #field table {
     background-color: #070;
-    width: 90%;
+    width: 100%;
     max-width: 800px;
 }
 
