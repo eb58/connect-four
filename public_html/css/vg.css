@@ -1,10 +1,12 @@
 body {
     margin-left: 10%;
+    max-width: 800px;
 }
 
 #field table {
     background-color: #070;
     width: 90%;
+    max-width: 800px;
 }
 
 #field td {
@@ -17,10 +19,12 @@ body {
 
 #field td.red {
     background: #a00;
+    border-width: 2px;
 }
 
 #field td.blue {
     background: #00a;
+    border-width: 2px;
 }
 
 .button {

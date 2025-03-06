@@ -151,7 +151,7 @@ const cfEngine = (() => {
     return {
         winningRows, winningRowsForFields, DIM, MAXVAL, Player,
         init, doMove, searchBestMove,
-        isAllowedMove: c => STATE.heightCols[c] < DIM.NROW && !isMill && STATE.cntMoves !== DIM.NROW * DIM.NCOL,
+        isAllowedMove: c => STATE.heightCols[c] < DIM.NROW && !STATE.isMill && STATE.cntMoves !== DIM.NROW * DIM.NCOL,
         getHeightOfCol: c => STATE.heightCols[c],
         side: () => STATE.side,
         isMill: () => STATE.isMill,
