@@ -28,9 +28,17 @@ body {
     border-width: 2px;
 }
 
-.button {
+button {
     display: block;
     width: 95%;
-    margin-bottom: 5px;
+    margin: 5px 0 5px 0;
 }
+
+input {
+    display: block;
+    width: 93%;
+    margin: 5px 0 5px 0;
+}
+
+
 

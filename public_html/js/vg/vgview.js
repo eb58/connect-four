@@ -5,7 +5,7 @@ const vgview = (cfEngine, divId) => {
         };
 
         let thinking = false;
-        let moves = []
+        let moveHistory = []
 
         const myAlert = msg => $('<div></div').dialog({title: 'Meldung'}).text(msg).dialog("open");
         const confirm = function (title, question, callbackYes, callbackNo) {
@@ -32,13 +32,45 @@ const vgview = (cfEngine, divId) => {
             }).html('<br>' + question.replace(/\n/g, '<br>'));
         }
 
+        const newGameDlg = () => confirm('Frage', 'Neues Spiel', () => {
+            moveHistory = []
+            cfEngine.init(gameSettings.beginner)
+            renderBoard(divId)
+            if (cfEngine.side() === cfEngine.Player.blue) actAsAI()
+        });
+
+        const onClickHandler = c => {
+            return () => {
+                if (!cfEngine.isAllowedMove(c)) return;
+                doMove(c);
+                if (cfEngine.isMill()) myAlert("Gratuliere, du hast gewonnen!");
+                else if (cfEngine.isDraw()) myAlert("Gratuliere, du hast ein Remis geschafft!");
+                actAsAI()
+            };
+        }
+
+        const renderBoard = () => {
+            const table = $('<table id="vg"></table>');
+            for (let r = 0; r < cfEngine.DIM.NROW; r++) {
+                const row = $('<tr></tr>');
+                for (let c = 0; c < cfEngine.DIM.NCOL; c++) row.append($('<td></td>').on('click', onClickHandler(c)));
+                table.append(row);
+            }
+            $(divId).empty().append(table);
+        }
+
         const doMove = (c) => {
-            moves.push(c)
+            moveHistory.push(c)
             const row = cfEngine.DIM.NROW - cfEngine.getHeightOfCol(c) - 1;
             const cls = cfEngine.side() === cfEngine.Player.red ? 'red' : 'blue';
             $($("#vg tr > td:nth-child(" + (c + 1) + ")")[row]).addClass(cls);
             $("#info").html("Mein letzter Zug:" + (c + 1));
             cfEngine.doMove(c)
+        }
+
+        const undoMove = () => {
+            const moves = moveHistory.slice(0, -2)
+            restart(moves, cfEngine.side())
         }
 
         const actAsAI = () => {
@@ -53,38 +85,13 @@ const vgview = (cfEngine, divId) => {
             }, 10)
         }
 
-        const onClickHandler = c => {
-            return () => {
-                if (!cfEngine.isAllowedMove(c)) return;
-                doMove(c);
-                if (cfEngine.isMill()) myAlert("Gratuliere, du hast gewonnen!");
-                else if (cfEngine.isDraw()) myAlert("Gratuliere, du hast ein Remis geschafft!");
-                actAsAI()
-            };
+        const restart = (moves, side) => {
+            moveHistory = [];
+            renderBoard();
+            cfEngine.init(side)
+            moves.forEach(v => doMove(v));
+            if (cfEngine.side() === cfEngine.Player.blue) actAsAI()
         }
-
-        const render = () => {
-            const table = $('<table id="vg"></table>');
-            for (let r = 0; r < cfEngine.DIM.NROW; r++) {
-                const row = $('<tr></tr>');
-                for (let c = 0; c < cfEngine.DIM.NCOL; c++) row.append($('<td></td>').on('click', onClickHandler(c)));
-                table.append(row);
-            }
-            $(divId).empty().append(table);
-            if (gameSettings.beginner === cfEngine.Player.blue) actAsAI()
-        }
-
-        const undoMove = () => {
-            cfEngine.init(gameSettings.beginner)
-            moves = moves.slice(0, -2)
-            moves.forEach(m => cfEngine.doMove(m));
-            render()
-        }
-
-        const newGameDlg = () => confirm('Frage', 'Neues Spiel', 0, () => {
-            cfEngine.init(gameSettings.beginner)
-            vgView.render(divId)
-        });
 
         return { // Interface
             gameSettings,
@@ -97,8 +104,10 @@ const vgview = (cfEngine, divId) => {
                 localStorage.setItem('connect-4-settings', JSON.stringify(gameSettings))
             },
             undoMove,
-            render,
+            renderBoard,
             newGameDlg,
+            actAsAI,
+            restart
         };
     }
 ;
