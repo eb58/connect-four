@@ -7,7 +7,15 @@ const cfGame = (cfEngine, divId) => {
         let thinking = false;
         let moveHistory = []
 
-        const myAlert = msg => $('<div></div').dialog({title: 'Meldung'}).text(msg).dialog("open");
+        const myAlert = msg => $('<div></div').dialog({
+            title: 'Meldung',
+            buttons: {
+                OK: function () {
+                    $(this).dialog("close");
+                }
+            },
+        }).text(msg).dialog("open");
+
         const confirm = function (title, question, callbackYes, callbackNo) {
             question = question || '';
             if (!callbackYes) throw new Error('confirm: please provide callback!');
