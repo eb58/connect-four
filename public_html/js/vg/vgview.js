@@ -7,15 +7,7 @@ const vgview = (cfEngine, divId) => {
         let thinking = false;
         let moves = []
 
-        const myAlert = msg => $('<div></div').dialog({
-            title: 'Meldung',
-            buttons: {
-                OK: function () {
-                    $(this).dialog("close");
-                }
-            },
-        }).text(msg).dialog("open");
-
+        const myAlert = msg => $('<div></div').dialog({title: 'Meldung'}).text(msg).dialog("open");
         const confirm = function (title, question, callbackYes, callbackNo) {
             question = question || '';
             callbackYes = callbackYes || (() => console.log('$.confirm:please provide callback!'));
@@ -42,11 +34,11 @@ const vgview = (cfEngine, divId) => {
 
         const doMove = (c) => {
             moves.push(c)
-            cfEngine.doMove(c)
-            const row = cfEngine.DIM.NROW - cfEngine.getHeightOfCol(c);
+            const row = cfEngine.DIM.NROW - cfEngine.getHeightOfCol(c) - 1;
             const cls = cfEngine.side() === cfEngine.Player.red ? 'red' : 'blue';
             $($("#vg tr > td:nth-child(" + (c + 1) + ")")[row]).addClass(cls);
             $("#info").html("Mein letzter Zug:" + (c + 1));
+            cfEngine.doMove(c)
         }
 
         const actAsAI = () => {
