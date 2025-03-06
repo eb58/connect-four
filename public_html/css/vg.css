@@ -1,6 +1,7 @@
 body {
     margin-left: 10%;
     max-width: 800px;
+    min-width: 320px;
 }
 
 #field table {
