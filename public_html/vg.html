@@ -1,77 +1,84 @@
 <!DOCTYPE html>
-
+<html lang="de">
 <head>
-  <meta charset="utf-8">
-  <title>Vier Gewinnt</title>
-  <meta name="description" content="">
-  <meta name="viewport" content="width=device-width">
-  <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-2.20.0.css">
-  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/smoothness/jquery-ui.css">
-  <link rel="stylesheet" href="./css/vg.css">
+    <meta charset="utf-8">
+    <title>Vier Gewinnt</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="./css/vg.css">
 
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 
-  <script src="./js/vg/vgmodelstatic.js"></script>
-  <script src="./js/vg/vgmodel.js"></script>
-  <script src="./js/vg/vgview.js"></script>
-  <script src="./js/vg/vg.js"></script>
-  <script>
+    <script src="./js/vg/cf-engine.js"></script>
+    <script src="./js/vg/vgview.js"></script>
+    <script>
+        const vgView = vgview(cfEngine)
+        let beginner = cfEngine.Player.blue;
+        const confirm = function (title, question, callbackYes, callbackNo) {
+            question = question || '';
+            callbackYes = callbackYes || (() => console.log('$.confirm:please provide callback!'));
+            $("<div id='dlgConfirm'></div>").dialog({
+                open: () => $('#dlgConfirm').parent().css('font-size', '12px'),
+                close: function () {
+                    $(this).dialog("destroy");
+                },
+                buttons: {
+                    "Ja": function () {
+                        callbackYes && callbackYes();
+                        $(this).dialog("close");
+                    },
+                    "Nein": function () {
+                        callbackNo && callbackNo();
+                        $(this).dialog("close");
+                    }
+                },
+                title,
+                modal: true,
+                closeText: 'Schließen'
+            }).html('<br>' + question.replace(/\n/g, '<br>'));
+        }
 
+        const newGameDlg = () => confirm('Frage', 'Neues Spiel', () => {
+            cfEngine.init(beginner)
+            vgView.render('#field')
+        });
 
-    const confirm = function (title, question, callbackYes, callbackNo) {
-      question = question || '';
-      callbackYes = callbackYes || (() => console.log('$.confirm:please provide callback!'));
-      $("<div id='dlgConfirm'></div>").dialog({
-        open: () => $('#dlgConfirm').parent().css('font-size', '12px'),
-        close: function () { $(this).dialog("destroy"); },
-        buttons: {
-          "Ja": function () { callbackYes && callbackYes(); $(this).dialog("close"); },
-          "Nein": function () { callbackNo && callbackNo(); $(this).dialog("close"); }
-        },
-        title,
-        modal: true,
-        height: 'auto',
-        closeText: 'Schlie\u00dfen'
-      }).html('<br>' + question.replace(/\n/g, '<br>'));
-    }
-
-
-    const newGameDlg = () => confirm('Frage', 'Neues Spiel', () => vg.init('#field'));
-    const undoDlg = () => confirm('Frage', 'Zug zurücknehmen?', vg.undoMove);
-
-    let whoBegins = 'player1';
-    $(() => {
-      vg.init('#field');
-      $("#newgame").button().click(newGameDlg);
-      $("#undo").button().click(undoDlg);
-      $("#whobegins").selectmenu({ change: (event, ui) => whoBegins = ui.item.value === 'Spieler' ? 'player1' : 'player2' });
-      $("#level").selectmenu({ change: (event, data) => vg.setLevel(data.item.value) });
-    });
-  </script>
+        $(() => {
+            vgView.render('#field');
+            $("#newgame").button().click(newGameDlg);
+            $("#undo").button().click(() => {
+                vgView.undoMove(beginner);
+                vgView.render('#field')
+            });
+            $("#whobegins").selectmenu({change: (event, ui) => beginner = ui.item.value === 'Computer' ? cfEngine.Player.blue : cfEngine.Player.red});
+            $("#level").selectmenu({change: (event, data) => vgView.setMaxThinkingTime(Number(data.item.value))});
+        });
+    </script>
 </head>
 
 <body>
-  <h3 style="text-align:left;">Vier Gewinnt</h3>
-  <div class="col1" id="field"></div>
-  <div class="col2" style="width:250px">
+<h3 style="text-align:left;">Vier Gewinnt</h3>
+<div class="col1" id="field"></div>
+<div id='info'></div>
+<div class="col2" style="width:250px; margin-top:20px">
     <button class="button" id="undo">Zug zurücknehmen</button>
     <button class="button" id="newgame">Neu starten</button>
     <label for="whobegins">Wer fängt an:</label>
     <select name="whobegins" id="whobegins">
-      <option>Computer</option>
-      <option selected="selected">Spieler</option>
+        <option>Computer</option>
+        <option selected="selected">Spieler</option>
     </select>
     <label for="level">Spielstärke:</label>
     <select name="level" id="level">
-      <option value="2">Anfänger</option>
-      <option value="3">Amateur</option>
-      <option value="4" selected="selected">Fortgeschrittener</option>
-      <option value="5">Meister</option>
-      <option value="6">Großmeister</option>
+        <option value="100">Anfänger</option>
+        <option value="200">Amateur</option>
+        <option value="500" selected="selected">Fortgeschrittener</option>
+        <option value="1000">Meister</option>
+        <option value="3000">Großmeister</option>
     </select>
-  </div>
-  <div id='info'></div>
+</div>
 </body>
 
 </html>
