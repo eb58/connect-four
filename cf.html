@@ -15,25 +15,25 @@
     <script src="js/cf-game.js"></script>
 
     <script>
-        const vgView = cfGame(cfEngine, '#field')
+        const game = cfGame(cfEngine, '#field')
         const handleFEN = () => {
             const fen = $('#fen').val()
             const x = fen.split(':')
             const beg = x[0] === 'red' ? cfEngine.Player.red : cfEngine.Player.blue
             console.log('AAA', fen)
-            vgView.restart(x[1].split('').map(x => Number(x) - 1), beg);
+            game.restart(x[1].split('').map(x => Number(x) - 1), beg);
         }
 
         $(() => {
-            vgView.renderBoard();
-            if (cfEngine.side() === cfEngine.Player.blue) vgView.actAsAI()
+            game.renderBoard();
+            if (cfEngine.side() === cfEngine.Player.blue) game.actAsAI()
 
-            $("#restart").button().click(vgView.newGameDlg);
-            $("#undo").button().click(vgView.undoMove);
-            $('#beginner').val(vgView.gameSettings.beginner);
-            $("#beginner").selectmenu({change: (event, ui) => vgView.setBeginner(Number(ui.item.value) === 1 ? cfEngine.Player.blue : cfEngine.Player.red)})
-            $('#level').val(vgView.gameSettings.maxThinkingTime);
-            $("#level").selectmenu({change: (event, data) => vgView.setMaxThinkingTime(Number(data.item.value))})
+            $("#restart").button().click(game.newGameDlg);
+            $("#undo").button().click(game.undoMove);
+            $('#beginner').val(game.gameSettings.beginner);
+            $("#beginner").selectmenu({change: (event, ui) => game.setBeginner(Number(ui.item.value) === 1 ? cfEngine.Player.blue : cfEngine.Player.red)})
+            $('#level').val(game.gameSettings.maxThinkingTime);
+            $("#level").selectmenu({change: (event, data) => game.setMaxThinkingTime(Number(data.item.value))})
             $("#fen").on('focusout', () => handleFEN())
             $("#test").button().click(() => handleFEN())
         })

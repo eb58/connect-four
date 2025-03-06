@@ -58,7 +58,7 @@ const cfGame = (cfEngine, divId) => {
         }
 
         const renderBoard = () => {
-            const table = $('<table id="vg"></table>');
+            const table = $('<table id="cf"></table>');
             for (let r = 0; r < cfEngine.DIM.NROW; r++) {
                 const row = $('<tr></tr>');
                 for (let c = 0; c < cfEngine.DIM.NCOL; c++) row.append($('<td></td>').on('click', onClickHandler(c)));
@@ -71,7 +71,7 @@ const cfGame = (cfEngine, divId) => {
             moveHistory.push(c)
             const row = cfEngine.DIM.NROW - cfEngine.getHeightOfCol(c) - 1;
             const cls = cfEngine.side() === cfEngine.Player.red ? 'red' : 'blue';
-            $($("#vg tr > td:nth-child(" + (c + 1) + ")")[row]).addClass(cls);
+            $($("#cf tr > td:nth-child(" + (c + 1) + ")")[row]).addClass(cls);
             $("#info").html("Mein letzter Zug:" + (c + 1));
             cfEngine.doMove(c)
         }
