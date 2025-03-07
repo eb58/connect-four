@@ -66,7 +66,7 @@ const cfGame = (cfEngine, divId) => {
 
     const doMove = (c) => {
         if (!cfEngine.isAllowedMove(c)) return;
-        moveHistory.push(c)
+        moveHistory.push({move: c, side: cfEngine.side()})
         const row = cfEngine.DIM.NROW - cfEngine.getHeightOfCol(c) - 1;
         const cls = cfEngine.side() === cfEngine.Player.red ? 'red' : 'blue';
         $($("#cf tr > td:nth-child(" + (c + 1) + ")")[row]).addClass(cls);
@@ -75,10 +75,9 @@ const cfGame = (cfEngine, divId) => {
     }
 
     const undoMove = () => {
-        if (thinking) return
-        const moves = moveHistory.slice(0, -2)
-        const side = cfEngine.side()
-        restart(moves, side)
+        if (thinking || moveHistory.length < 2) return
+        const moves = moveHistory.slice(0, -2).map(m => m.move)
+        restart(moves, moveHistory[0].side)
     }
 
     const actAsAI = () => {
