@@ -23,9 +23,9 @@
             $("#restart").button().click(game.newGameDlg);
             $("#undo").button().click(game.undoMove);
             $('#beginner').val(game.gameSettings.beginner);
-            $("#beginner").selectmenu({change: (event, ui) => game.setBeginner(Number(ui.item.value) === 1 ? cfEngine.Player.blue : cfEngine.Player.red)})
+            $("#beginner").selectmenu({width: "100%", change: (_, ui) => game.setBeginner(Number(ui.item.value))})
             $('#level').val(game.gameSettings.maxThinkingTime);
-            $("#level").selectmenu({change: (event, data) => game.setMaxThinkingTime(Number(data.item.value))})
+            $("#level").selectmenu({width: "100%", change: (_, ui) => game.setMaxThinkingTime(Number(ui.item.value))})
             $("#fen").on('focusout', () => {
                 const x = $('#fen').val().split(':')
                 game.restart(x[1].split('').map(x => Number(x) - 1), x[0] === 'red' ? cfEngine.Player.red : cfEngine.Player.blue);
@@ -35,26 +35,31 @@
 </head>
 
 <body>
-<h3 style="text-align:left;">Vier Gewinnt</h3>
+<h2 style="text-align:left;">Vier Gewinnt</h2>
 <div id="field"></div>
 <div id='info'></div>
-<div style="width:300px; margin-top:20px">
+<div style="width:100%">
     <button id="undo">Zug zurücknehmen</button>
     <button id="restart">Neu starten</button>
-    <label for="beginner">Wer fängt an:</label>
-    <select id="beginner">
-        <option value="1">Computer</option>
-        <option value="2">Spieler</option>
-    </select>
-    <label for="level">Spielstärke:</label>
-    <select id="level">
-        <option value="100">Anfänger</option>
-        <option value="200">Amateur</option>
-        <option value="500">Fortgeschrittener</option>
-        <option value="1000">Meister</option>
-        <option value="3000">Großmeister</option>
-    </select>
-    <label for="fen">FEN:</label><input id="fen" type="text" placeholder="red:124" value="red:124">
+    <hr>
+    <div>
+        <label for="beginner">Wer fängt an:</label>
+        <select id="beginner">
+            <option value="1">Computer</option>
+            <option value="2">Spieler</option>
+        </select>
+    </div>
+    <div>
+        <label for="level">Spielstärke:</label>
+        <select id="level">
+            <option value="100">Anfänger</option>
+            <option value="200">Amateur</option>
+            <option value="500">Fortgeschrittener</option>
+            <option value="1000">Meister</option>
+            <option value="3000">Großmeister</option>
+        </select>
+    </div>
+    <label for="fen">FEN:</label><input id="fen" type="text" placeholder="red:124" value="red:12456776345">
 </div>
 </body>
 

@@ -6,11 +6,15 @@ const cfGame = (cfEngine, divId) => {
     let thinking = false;
     let moveHistory = []
 
-    const myAlert = msg => $('<div></div').dialog({
+    const myAlert = msg => $('<div id="alert"></div').dialog({
+        open: () => $('#alert').parent().css('font-size', '24px'),
         title: 'Meldung', buttons: {
             'OK': function () {
                 $(this).dialog("close");
             }
+        },
+        close: function () {
+            $(this).dialog("destroy");
         },
     }).text(msg).dialog("open");
 
@@ -18,7 +22,7 @@ const cfGame = (cfEngine, divId) => {
         question = question || '';
         if (!callbackYes) throw new Error('confirm: please provide callback!');
         $("<div id='dlgConfirm'></div>").dialog({
-            open: () => $('#dlgConfirm').parent().css('font-size', '12px'),
+            open: () => $('#dlgConfirm').parent().css('font-size', '24px'),
             close: function () {
                 $(this).dialog("destroy");
             },
@@ -61,6 +65,7 @@ const cfGame = (cfEngine, divId) => {
     }
 
     const doMove = (c) => {
+        if (!cfEngine.isAllowedMove(c)) return;
         moveHistory.push(c)
         const row = cfEngine.DIM.NROW - cfEngine.getHeightOfCol(c) - 1;
         const cls = cfEngine.side() === cfEngine.Player.red ? 'red' : 'blue';
@@ -72,7 +77,7 @@ const cfGame = (cfEngine, divId) => {
     const undoMove = () => {
         if (thinking) return
         const moves = moveHistory.slice(0, -2)
-        const side = cfEngine.side() === cfEngine.Player.red ? cfEngine.Player.blue : cfEngine.Player.red
+        const side = cfEngine.side()
         restart(moves, side)
     }
 
