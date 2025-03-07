@@ -30,22 +30,24 @@ body {
 
 button {
     font-size: 30px !important;
+    display: block;
     width: 100%;
     margin: 5px 0 5px 0;
 }
 
 input {
     font-size: 20px;
-    width: 100%;
-    margin: 5px 0 5px 0;
+    width: 800px;
 }
 
 label {
+    display: inline-block;
+    width: 140px;
     font-size: 20px;
     margin: 5px 0 5px 0;
-    width: 100px;
+    text-align: left;
 }
 
 select{
-    width: 100%;
+    width: 800px;
 }
