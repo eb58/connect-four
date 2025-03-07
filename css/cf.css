@@ -1,13 +1,12 @@
 body {
     margin: 0 2px 0 2px;
-    max-width: 800px;
+    max-width: 900px;
     min-width: 300px;
 }
 
 #field table {
     background-color: #070;
     width: 100%;
-    max-width: 800px;
 }
 
 #field td {
@@ -37,7 +36,7 @@ button {
 
 input {
     font-size: 20px;
-    width: 800px;
+    width: 100%;
 }
 
 label {
@@ -49,5 +48,5 @@ label {
 }
 
 select{
-    width: 800px;
+    width: 900px;
 }
