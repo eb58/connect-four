@@ -77,7 +77,7 @@ const cfEngine = (() => {
         state.heightCols[c]++;
         state.side = state.side === Player.red ? Player.blue : Player.red;
         const counters = state.side === Player.blue ? state.winningRowsCounterBlue : state.winningRowsCounterRed;
-        winningRowsForFields[idxBoard].forEach(i => ++counters[i] >= 4)
+        winningRowsForFields[idxBoard].forEach(i => ++counters[i])
         state.isMill = winningRowsForFields[idxBoard].some(i => counters[i] >= 4)
         state.hash ^= pieceKeys[idxBoard * state.side] ^ sideKeys[state.side];
         state.cntMoves++
@@ -102,7 +102,7 @@ const cfEngine = (() => {
 
     let negamax = (state, depth, maxDepth, alpha, beta, moves) => {
         if (state.isMill) return -MAXVAL + depth
-        if (depth === maxDepth) return computeScoreOfNode(state);
+        if (depth === maxDepth) return 0// computeScoreOfNode(state);
         if (state.cntMoves === 42) return 0
         for (const m of moves) if (state.heightCols[m] < DIM.NROW) {
             const score = -negamax(doMove(m, state), depth + 1, maxDepth, -beta, -alpha, moves)
@@ -118,7 +118,7 @@ const cfEngine = (() => {
     const prepareResult = (depth, bestMoves) => {
         searchInfo.depth = depth
         searchInfo.bestMoves = bestMoves.sort((a, b) => b.score - a.score)
-        console.log(`DEPTH:${depth} { ${bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${searchInfo.nodes} ${Date.now() - searchInfo.startAt + 'ms'} ${CACHE.info()}`)
+        // console.log(`DEPTH:${depth} { ${bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${searchInfo.nodes} ${Date.now() - searchInfo.startAt + 'ms'} ${CACHE.info()}`)
         return searchInfo
     }
 
@@ -155,7 +155,7 @@ const cfEngine = (() => {
         getHeightOfCol: c => STATE.heightCols[c],
         side: () => STATE.side,
         isMill: () => STATE.isMill,
-        isDraw: () => STATE.cntMoves === DIM.NROW * DIM.NCOL,
+        isDraw: () => STATE.cntMoves === DIM.NROW * DIM.NCOL && !STATE.isMill,
     }
 })()
 
