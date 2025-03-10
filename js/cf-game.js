@@ -98,7 +98,6 @@ const cfGame = (cfEngine, divId) => {
     const restart = (side, moves) => {
         moveHistory = [];
         renderBoard();
-        console.log("restart", side === cfEngine.Player.red ? 'red' : 'blue');
         cfEngine.init(side)
         moves.forEach(v => doMove(v));
         if (cfEngine.side() === cfEngine.Player.blue) actAsAI()

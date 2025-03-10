@@ -96,8 +96,8 @@ const cfEngine = (() => {
     }
 
     const computeScoreOfNode = (state) => {
-        const x = winningRows.reduce((res, wr, i) => res + (state.winningRowsCounterRed[i] > 0 && state.winningRowsCounterBlue[i] > 0 ? 0 : (state.winningRowsCounterBlue[i] - state.winningRowsCounterRed[i])), 0)
-        return state.side === Player.blue ? -x : x
+        // const x = winningRows.reduce((res, wr, i) => res + (state.winningRowsCounterRed[i] !== 0 && state.winningRowsCounterBlue[i] !== 0 ? 0 : (state.winningRowsCounterBlue[i] - state.winningRowsCounterRed[i])), 0)
+        return 0// state.side === Player.blue ? -x : x
     }
 
     let negamax = (state, depth, maxDepth, alpha, beta, moves) => {
@@ -123,14 +123,14 @@ const cfEngine = (() => {
     }
 
     const searchBestMove = (opts) => {
-        opts = {maxThinkingTime: 1000, maxDepth: 40, ...opts,}
+        opts = {maxThinkingTime: 1000, maxDepth: 42, ...opts,}
         CACHE.clear()
         searchInfo.nodes = 0
         searchInfo.startAt = Date.now()
         searchInfo.stopAt = searchInfo.startAt + opts.maxThinkingTime;
 
         const moves = MOVES.filter(c => STATE.heightCols[c] < DIM.NROW);
-        for (let depth = 4; depth <= opts.maxDepth; depth += 2) {
+        for (const depth of [1, ...range(opts.maxDepth / 2).map(x => 2 * (x + 1))]) {
             const bestMoves = []
             for (let i = 0; i < moves.length; i++) {
                 const score = -negamax(doMove(moves[i], STATE), 0, depth, -MAXVAL, +MAXVAL, moves)
