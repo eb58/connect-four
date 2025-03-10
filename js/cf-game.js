@@ -6,6 +6,12 @@ const cfGame = (cfEngine, divId) => {
     let thinking = false;
     let moveHistory = []
 
+    const infoStr = (sc) => {
+        const scores = sc.bestMoves.map((m) => `${m.move + 1}:${m.score}`).join(' ')
+        const player = this.beginner === cfEngine.Player.blue ? 'blue' : 'red'
+        return `DEPTH:${sc.depth} { ${scores} } NODES:${sc.nodes} ${Date.now() - sc.startAt}ms FEN:${player}|${moveHistory.map(x => x.move).join('').trim()} `
+    }
+
     const myAlert = msg => $('<div id="alert"></div').dialog({
         open: () => $('#alert').parent().css('font-size', '24px'),
         title: 'Meldung', buttons: {
@@ -92,6 +98,7 @@ const cfGame = (cfEngine, divId) => {
             doMove(sc.bestMoves[0].move);
             if (cfEngine.isMill()) myAlert("Bedaure, du hast verloren!");
             if (cfEngine.isDraw()) myAlert("Gratuliere, du hast ein Remis geschafft!");
+            console.log(infoStr(sc))
         }, 10)
     }
 

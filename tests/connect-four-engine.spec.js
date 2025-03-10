@@ -323,6 +323,7 @@ test('winning 11 - depth 10', () => {
     cf.initGame('blue|323121')
     const sc = cf.searchBestMove()
     console.log('winning 11', sc)
+    expect(sc.depth).toBe(10)
     expect(sc.bestMoves[0].move).toBe(3);
     expect(sc.bestMoves[0].score).toBe(MAXVAL - 10);
 })
@@ -354,7 +355,7 @@ test('winning 14 - depth 16', () => {
     expect(sc.bestMoves[0].score).toBe(MAXVAL - 16);
 })
 
-xtest('winning 15 - depth 18', () => {
+test('winning 15 - depth 18', () => {
     cf.initGame('blue|323122334104334522')
     const sc = cf.searchBestMove({maxThinkingTime: 2000})
     // console.log('winning 15', sc)

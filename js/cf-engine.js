@@ -96,8 +96,8 @@ const cfEngine = (() => {
     }
 
     const computeScoreOfNode = (state) => {
-        // const x = winningRows.reduce((res, wr, i) => res + (state.winningRowsCounterRed[i] !== 0 && state.winningRowsCounterBlue[i] !== 0 ? 0 : (state.winningRowsCounterBlue[i] - state.winningRowsCounterRed[i])), 0)
-        return 0// state.side === Player.blue ? -x : x
+        const x = winningRows.reduce((res, wr, i) => res + (state.winningRowsCounterRed[i] !== 0 && state.winningRowsCounterBlue[i] !== 0 ? 0 : (state.winningRowsCounterBlue[i] - state.winningRowsCounterRed[i])), 0)
+        return state.side === Player.blue ? -x : x
     }
 
     let negamax = (state, depth, maxDepth, alpha, beta, moves) => {
