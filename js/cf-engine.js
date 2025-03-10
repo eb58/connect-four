@@ -102,7 +102,7 @@ const cfEngine = (() => {
 
     let negamax = (state, depth, maxDepth, alpha, beta, moves) => {
         if (state.isMill) return -MAXVAL + depth
-        if (depth === maxDepth) return 0// computeScoreOfNode(state);
+        if (depth === maxDepth) return computeScoreOfNode(state);
         if (state.cntMoves === 42) return 0
         for (const m of moves) if (state.heightCols[m] < DIM.NROW) {
             const score = -negamax(doMove(m, state), depth + 1, maxDepth, -beta, -alpha, moves)
@@ -147,10 +147,16 @@ const cfEngine = (() => {
         }
         return searchInfo;
     }
+
+    const initGame = (fen) => {
+        init(fen.split('|')[0] === 'blue' ? Player.blue : Player.red)
+        fen.split('|')[1].split('').map(x => +x).forEach(v => doMove(v));
+    }
+
     init();
     return {
         winningRows, winningRowsForFields, DIM, MAXVAL, Player,
-        init, doMove, searchBestMove,
+        init, initGame, doMove, searchBestMove,
         isAllowedMove: c => STATE.heightCols[c] < DIM.NROW && !STATE.isMill && STATE.cntMoves !== DIM.NROW * DIM.NCOL,
         getHeightOfCol: c => STATE.heightCols[c],
         side: () => STATE.side,

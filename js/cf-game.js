@@ -49,7 +49,8 @@ const cfGame = (cfEngine, divId) => {
         return () => {
             if (thinking || !cfEngine.isAllowedMove(c)) return;
             doMove(c);
-            if (cfEngine.isMill()) myAlert("Gratuliere, du hast gewonnen!"); else if (cfEngine.isDraw()) myAlert("Gratuliere, du hast ein Remis geschafft!");
+            if (cfEngine.isMill()) myAlert("Gratuliere, du hast gewonnen!");
+            if (cfEngine.isDraw()) myAlert("Gratuliere, du hast ein Remis geschafft!");
             actAsAI()
         };
     }
@@ -77,7 +78,7 @@ const cfGame = (cfEngine, divId) => {
     const undoMove = () => {
         if (thinking || moveHistory.length < 2) return
         const moves = moveHistory.slice(0, -2).map(m => m.move)
-        restart(moves, moveHistory[0].side)
+        restart(moveHistory[0].side, moves)
     }
 
     const actAsAI = () => {
@@ -89,11 +90,12 @@ const cfGame = (cfEngine, divId) => {
             thinking = false
             $("body").css("cursor", "default");
             doMove(sc.bestMoves[0].move);
-            if (cfEngine.isMill()) myAlert("Bedaure, du hast verloren!"); else if (cfEngine.isDraw()) myAlert("Gratuliere, du hast ein Remis geschafft!");
+            if (cfEngine.isMill()) myAlert("Bedaure, du hast verloren!");
+            if (cfEngine.isDraw()) myAlert("Gratuliere, du hast ein Remis geschafft!");
         }, 10)
     }
 
-    const restart = (moves, side) => {
+    const restart = (side, moves) => {
         moveHistory = [];
         renderBoard();
         console.log("restart", side === cfEngine.Player.red ? 'red' : 'blue');
@@ -102,8 +104,14 @@ const cfGame = (cfEngine, divId) => {
         if (cfEngine.side() === cfEngine.Player.blue) actAsAI()
     }
 
+    const restartFromFEN = (fen) => {
+        const x = fen.replace(':', '|').split('|')
+        const side = x[0] === 'red' ? cfEngine.Player.red : cfEngine.Player.blue
+        game.restart(side, x[1].split('').map(x => +x));
+    }
+
     return { // Interface
-        undoMove, renderBoard, newGameDlg, actAsAI, restart,
+        undoMove, renderBoard, newGameDlg, actAsAI, restart, restartFromFEN,
         gameSettings,
         setBeginner: beginner => {
             gameSettings.beginner = beginner;

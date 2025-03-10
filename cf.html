@@ -26,10 +26,7 @@
             $("#beginner").selectmenu({width: "100%", change: (_, ui) => game.setBeginner(Number(ui.item.value))})
             $('#level').val(game.gameSettings.maxThinkingTime);
             $("#level").selectmenu({width: "100%", change: (_, ui) => game.setMaxThinkingTime(Number(ui.item.value))})
-            $("#fen").on('focusout', () => {
-                const x = $('#fen').val().split(':')
-                game.restart(x[1].split('').map(x => Number(x) - 1), x[0] === 'red' ? cfEngine.Player.red : cfEngine.Player.blue);
-            })
+            $("#fen").on('focusout', () => game.restartFromFEN($('#fen').val()))
         })
     </script>
 </head>
@@ -60,7 +57,7 @@
         </select>
     </div>
     <label for="fen">FEN:</label>
-    <input id="fen" type="text" placeholder="red:124" value="red:12456776345">
+    <input id="fen" type="text" placeholder="red|024" value="red|024">
 </div>
 </body>
 

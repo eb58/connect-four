@@ -1,0 +1,21 @@
+{
+  "name": "cf-engine",
+  "version": "1.0.0",
+  "keywords": [
+    "connect-four"
+  ],
+  "jest": {
+    "//": "Comment goes here",
+    "verbose": true
+  },
+  "author": "eb",
+  "contributors": [],
+  "scripts": {
+    "test": "jest --watchAll"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "jest": "29.7.0"
+  }
+}
