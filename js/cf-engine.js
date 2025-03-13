@@ -7,17 +7,24 @@ const cfEngine = (() => {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    const cache = (insertCondition = _ => true, c = {}) => ({
-        add: (key, val) => {
-            if (insertCondition(val)) c[key] = val;
+    const cache = (insertCondition = _ => true, c = {}, cnt = 0) => ({
+        add: (key, val, ...args) => {
+            if (insertCondition(val, ...args)) {
+                cnt++ > 10000000 && (c = {}, cnt = 0)
+                c[key] = val;
+            }
             return val
-        }, get: key => c[key], clear: () => c = {}, info: (s = "") => `${s}CACHE:${Object.keys(c).length}`
+        },
+        get: key => c[key],
+        clear: () => (cnt = 0, c = {}),
+        info: (s = "") => `${s}CACHE:${cnt}`
     })
-    const CACHE = cache(x => x >= MAXVAL - 50);
+    const CACHE = cache(score => score >= MAXVAL - 50);
+    const CACHE2 = cache((val, state, depth, maxDepth) => maxDepth < 100);
     const memoize = (f, hash, c = CACHE) => (...args) => {
         const h = hash(...args);
         const val = c.get(h);
-        return val !== undefined ? val : c.add(h, f(...args))
+        return val !== undefined ? val : c.add(h, f(...args), ...args);
     }
     const decorator = (f, decorator) => (...args) => decorator() ? f(...args) : 0;
 
@@ -49,6 +56,7 @@ const cfEngine = (() => {
     */
     const sideKeys = [127938607, 1048855538]
     const pieceKeys = [227019481, 1754434862, 629481213, 887205851, 529032562, 2067323277, 1070040335, 567190488, 468610655, 1669182959, 236891527, 1211317841, 849223426, 1031915473, 315781957, 1594703270, 114113554, 966088184, 2114417493, 340442843, 410051610, 1895709998, 502837645, 2046296443, 1720231708, 1437032187, 80592865, 1757570123, 2063094472, 1123905671, 901800952, 1894943568, 732390329, 401463737, 2055893758, 1688751506, 115630249, 391883254, 249795256, 1341740832, 807352454, 2122692086, 851678180, 1154773536, 64453931, 311845715, 1173309830, 1855940732, 1662371745, 998042207, 2121332908, 1905657426, 873276463, 1048910740, 1181863470, 136324833, 881754029, 1037297764, 1385633069, 2037058967, 398045724, 1522858950, 1892619084, 1364648567, 771375215, 983991136, 260316522, 648466817, 1502780386, 1733680598, 401803338, 2136229086, 718267066, 485772484, 1936892066, 1051148609, 1018878751, 1721684837, 1720651398, 2073094346, 526823540, 1170625524, 465996760, 1587572180]
+    // const depthKeys = [1758967917, 718139762, 599926627, 650865728, 1586396712, 1782662420, 947332973, 1537310969, 2091968569, 520821438, 1091636741, 480534841, 1638898615, 1191015330, 592667051, 1457963343, 599725227, 148869387, 160880863, 1198590643, 1799390986, 949983034, 1317634541, 2147246616, 867581533, 1022483365, 313338055, 59287621, 242904474, 617414302, 1958932874, 533475771, 935252991, 1602497453, 802356063, 1165613603, 109338219, 997620137, 1003434881, 1718908081, 1589823369, 1072886307]
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -65,10 +73,7 @@ const cfEngine = (() => {
     })
 
     const MOVES = [3, 4, 2, 5, 1, 6, 0];
-
-    const searchInfo = {
-        nodes: 0, stopAt: 0, depth: 0, bestMoves: [],
-    }
+    const searchInfo = {nodes: 0, stopAt: 0, depth: 0, bestMoves: []}
 
     const timeOut = () => Date.now() >= searchInfo.stopAt
 
@@ -96,6 +101,7 @@ const cfEngine = (() => {
     }
 
     const computeScoreOfNode = (state) => {
+        return 0
         const x = winningRows.reduce((res, wr, i) => res + (state.winningRowsCounterRed[i] !== 0 && state.winningRowsCounterBlue[i] !== 0 ? 0 : (state.winningRowsCounterBlue[i] - state.winningRowsCounterRed[i])), 0)
         return state.side === Player.blue ? -x : x
     }
@@ -112,8 +118,9 @@ const cfEngine = (() => {
         }
         return alpha;
     }
-    negamax = memoize(negamax, s => s.hash);
     negamax = decorator(negamax, () => ++searchInfo.nodes & 65535 || !timeOut())
+    negamax = memoize(negamax, s => s.hash);
+    // negamax = memoize(negamax, (s, depth, maxDepth) => s.hash ^ depthKeys[maxDepth], CACHE2);
 
     const prepareResult = (depth, bestMoves) => {
         searchInfo.depth = depth
@@ -125,6 +132,7 @@ const cfEngine = (() => {
     const searchBestMove = (opts) => {
         opts = {maxThinkingTime: 1000, maxDepth: 42, ...opts,}
         CACHE.clear()
+        // CACHE2.clear()
         searchInfo.nodes = 0
         searchInfo.startAt = Date.now()
         searchInfo.stopAt = searchInfo.startAt + opts.maxThinkingTime;
@@ -141,8 +149,8 @@ const cfEngine = (() => {
             }
             if (timeOut()) break;
             prepareResult(depth, bestMoves);
-            if (bestMoves.every((m) => m.score < -MAXVAL + 50)                // all moves lead to disaster
-                || bestMoves.filter((m) => m.score > -MAXVAL + 50).length === 1 // all moves but one lead to disaster
+            if (bestMoves.every((m) => m.score < -MAXVAL + 50) ||            // all moves lead to disaster
+                bestMoves.filter((m) => m.score > -MAXVAL + 50).length === 1 // all moves but one lead to disaster
             ) break;
         }
         return searchInfo;
@@ -155,7 +163,7 @@ const cfEngine = (() => {
 
     init();
     return {
-        winningRows, winningRowsForFields, DIM, MAXVAL, Player,
+        CACHE, CACHE2, winningRows, winningRowsForFields, DIM, MAXVAL, Player,
         init, initGame, doMove, searchBestMove,
         isAllowedMove: c => STATE.heightCols[c] < DIM.NROW && !STATE.isMill && STATE.cntMoves !== DIM.NROW * DIM.NCOL,
         getHeightOfCol: c => STATE.heightCols[c],
