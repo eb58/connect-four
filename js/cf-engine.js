@@ -138,7 +138,7 @@ const cfEngine = (() => {
         searchInfo.stopAt = searchInfo.startAt + opts.maxThinkingTime;
 
         const moves = MOVES.filter(c => STATE.heightCols[c] < DIM.NROW);
-        for (const depth of [1, ...range(opts.maxDepth / 2).map(x => 2 * (x + 1))]) {
+        for (const depth of [1, ...range(Math.floor(opts.maxDepth + 1 / 2)).map(x => 2 * x)]) {
             const bestMoves = []
             for (let i = 0; i < moves.length; i++) {
                 const score = -negamax(doMove(moves[i], STATE), 0, depth, -MAXVAL, +MAXVAL, moves)
@@ -157,8 +157,8 @@ const cfEngine = (() => {
     }
 
     const initGame = (fen) => {
-        init(fen.split('|')[0] === 'blue' ? Player.blue : Player.red)
-        fen.split('|')[1].split('').map(x => +x).forEach(v => doMove(v));
+        init(fen.trim().split('|')[0] === 'blue' ? Player.blue : Player.red)
+        fen.trim().split('|')[1].split('').map(x => +x).forEach(v => doMove(v));
     }
 
     init();

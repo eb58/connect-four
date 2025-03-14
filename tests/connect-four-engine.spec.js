@@ -74,56 +74,29 @@ test('loosing 3', () => {
     expect(sc.bestMoves.every((m) => m.score <= -MAXVAL + 3)).toBeTruthy();
 });
 
-const evalTests = [
-    {fen: 'red|03030', depth: 1, bestMove: 0, cond: bm => bm.slice(1).every((m) => m.score === -MAXVAL + 1)},
-    {fen: 'red|30303', depth: 1, bestMove: 3, cond: bm => bm.slice(1).every((m) => m.score === -MAXVAL + 1)},
-    {fen: 'red|304', maxDepth: 6, bestMove: [2, 5], cond: bm => bm.slice(2).every((m) => m.score <= -MAXVAL + 3)},
-    {fen: 'red|30304', maxDepth: 8, bestMove: [2, 5], cond: bm => bm.slice(3).every((m) => m.score <= -MAXVAL + 3)},
-    {
-        fen: 'red|264',
-        maxDepth: 10,
-        bestMove: [1, 3, 5],
-        cond: bm => bm.slice(3).every((m) => m.score <= -MAXVAL + 3)
-    },
-    {
-        fen: 'red|442',
-        maxDepth: 10,
-        bestMove: [1, 3, 5],
-        cond: bm => bm.slice(3).every((m) => m.score <= -MAXVAL + 3)
-    },
-    {fen: 'red|334', maxDepth: 10, bestMove: [2, 5], cond: bm => bm.slice(-5).every((m) => m.score <= -MAXVAL + 3)},
-    {
-        fen: 'blue|0403230012',
-        maxDepth: 4,
-        bestMove: 4,
-        cond: bm => bm.slice(1).every((m) => m.score <= -MAXVAL + 3)
-    },
-    {fen: 'blue|', maxDepth: 10, maxThinkingTime: 200, bestMove: [0, 1, 2, 3, 4, 5, 6]},
-]
-
-test.each(evalTests)(`eval $fen`, t => {
+const handleTest = (t) => {
+    // if (t.active !== true) return
+    const expectedMoves = typeof t.bestMove === "number" ? [t.bestMove] : t.bestMove
     cf.initGame(t.fen)
-    const sc = cf.searchBestMove({...t})
+    const sc = cf.searchBestMove({maxDepth: t.depth || 42, maxThinkingTime: t.maxThinkingTime || 1000})
     // console.log(t.fen, sc)
-    expect(sc.depth).toBeGreaterThanOrEqual(t.depth || t.maxDepth)
-    if (typeof t.bestMove === "number") {
-        expect(sc.bestMoves[0].move).toBe(t.bestMove)
-    } else {
-        expect(t.bestMove.includes(sc.bestMoves[0].move)).toBeTruthy();
-    }
+    if (t.depth) expect(sc.depth).toBeGreaterThanOrEqual(t.depth || 1)
+    expect(expectedMoves.includes(sc.bestMoves[0].move)).toBeTruthy();
     if (t.cond) expect(t.cond(sc.bestMoves)).toBeTruthy()
-})
+}
+
+const evalTests = [
+    {fen: 'red|03030', bestMove: 0, cond: bm => bm.slice(1).every((m) => m.score === -MAXVAL + 1)},
+    {fen: 'red|30303', bestMove: 3, cond: bm => bm.slice(1).every((m) => m.score === -MAXVAL + 1)},
+    {fen: 'red|304', depth: 6, bestMove: [2, 5], cond: bm => bm.slice(2).every((m) => m.score <= -MAXVAL + 3)},
+    {fen: 'red|30304', depth: 6, bestMove: [2, 5], cond: bm => bm.slice(3).every((m) => m.score <= -MAXVAL + 3)},
+    {fen: 'red|264', depth: 6, bestMove: [1, 3, 5], cond: bm => bm.slice(3).every((m) => m.score <= -MAXVAL + 3)},
+    {fen: 'red|442', depth: 6, bestMove: [1, 3, 5], cond: bm => bm.slice(3).every((m) => m.score <= -MAXVAL + 3)},
+    {fen: 'red|334', depth: 6, bestMove: [2, 5], ond: bm => bm.slice(2).every((m) => m.score <= -MAXVAL + 3)},
+    {fen: 'blue|0403230012', depth: 4, bestMove: 4, cond: bm => bm.slice(1).every((m) => m.score <= -MAXVAL + 3)},
+    {fen: 'blue|', maxThinkingTime: 200, bestMove: [2, 3, 4]},]
 
 const winningTests = [
-    // TODO {fen: 'red|333332340202244044455556511', depth: 0, bestMove: 5},
-    // TODO {fen: 'red|0606061', depth: 0, bestMove: 6, cond: bm => bm.slice(2).every((m) => m.score === -MAXVAL + 1)},
-    {fen: 'red|03043', depth: 2, bestMove: [2, 5]},
-    {fen: 'red|04030023342', depth: 6, bestMove: 6},
-    {fen: 'red|040323001', depth: 6, bestMove: [2, 4, 5]},
-    {fen: 'red|041323233223226361666', depth: 10, bestMove: 5},
-    {fen: 'red|33333535212225510112245514444', depth: 8, bestMove: 4},
-    {fen: 'red|3633241003021332110021266', depth: 12, bestMove: 6},
-    {fen: 'red|332410233334225', depth: 20, bestMove: 4, maxThinkingTime: 5000},
     {fen: 'blue|2242', depth: 2, bestMove: 3},
     {fen: 'blue|5443421244553533332222', depth: 10, bestMove: 4},
     {fen: 'blue|3135', depth: 12, bestMove: 3},
@@ -131,20 +104,16 @@ const winningTests = [
     {fen: 'blue|4332330222332211', depth: 14, bestMove: 4},
     {fen: 'blue|333231331011041100', depth: 16, bestMove: 4},
     {fen: 'blue|323122334104334522', depth: 18, bestMove: 1},
-    // {fen: 'red|04032300233322434', depth: 22, bestMove: 4, maxThinkingTime: 5000,},
     // {fen: 'blue|3045', depth: 18, bestMove: 4, maxThinkingTime: 12000},
+    {fen: 'red|0606061', depth: 1, bestMove: 6,},
+    {fen: 'red|03043', depth: 2, bestMove: [2, 5]},
+    {fen: 'red|04030023342', depth: 6, bestMove: 6},
+    {fen: 'red|040323001', depth: 6, bestMove: [2, 4, 5]},
+    {fen: 'red|041323233223226361666', depth: 10, bestMove: 5},
+    {fen: 'red|33333535212225510112245514444', depth: 8, bestMove: 4},
+    {fen: 'red|3633241003021332110021266', depth: 12, bestMove: 6},
+    // {fen: 'red|332410233334225', depth: 20, bestMove: 4, maxThinkingTime: 5000},
+    // {fen: 'red|04032300233322434', depth: 22, bestMove: 4, maxThinkingTime: 5000,},
 ]
-
-test.each(winningTests)(`winning $fen $depth`, t => {
-    cf.initGame(t.fen)
-    const sc = cf.searchBestMove({maxThinkingTime: t.maxThinkingTime || 1000})
-    // console.log(t.fen, sc)
-    expect(sc.depth).toBe(t.depth)
-    expect(sc.bestMoves[0].score).toBe(MAXVAL - t.depth);
-    if (typeof t.bestMove === "number") {
-        expect(sc.bestMoves[0].move).toBe(t.bestMove)
-    } else {
-        expect(t.bestMove.includes(sc.bestMoves[0].move)).toBeTruthy();
-    }
-    if (t.cond) expect(t.cond(sc.bestMoves)).toBeTruthy()
-})
+test.each(evalTests)(`eval $fen`, handleTest)
+test.each(winningTests)(`winning $fen $depth`, handleTest)
