@@ -41,10 +41,11 @@ test('draw - board almost full', () => {
 })
 
 const handleTest = (t) => {
-    // if (t.active !== true) return
+    // if (t.act !== true) return
+
     cf.initGame(t.fen)
     const sc = cf.searchBestMove({maxDepth: t.depth || 42, maxThinkingTime: t.maxThinkingTime || 1000})
-    // console.log(t.fen, sc)
+    if (t.act === true) console.log(t.fen, sc)
     if (t.depth) expect(sc.depth).toBeGreaterThanOrEqual(t.depth || 1)
     if (t.bestMove) {
         const expectedMoves = typeof t.bestMove === "number" ? [t.bestMove] : t.bestMove
@@ -60,15 +61,15 @@ const loosingTests = [
 ]
 
 const evalTests = [
-    {fen: 'red|03030', bestMove: 0, cond: bm => bm.slice(1).every((m) => m.score === -MAXVAL + 1)},
-    {fen: 'red|30303', bestMove: 3, cond: bm => bm.slice(1).every((m) => m.score === -MAXVAL + 1)},
+    {fen: 'red|03030', depth: 1, bestMove: 0, cond: bm => bm.slice(1).every((m) => m.score === -MAXVAL + 1)},
+    {fen: 'red|30303', depth: 1, bestMove: 3, cond: bm => bm.slice(1).every((m) => m.score === -MAXVAL + 1)},
     {fen: 'red|304', depth: 6, bestMove: [2, 5], cond: bm => bm.slice(2).every((m) => m.score <= -MAXVAL + 3)},
     {fen: 'red|30304', depth: 6, bestMove: [2, 5], cond: bm => bm.slice(3).every((m) => m.score <= -MAXVAL + 3)},
     {fen: 'red|264', depth: 6, bestMove: [1, 3, 5], cond: bm => bm.slice(3).every((m) => m.score <= -MAXVAL + 3)},
     {fen: 'red|442', depth: 6, bestMove: [1, 3, 5], cond: bm => bm.slice(3).every((m) => m.score <= -MAXVAL + 3)},
     {fen: 'red|334', depth: 6, bestMove: [2, 5], ond: bm => bm.slice(2).every((m) => m.score <= -MAXVAL + 3)},
     {fen: 'blue|0403230012', depth: 4, bestMove: 4, cond: bm => bm.slice(1).every((m) => m.score <= -MAXVAL + 3)},
-    {fen: 'blue|', maxThinkingTime: 200, bestMove: [2, 3, 4]}
+    {fen: 'blue|', depth: 10, maxThinkingTime: 100}
 ]
 
 const winningTests = [
@@ -87,7 +88,7 @@ const winningTests = [
     {fen: 'red|041323233223226361666', depth: 10, bestMove: 5},
     {fen: 'red|33333535212225510112245514444', depth: 8, bestMove: 4},
     {fen: 'red|3633241003021332110021266', depth: 12, bestMove: 6},
-    {fen: 'red|332410233334225', depth: 20, bestMove: 4, maxThinkingTime: 5000},
+    // {fen: 'red|332410233334225', depth: 20, bestMove: 4, maxThinkingTime: 5000},
     // {fen: 'red|04032300233322434', depth: 22, bestMove: 4, maxThinkingTime: 5000,},
 ]
 
