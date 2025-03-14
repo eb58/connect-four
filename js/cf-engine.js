@@ -26,7 +26,7 @@ const cfEngine = (() => {
         const val = c.get(h);
         return val !== undefined ? val : c.add(h, f(...args), ...args);
     }
-    const decorator = (f, decorator) => (...args) => decorator() ? f(...args) : 0;
+    const decorator = (f, preCondition) => (...args) => preCondition() ? f(...args) : 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     const computeWinningRows = (r, c, dr, dc) => { // dr = delta row,  dc = delta col
