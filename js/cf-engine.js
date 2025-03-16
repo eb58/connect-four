@@ -149,9 +149,6 @@ const cfEngine = (() => {
             }
             if (timeOut()) break;
             prepareResult(depth, bestMoves);
-            if (bestMoves.every((m) => m.score < -MAXVAL + 50) ||            // all moves lead to disaster
-                bestMoves.filter((m) => m.score > -MAXVAL + 50).length === 1 // all moves but one lead to disaster
-            ) break;
         }
         return searchInfo;
     }
