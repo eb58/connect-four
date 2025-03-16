@@ -45,6 +45,7 @@ const handleTest = (t) => {
 
     cf.initGame(t.fen)
     const sc = cf.searchBestMove({maxDepth: t.depth || 42, maxThinkingTime: t.maxThinkingTime || 1000})
+
     if (t.act === true) console.log(t.fen, sc)
     if (t.depth) expect(sc.depth).toBeGreaterThanOrEqual(t.depth || 1)
     if (t.bestMove) {
@@ -57,6 +58,7 @@ const handleTest = (t) => {
 const loosingTests = [
     {fen: 'blue|030415', depth: 1, cond: bm => bm.every((m) => m.score === -MAXVAL + 1)},
     {fen: 'blue|33405', depth: 1, cond: bm => bm.every((m) => m.score === -MAXVAL + 1)},
+    {fen: 'blue|0403230012', depth: 6, bestMove: 4, cond: bm => bm.every((m) => m.score <= -MAXVAL + 5)},
     {fen: 'blue|04032300124332', depth: 4, cond: bm => bm.every((m) => m.score <= -MAXVAL + 3)},
 ]
 
@@ -68,7 +70,6 @@ const evalTests = [
     {fen: 'red|264', depth: 6, bestMove: [1, 3, 5], cond: bm => bm.slice(3).every((m) => m.score <= -MAXVAL + 3)},
     {fen: 'red|442', depth: 6, bestMove: [1, 3, 5], cond: bm => bm.slice(3).every((m) => m.score <= -MAXVAL + 3)},
     {fen: 'red|334', depth: 6, bestMove: [2, 5], ond: bm => bm.slice(2).every((m) => m.score <= -MAXVAL + 3)},
-    {fen: 'blue|0403230012', depth: 4, bestMove: 4, cond: bm => bm.slice(1).every((m) => m.score <= -MAXVAL + 3)},
     {fen: 'blue|', depth: 10, maxThinkingTime: 300}
 ]
 
