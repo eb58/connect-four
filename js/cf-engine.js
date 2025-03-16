@@ -20,7 +20,6 @@ const cfEngine = (() => {
         info: (s = "") => `${s}CACHE:${cnt}`
     })
     const CACHE = cache(score => score >= MAXVAL - 50);
-    const CACHE2 = cache((val, state, depth, maxDepth) => maxDepth < 100);
     const memoize = (f, hash, c = CACHE) => (...args) => {
         const h = hash(...args);
         const val = c.get(h);
@@ -99,15 +98,16 @@ const cfEngine = (() => {
         state.isMill = false
     }
 
-    const computeScoreOfNode = (state) => {
-        return 0
+    const computeScoreOfNode = () => {
         const x = winningRows.reduce((res, wr, i) => res + (state.winningRowsCounterRed[i] !== 0 && state.winningRowsCounterBlue[i] !== 0 ? 0 : (state.winningRowsCounterBlue[i] - state.winningRowsCounterRed[i])), 0)
         return state.side === Player.blue ? -x : x
     }
 
-    let negamax = (state, depth, maxDepth, alpha, beta, moves) => {
+    let evalScoreOfState = () => 0
+
+    let negamax = (depth, maxDepth, alpha, beta, moves) => {
         if (state.isMill) return -MAXVAL + depth
-        if (depth === maxDepth) return computeScoreOfNode(state);
+        if (depth === maxDepth) return evalScoreOfState();
         if (state.cntMoves === 42) return 0
         for (const m of moves) if (state.heightCols[m] < DIM.NROW) {
             doMove(m)
@@ -129,10 +129,9 @@ const cfEngine = (() => {
         return searchInfo
     }
 
-    const searchBestMove = (opts) => {
+    const _searchBestMove = (opts) => {
         opts = {maxThinkingTime: 1000, maxDepth: 42, ...opts,}
         CACHE.clear()
-        // CACHE2.clear()
         searchInfo.nodes = 0
         searchInfo.startAt = Date.now()
         searchInfo.stopAt = searchInfo.startAt + opts.maxThinkingTime;
@@ -157,6 +156,19 @@ const cfEngine = (() => {
         return searchInfo;
     }
 
+    const searchBestMove = (opts) => {
+
+        opts = {maxThinkingTime: 1000, maxDepth: 42, ...opts,}
+        const newOpts = {...opts, maxThinkingTime: opts.maxThinkingTime / 2}
+
+        evalScoreOfState = () => 0
+        const sc = _searchBestMove(newOpts)
+        if (sc.bestMoves.length === 0 || sc.bestMoves[0].score > MAXVAL - 50) return sc;
+        evalScoreOfState = computeScoreOfNode
+        return _searchBestMove(newOpts)
+    }
+
+
     const initGame = (fen) => {
         init(fen.trim().split('|')[0] === 'blue' ? Player.blue : Player.red)
         fen.trim().split('|')[1].split('').map(x => +x).forEach(v => doMove(v));
@@ -164,7 +176,7 @@ const cfEngine = (() => {
 
     init();
     return {
-        CACHE, CACHE2, winningRows, winningRowsForFields, DIM, MAXVAL, Player,
+        CACHE, winningRows, winningRowsForFields, DIM, MAXVAL, Player,
         init, initGame, doMove, searchBestMove,
         isAllowedMove: c => state.heightCols[c] < DIM.NROW && !state.isMill && state.cntMoves !== DIM.NROW * DIM.NCOL,
         getHeightOfCol: c => state.heightCols[c],

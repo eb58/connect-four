@@ -69,18 +69,10 @@ const evalTests = [
     {fen: 'red|442', depth: 6, bestMove: [1, 3, 5], cond: bm => bm.slice(3).every((m) => m.score <= -MAXVAL + 3)},
     {fen: 'red|334', depth: 6, bestMove: [2, 5], ond: bm => bm.slice(2).every((m) => m.score <= -MAXVAL + 3)},
     {fen: 'blue|0403230012', depth: 4, bestMove: 4, cond: bm => bm.slice(1).every((m) => m.score <= -MAXVAL + 3)},
-    {fen: 'blue|', depth: 10, maxThinkingTime: 100}
+    {fen: 'blue|', depth: 10, maxThinkingTime: 300}
 ]
 
 const winningTests = [
-    {fen: 'blue|2242', depth: 2, bestMove: 3},
-    {fen: 'blue|5443421244553533332222', depth: 10, bestMove: 4},
-    {fen: 'blue|3135', depth: 12, bestMove: 3},
-    {fen: 'blue|323121', depth: 10, bestMove: 3},
-    {fen: 'blue|4332330222332211', depth: 14, bestMove: 4},
-    {fen: 'blue|333231331011041100', depth: 16, bestMove: 4},
-    {fen: 'blue|323122334104334522', depth: 18, bestMove: 1},
-    // {fen: 'blue|3045', depth: 18, bestMove: 4, maxThinkingTime: 12000},
     {fen: 'red|0606061', depth: 1, bestMove: 6,},
     {fen: 'red|03043', depth: 2, bestMove: [2, 5]},
     {fen: 'red|04030023342', depth: 6, bestMove: 6},
@@ -90,6 +82,16 @@ const winningTests = [
     {fen: 'red|3633241003021332110021266', depth: 12, bestMove: 6},
     // {fen: 'red|332410233334225', depth: 20, bestMove: 4, maxThinkingTime: 5000},
     // {fen: 'red|04032300233322434', depth: 22, bestMove: 4, maxThinkingTime: 5000,},
+
+    {fen: 'blue|2242', depth: 2, bestMove: 3},
+    {fen: 'blue|5443421244553533332222', depth: 10, bestMove: 4},
+    {fen: 'blue|3135', depth: 12, bestMove: 3},
+    {fen: 'blue|323121', depth: 10, bestMove: 3},
+    {fen: 'blue|4332330222332211', depth: 14, bestMove: 4},
+    {fen: 'blue|333231331011041100', depth: 16, bestMove: 4},
+    {fen: 'blue|323122334104334522', depth: 18, bestMove: 1},
+    // {fen: 'blue|3045', depth: 18, bestMove: 4, maxThinkingTime: 12000},
+
 ]
 
 test.each(evalTests)(`eval $fen`, handleTest)
