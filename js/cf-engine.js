@@ -60,24 +60,24 @@ const cfEngine = (() => {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    let STATE   // state that is used for evaluating
+    const state = {}  // state that is used for evaluating
 
-    const init = (player = Player.blue) => STATE = ({
-        heightCols: range(DIM.NCOL).map(() => 0),
-        winningRowsCounterRed: winningRows.map(() => 0),
-        winningRowsCounterBlue: winningRows.map(() => 0),
-        side: player,
-        isMill: false,
-        cntMoves: 0,
-        hash: 0,
-    })
+    const init = (player = Player.blue) => {
+        state.heightCols = range(DIM.NCOL).map(() => 0)
+        state.winningRowsCounterRed = winningRows.map(() => 0)
+        state.winningRowsCounterBlue = winningRows.map(() => 0)
+        state.side = player
+        state.isMill = false
+        state.cntMoves = 0
+        state.hash = 0
+    }
 
     const MOVES = [3, 4, 2, 5, 1, 6, 0];
     const searchInfo = {nodes: 0, stopAt: 0, depth: 0, bestMoves: []}
 
     const timeOut = () => Date.now() >= searchInfo.stopAt
 
-    const doMove = (c, state = STATE) => {
+    const doMove = (c) => {
         const idxBoard = c + DIM.NCOL * state.heightCols[c]
         state.heightCols[c]++;
         state.side = state.side === Player.red ? Player.blue : Player.red;
@@ -86,10 +86,9 @@ const cfEngine = (() => {
         state.isMill = winningRowsForFields[idxBoard].some(i => counters[i] >= 4)
         state.hash ^= pieceKeys[idxBoard * state.side] ^ sideKeys[state.side];
         state.cntMoves++
-        return state;
     }
 
-    const undoMove = (c, state) => {
+    const undoMove = (c) => {
         --state.heightCols[c];
         state.cntMoves--
         const idxBoard = c + DIM.NCOL * state.heightCols[c]
@@ -111,7 +110,8 @@ const cfEngine = (() => {
         if (depth === maxDepth) return computeScoreOfNode(state);
         if (state.cntMoves === 42) return 0
         for (const m of moves) if (state.heightCols[m] < DIM.NROW) {
-            const score = -negamax(doMove(m, state), depth + 1, maxDepth, -beta, -alpha, moves)
+            doMove(m)
+            const score = -negamax(depth + 1, maxDepth, -beta, -alpha, moves)
             undoMove(m, state)
             if (score > alpha) alpha = score;
             if (alpha >= beta) return alpha;
@@ -119,7 +119,7 @@ const cfEngine = (() => {
         return alpha;
     }
     negamax = decorator(negamax, () => ++searchInfo.nodes & 65535 || !timeOut())
-    negamax = memoize(negamax, s => s.hash);
+    negamax = memoize(negamax, () => state.hash);
     // negamax = memoize(negamax, (s, depth, maxDepth) => s.hash ^ depthKeys[maxDepth], CACHE2);
 
     const prepareResult = (depth, bestMoves) => {
@@ -137,12 +137,13 @@ const cfEngine = (() => {
         searchInfo.startAt = Date.now()
         searchInfo.stopAt = searchInfo.startAt + opts.maxThinkingTime;
 
-        const moves = MOVES.filter(c => STATE.heightCols[c] < DIM.NROW);
+        const moves = MOVES.filter(c => state.heightCols[c] < DIM.NROW);
         for (const depth of [1, ...range(Math.floor(opts.maxDepth + 1 / 2)).map(x => 2 * x)]) {
             const bestMoves = []
             for (let i = 0; i < moves.length; i++) {
-                const score = -negamax(doMove(moves[i], STATE), 0, depth, -MAXVAL, +MAXVAL, moves)
-                undoMove(moves[i], STATE)
+                doMove(moves[i])
+                const score = -negamax(0, depth, -MAXVAL, +MAXVAL, moves)
+                undoMove(moves[i])
                 if (timeOut()) break;
                 bestMoves.push({move: moves[i], score});
                 if (score > MAXVAL - 50) return prepareResult(depth, bestMoves)
@@ -165,11 +166,11 @@ const cfEngine = (() => {
     return {
         CACHE, CACHE2, winningRows, winningRowsForFields, DIM, MAXVAL, Player,
         init, initGame, doMove, searchBestMove,
-        isAllowedMove: c => STATE.heightCols[c] < DIM.NROW && !STATE.isMill && STATE.cntMoves !== DIM.NROW * DIM.NCOL,
-        getHeightOfCol: c => STATE.heightCols[c],
-        side: () => STATE.side,
-        isMill: () => STATE.isMill,
-        isDraw: () => STATE.cntMoves === DIM.NROW * DIM.NCOL && !STATE.isMill,
+        isAllowedMove: c => state.heightCols[c] < DIM.NROW && !state.isMill && state.cntMoves !== DIM.NROW * DIM.NCOL,
+        getHeightOfCol: c => state.heightCols[c],
+        side: () => state.side,
+        isMill: () => state.isMill,
+        isDraw: () => state.cntMoves === DIM.NROW * DIM.NCOL && !state.isMill,
     }
 })()
 
