@@ -137,7 +137,7 @@ const cfEngine = (() => {
         searchInfo.stopAt = searchInfo.startAt + opts.maxThinkingTime;
 
         const moves = MOVES.filter(c => state.heightCols[c] < DIM.NROW);
-        for (const depth of [1, ...range(Math.floor(opts.maxDepth + 1 / 2)).map(x => 2 * x)]) {
+        for (const depth of [1, ...range(Math.floor((opts.maxDepth + 1) / 2)).map(x => 2 * (x + 1))]) {
             const bestMoves = []
             for (let i = 0; i < moves.length; i++) {
                 doMove(moves[i])
