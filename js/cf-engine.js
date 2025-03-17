@@ -106,7 +106,7 @@ const cfEngine = (() => {
     let evalScoreOfState = () => 0
 
     let negamax = (depth, alpha, beta, moves) => {
-        if (state.isMill) return -MAXVAL
+        if (state.isMill) return -MAXVAL - depth
         if (depth === 0) return evalScoreOfState();
         if (state.cntMoves === 42) return 0
         for (const m of moves) if (state.heightCols[m] < DIM.NROW) {
@@ -139,12 +139,12 @@ const cfEngine = (() => {
         const moves = MOVES.filter(c => state.heightCols[c] < DIM.NROW);
         for (const depth of [1, ...range(Math.floor((opts.maxDepth + 1) / 2)).map(x => 2 * (x + 1))]) {
             const bestMoves = []
-            for (let i = 0; i < moves.length; i++) {
-                doMove(moves[i])
+            for (const m of moves) {
+                doMove(m)
                 const score = -negamax(depth, -MAXVAL, +MAXVAL, moves)
-                undoMove(moves[i])
+                undoMove(m)
                 if (timeOut()) break;
-                bestMoves.push({move: moves[i], score});
+                bestMoves.push({move: m, score});
                 if (score >= MAXVAL) return prepareResult(depth, bestMoves)
             }
             if (timeOut()) break;
