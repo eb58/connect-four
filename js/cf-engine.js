@@ -141,7 +141,7 @@ const cfEngine = (() => {
             const bestMoves = []
             for (const m of moves) {
                 doMove(m)
-                const score = -negamax(depth, -MAXVAL, +MAXVAL, moves)
+                const score = -negamax(depth, -MAXVAL - 100, +MAXVAL + 100, moves)
                 undoMove(m)
                 if (timeOut()) break;
                 bestMoves.push({move: m, score});
