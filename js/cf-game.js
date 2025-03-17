@@ -9,7 +9,7 @@ const cfGame = (cfEngine, divId) => {
     const infoStr = (sc) => {
         const scores = sc.bestMoves.map((m) => `${m.move + 1}:${m.score}`).join(' ')
         const player = this.beginner === cfEngine.Player.blue ? 'blue' : 'red'
-        return `DEPTH:${sc.depth} { ${scores} } NODES:${sc.nodes} ${Date.now() - sc.startAt}ms FEN:${player}|${moveHistory.map(x => x.move).join('').trim()} `
+        return `DEPTH:${sc.depth} { ${scores} } NODES:${sc.nodes} ${cfEngine.CACHE.info()} ${Date.now() - sc.startAt}ms FEN:${player}|${moveHistory.map(x => x.move).join('').trim()} `
     }
 
     const myAlert = msg => $('<div id="alert"></div').dialog({

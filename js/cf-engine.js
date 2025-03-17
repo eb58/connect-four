@@ -63,8 +63,8 @@ const cfEngine = (() => {
 
     const init = (player = Player.blue) => {
         state.heightCols = range(DIM.NCOL).map(() => 0)
-        state.winningRowsCounterRed = winningRows.map(() => 0)
-        state.winningRowsCounterBlue = winningRows.map(() => 0)
+        state.wrCounterRed = winningRows.map(() => 0)
+        state.wrCounterBlue = winningRows.map(() => 0)
         state.side = player
         state.isMill = false
         state.cntMoves = 0
@@ -80,7 +80,7 @@ const cfEngine = (() => {
         const idxBoard = c + DIM.NCOL * state.heightCols[c]
         state.heightCols[c]++;
         state.side = state.side === Player.red ? Player.blue : Player.red;
-        const counters = state.side === Player.blue ? state.winningRowsCounterBlue : state.winningRowsCounterRed;
+        const counters = state.side === Player.blue ? state.wrCounterBlue : state.wrCounterRed;
         winningRowsForFields[idxBoard].forEach(i => ++counters[i])
         state.isMill = winningRowsForFields[idxBoard].some(i => counters[i] >= 4)
         state.hash ^= pieceKeys[idxBoard * state.side] ^ sideKeys[state.side];
@@ -92,21 +92,21 @@ const cfEngine = (() => {
         state.cntMoves--
         const idxBoard = c + DIM.NCOL * state.heightCols[c]
         state.hash ^= pieceKeys[idxBoard * state.side] ^ sideKeys[state.side];
-        const counters = state.side === Player.blue ? state.winningRowsCounterBlue : state.winningRowsCounterRed;
+        const counters = state.side === Player.blue ? state.wrCounterBlue : state.wrCounterRed;
         winningRowsForFields[idxBoard].forEach((i) => counters[i]--)
         state.side = state.side === Player.red ? Player.blue : Player.red;
         state.isMill = false
     }
 
     const computeScoreOfNode = () => {
-        const x = winningRows.reduce((res, wr, i) => res + (state.winningRowsCounterRed[i] !== 0 && state.winningRowsCounterBlue[i] !== 0 ? 0 : (state.winningRowsCounterBlue[i] - state.winningRowsCounterRed[i])), 0)
+        const x = winningRows.reduce((res, wr, i) => res + (state.wrCounterRed[i] !== 0 && state.wrCounterBlue[i] !== 0 ? 0 : (state.wrCounterBlue[i] - state.wrCounterRed[i])) * wr.val, 0)
         return state.side === Player.blue ? -x : x
     }
 
     let evalScoreOfState = () => 0
 
     let negamax = (depth, alpha, beta, moves) => {
-        if (state.isMill) return -MAXVAL - depth
+        if (state.isMill) return -MAXVAL
         if (depth === 0) return evalScoreOfState();
         if (state.cntMoves === 42) return 0
         for (const m of moves) if (state.heightCols[m] < DIM.NROW) {
@@ -141,7 +141,7 @@ const cfEngine = (() => {
             const bestMoves = []
             for (const m of moves) {
                 doMove(m)
-                const score = -negamax(depth, -MAXVAL - 100, +MAXVAL + 100, moves)
+                const score = -negamax(depth, -MAXVAL, +MAXVAL, moves)
                 undoMove(m)
                 if (timeOut()) break;
                 bestMoves.push({move: m, score});

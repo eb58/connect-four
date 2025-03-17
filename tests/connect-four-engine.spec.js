@@ -48,7 +48,7 @@ const h = (t) => {
     const sc = cf.searchBestMove({maxDepth: t.maxDepth || t.depth || 42, maxThinkingTime: t.maxThinkingTime || 1000})
 
     // if (t.act) console.log(t.fen, sc)
-    expect(sc.depth).toBe(t.depth)
+    if (t.depth) expect(sc.depth).toBe(t.depth)
     if (t.bestMove) {
         const expectedMoves = typeof t.bestMove === "number" ? [t.bestMove] : t.bestMove
         expect(expectedMoves.includes(sc.bestMoves[0].move)).toBeTruthy();
@@ -59,7 +59,7 @@ const h = (t) => {
 test('eval1', () => h({fen: 'red|03030', maxDepth: 8, depth: 1, bestMove: 0, cond: bm => bm.slice(1).every(p)}))
 test('eval2', () => h({fen: 'red|30303', maxDepth: 8, depth: 1, bestMove: 3, cond: bm => bm.slice(1).every(p)}))
 test('eval3', () => h({fen: 'red|304', depth: 6, bestMove: [2, 5], cond: bm => bm.slice(2).every(p)}))
-test('eval4', () => h({fen: 'red|30304', depth: 6, bestMove: [2, 5], cond: bm => bm.slice(3).every(p)}))
+test('eval4', () => h({fen: 'red|30304', depth: 6, bestMove: [0, 2, 5], cond: bm => bm.slice(3).every(p)}))
 test('eval5', () => h({fen: 'red|264', depth: 6, bestMove: [1, 3, 5], cond: bm => bm.slice(3).every(p)}))
 test('eval6', () => h({fen: 'red|442', depth: 6, bestMove: [1, 3, 5], cond: bm => bm.slice(3).every(p)}))
 test('eval7', () => h({fen: 'red|334', depth: 6, bestMove: [2, 5], cond: bm => bm.slice(2).every(p)}))
