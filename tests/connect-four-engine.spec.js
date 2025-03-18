@@ -1,7 +1,7 @@
 const cf = require('../js/cf-engine.js');
 
 const range = (n) => [...Array(n).keys()]
-const p = m => m.score <= -MAXVAL
+const p = m => m.score <= -MAXVAL + 50
 
 const {Player, winningRows, winningRowsForFields, MAXVAL} = {...cf}
 

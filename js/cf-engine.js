@@ -19,7 +19,7 @@ const cfEngine = (() => {
         clear: () => (cnt = 0, c = {}),
         info: (s = "") => `${s}CACHE:${cnt}`
     })
-    const CACHE = cache(score => score >= MAXVAL);
+    const CACHE = cache(score => score >= MAXVAL - 50);
     const memoize = (f, hash, c = CACHE) => (...args) => {
         const h = hash(...args);
         const val = c.get(h);
@@ -105,13 +105,13 @@ const cfEngine = (() => {
 
     let evalScoreOfState = () => 0
 
-    let negamax = (depth, alpha, beta, moves) => {
-        if (state.isMill) return -MAXVAL
-        if (depth === 0) return evalScoreOfState();
+    let negamax = (depth, maxDepth, alpha, beta, moves) => {
+        if (state.isMill) return -MAXVAL + depth
+        if (depth === maxDepth) return evalScoreOfState();
         if (state.cntMoves === 42) return 0
         for (const m of moves) if (state.heightCols[m] < DIM.NROW) {
             doMove(m)
-            const score = -negamax(depth - 1, -beta, -alpha, moves)
+            const score = -negamax(depth + 1, maxDepth, -beta, -alpha, moves)
             undoMove(m, state)
             if (score > alpha) alpha = score;
             if (alpha >= beta) return alpha;
@@ -141,16 +141,16 @@ const cfEngine = (() => {
             const bestMoves = []
             for (const m of moves) {
                 doMove(m)
-                const score = -negamax(depth, -MAXVAL, +MAXVAL, moves)
+                const score = -negamax(0, depth, -MAXVAL, +MAXVAL, moves)
                 undoMove(m)
                 if (timeOut()) break;
                 bestMoves.push({move: m, score});
-                if (score >= MAXVAL) return prepareResult(depth, bestMoves)
+                if (score > MAXVAL - 50) return prepareResult(depth, bestMoves)
             }
             if (timeOut()) break;
             prepareResult(depth, bestMoves);
-            if (bestMoves.every((m) => m.score <= -MAXVAL) ||           // all moves lead to disaster
-                bestMoves.filter((m) => m.score > -MAXVAL).length === 1 // all moves but one lead to disaster
+            if (bestMoves.every((m) => m.score < -MAXVAL + 50) ||           // all moves lead to disaster
+                bestMoves.filter((m) => m.score > -MAXVAL + 50).length === 1 // all moves but one lead to disaster
             ) break;
         }
         return searchInfo;
@@ -163,7 +163,7 @@ const cfEngine = (() => {
 
         evalScoreOfState = () => 0
         const sc = _searchBestMove(newOpts)
-        if (sc.bestMoves.length === 0 || sc.bestMoves[0].score >= MAXVAL) return sc;
+        if (sc.bestMoves.length === 0 || sc.bestMoves[0].score > MAXVAL - 50) return sc;
         evalScoreOfState = computeScoreOfNode
         return _searchBestMove(newOpts)
     }
