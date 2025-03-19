@@ -106,7 +106,7 @@ const cfEngine = (() => {
         for (const m of moves) if (state.heightCols[m] < DIM.NROW) {
             doMove(m)
             const score = -negamax(depth + 1, maxDepth, -beta, -alpha, moves)
-            undoMove(m, state)
+            undoMove(m)
             if (score > alpha) alpha = score;
             if (alpha >= beta) return alpha;
         }
