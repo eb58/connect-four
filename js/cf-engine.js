@@ -10,7 +10,7 @@ const cfEngine = (() => {
     const cache = (insertCondition = _ => true, c = {}, cnt = 0) => ({
         add: (key, val, ...args) => {
             if (insertCondition(val, ...args)) {
-                cnt++ > 100000 && (c = {}, cnt = 0)
+                cnt++ > 10000000 && (c = {}, cnt = 0)
                 c[key] = val;
             }
             return val
