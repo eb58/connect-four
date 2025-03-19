@@ -10,7 +10,7 @@ const cfEngine = (() => {
     const cache = (insertCondition = _ => true, c = {}, cnt = 0) => ({
         add: (key, val, ...args) => {
             if (insertCondition(val, ...args)) {
-                cnt++ > 10000000 && (c = {}, cnt = 0)
+                cnt++ > 100000 && (c = {}, cnt = 0)
                 c[key] = val;
             }
             return val
@@ -71,11 +71,6 @@ const cfEngine = (() => {
         state.hash = 0
     }
 
-    const MOVES = [3, 4, 2, 5, 1, 6, 0];
-    const searchInfo = {nodes: 0, stopAt: 0, depth: 0, bestMoves: []}
-
-    const timeOut = () => Date.now() >= searchInfo.stopAt
-
     const doMove = (c) => {
         const idxBoard = c + DIM.NCOL * state.heightCols[c]
         state.heightCols[c]++;
@@ -98,16 +93,15 @@ const cfEngine = (() => {
         state.isMill = false
     }
 
-    const computeScoreOfNode = () => {
+    const _computeScore = () => {
         const x = winningRows.reduce((res, wr, i) => res + (state.wrCounterRed[i] !== 0 && state.wrCounterBlue[i] !== 0 ? 0 : (state.wrCounterBlue[i] - state.wrCounterRed[i])) * wr.val, 0)
         return state.side === Player.blue ? -x : x
     }
-
-    let evalScoreOfState = () => 0
+    let computeScore = _computeScore
 
     let negamax = (depth, maxDepth, alpha, beta, moves) => {
         if (state.isMill) return -MAXVAL + depth
-        if (depth === maxDepth) return evalScoreOfState();
+        if (depth === maxDepth) return computeScore();
         if (state.cntMoves === 42) return 0
         for (const m of moves) if (state.heightCols[m] < DIM.NROW) {
             doMove(m)
@@ -122,50 +116,43 @@ const cfEngine = (() => {
     negamax = memoize(negamax, () => state.hash);
     // negamax = memoize(negamax, (s, depth, maxDepth) => s.hash ^ depthKeys[maxDepth], CACHE2);
 
-    const prepareResult = (depth, bestMoves) => {
-        searchInfo.depth = depth
-        searchInfo.bestMoves = bestMoves.sort((a, b) => b.score - a.score)
-        // console.log(`DEPTH:${depth} { ${bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${searchInfo.nodes} ${Date.now() - searchInfo.startAt + 'ms'} ${CACHE.info()}`)
-        return searchInfo
-    }
+    const searchInfo = {nodes: 0, stopAt: 0, depth: 0, bestMoves: []}
+    const timeOut = () => Date.now() >= searchInfo.stopAt
 
-    const _searchBestMove = (opts) => {
-        opts = {maxThinkingTime: 1000, maxDepth: 42, ...opts,}
+    const _searchBestMove = (maxThinkingTime, maxDepth, compScore) => {
+        computeScore = compScore
         CACHE.clear()
         searchInfo.nodes = 0
         searchInfo.startAt = Date.now()
-        searchInfo.stopAt = searchInfo.startAt + opts.maxThinkingTime;
-
-        const moves = MOVES.filter(c => state.heightCols[c] < DIM.NROW);
-        for (const depth of [1, ...range(Math.floor((opts.maxDepth + 1) / 2)).map(x => 2 * (x + 1))]) {
-            const bestMoves = []
+        searchInfo.stopAt = searchInfo.startAt + maxThinkingTime;
+        const moves = [3, 4, 2, 5, 1, 6, 0].filter(c => state.heightCols[c] < DIM.NROW);
+        for (const depth of [1, ...range(Math.floor((maxDepth + 1) / 2)).map(x => 2 * (x + 1))]) {
+            searchInfo.depth = depth
+            searchInfo.bestMoves = []
             for (const m of moves) {
                 doMove(m)
                 const score = -negamax(0, depth, -MAXVAL, +MAXVAL, moves)
+                searchInfo.bestMoves.push({move: m, score});
                 undoMove(m)
-                if (timeOut()) break;
-                bestMoves.push({move: m, score});
-                if (score > MAXVAL - 50) return prepareResult(depth, bestMoves)
+                if (score > MAXVAL - 50 || timeOut()) break
             }
             if (timeOut()) break;
-            prepareResult(depth, bestMoves);
-            if (bestMoves.every((m) => m.score < -MAXVAL + 50) ||           // all moves lead to disaster
-                bestMoves.filter((m) => m.score > -MAXVAL + 50).length === 1 // all moves but one lead to disaster
+            if (searchInfo.bestMoves.every((m) => m.score < -MAXVAL + 50) ||           // all moves lead to disaster
+                searchInfo.bestMoves.filter((m) => m.score > -MAXVAL + 50).length === 1 // all moves but one lead to disaster
             ) break;
         }
+        searchInfo.bestMoves.sort((a, b) => b.score - a.score)
+        // console.log(`DEPTH:${searchInfo.depth} { ${searchInfo.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${searchInfo.nodes} ${Date.now() - searchInfo.startAt + 'ms'} ${CACHE.info()}`)
         return searchInfo;
     }
 
     const searchBestMove = (opts) => {
-
-        opts = {maxThinkingTime: 1000, maxDepth: 42, ...opts,}
-        const newOpts = {...opts, maxThinkingTime: opts.maxThinkingTime / 2}
-
-        evalScoreOfState = () => 0
-        const sc = _searchBestMove(newOpts)
+        opts = {maxThinkingTime: 1000, maxDepth: 42, ...opts}
+        // 1: look as far possible if we can find a winning move
+        const sc = _searchBestMove(opts.maxThinkingTime / 2, opts.maxDepth, () => 0)
         if (sc.bestMoves.length === 0 || sc.bestMoves[0].score > MAXVAL - 50) return sc;
-        evalScoreOfState = computeScoreOfNode
-        return _searchBestMove(newOpts)
+        // 2:  look for best move with better evaluating function
+        return _searchBestMove(opts.maxThinkingTime / 2, opts.maxDepth, _computeScore)
     }
 
     const initGame = (fen) => {
