@@ -1,7 +1,7 @@
 const cfEngine = (() => {
     const range = n => [...Array(n).keys()]
 
-    const DIM = {NCOL: 7, NROW: 6};
+    const NCOL = 7, NROW = 6;
     const MAXVAL = 1000000
     const Player = {blue: 1, red: 2} // AI / human player
 
@@ -30,9 +30,9 @@ const cfEngine = (() => {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     const computeWinningRows = (r, c, dr, dc) => { // dr = delta row,  dc = delta col
         const row = [];
-        const startRow = DIM.NROW - r;
-        while (r >= 0 && r < DIM.NROW && c >= 0 && c < DIM.NCOL && row.length < 4) {
-            row.push(c + DIM.NCOL * r);
+        const startRow = NROW - r;
+        while (r >= 0 && r < NROW && c >= 0 && c < NCOL && row.length < 4) {
+            row.push(c + NCOL * r);
             c += dc;
             r += dr;
         }
@@ -40,10 +40,10 @@ const cfEngine = (() => {
     }
 
     // winning rows - length should be 69 for DIM (7x6)
-    const winningRows = range(DIM.NROW).reduce((acc, r) => range(DIM.NCOL).reduce((acc, c) => [...acc, ...computeWinningRows(r, c, 0, 1), ...computeWinningRows(r, c, 1, 1), ...computeWinningRows(r, c, 1, 0), ...computeWinningRows(r, c, -1, 1)], acc), [])
+    const winningRows = range(NROW).reduce((acc, r) => range(NCOL).reduce((acc, c) => [...acc, ...computeWinningRows(r, c, 0, 1), ...computeWinningRows(r, c, 1, 1), ...computeWinningRows(r, c, 1, 0), ...computeWinningRows(r, c, -1, 1)], acc), [])
 
     // list of indices on allWinningRows for each field of board
-    const winningRowsForFields = range(DIM.NCOL * DIM.NROW).map(i => winningRows.reduce((acc, wr, j) => wr.row.includes(i) ? [...acc, j] : acc, []))
+    const winningRowsForFields = range(NCOL * NROW).map(i => winningRows.reduce((acc, wr, j) => wr.row.includes(i) ? [...acc, j] : acc, []))
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -62,7 +62,7 @@ const cfEngine = (() => {
     const state = {}  // state that is used for evaluating
 
     const init = (player = Player.blue) => {
-        state.heightCols = range(DIM.NCOL).map(() => 0)
+        state.heightCols = range(NCOL).map(() => 0)
         state.wrCounterRed = winningRows.map(() => 0)
         state.wrCounterBlue = winningRows.map(() => 0)
         state.side = player
@@ -72,7 +72,7 @@ const cfEngine = (() => {
     }
 
     const doMove = (c) => {
-        const idxBoard = c + DIM.NCOL * state.heightCols[c]
+        const idxBoard = c + NCOL * state.heightCols[c]
         state.heightCols[c]++;
         state.side = state.side === Player.red ? Player.blue : Player.red;
         const counters = state.side === Player.blue ? state.wrCounterBlue : state.wrCounterRed;
@@ -85,7 +85,7 @@ const cfEngine = (() => {
     const undoMove = (c) => {
         --state.heightCols[c];
         state.cntMoves--
-        const idxBoard = c + DIM.NCOL * state.heightCols[c]
+        const idxBoard = c + NCOL * state.heightCols[c]
         state.hash ^= pieceKeys[idxBoard * state.side] ^ sideKeys[state.side];
         const counters = state.side === Player.blue ? state.wrCounterBlue : state.wrCounterRed;
         winningRowsForFields[idxBoard].forEach((i) => counters[i]--)
@@ -103,7 +103,7 @@ const cfEngine = (() => {
         if (state.isMill) return -MAXVAL + depth
         if (depth === maxDepth) return computeScore();
         if (state.cntMoves === 42) return 0
-        for (const m of moves) if (state.heightCols[m] < DIM.NROW) {
+        for (const m of moves) if (state.heightCols[m] < NROW) {
             doMove(m)
             const score = -negamax(depth + 1, maxDepth, -beta, -alpha, moves)
             undoMove(m)
@@ -125,7 +125,7 @@ const cfEngine = (() => {
         searchInfo.nodes = 0
         searchInfo.startAt = Date.now()
         searchInfo.stopAt = searchInfo.startAt + maxThinkingTime;
-        const moves = [3, 4, 2, 5, 1, 6, 0].filter(c => state.heightCols[c] < DIM.NROW);
+        const moves = [3, 4, 2, 5, 1, 6, 0].filter(c => state.heightCols[c] < NROW);
         for (const depth of [1, ...range(Math.floor((maxDepth + 1) / 2)).map(x => 2 * (x + 1))]) {
             searchInfo.depth = depth
             searchInfo.bestMoves = []
@@ -162,13 +162,13 @@ const cfEngine = (() => {
 
     init();
     return {
-        CACHE, winningRows, winningRowsForFields, DIM, MAXVAL, Player,
+        CACHE, winningRows, winningRowsForFields, NCOL, NROW, MAXVAL, Player,
         init, initGame, doMove, searchBestMove,
-        isAllowedMove: c => state.heightCols[c] < DIM.NROW && !state.isMill && state.cntMoves !== DIM.NROW * DIM.NCOL,
+        isAllowedMove: c => state.heightCols[c] < NROW && !state.isMill && state.cntMoves !== NROW * NCOL,
         getHeightOfCol: c => state.heightCols[c],
         side: () => state.side,
         isMill: () => state.isMill,
-        isDraw: () => state.cntMoves === DIM.NROW * DIM.NCOL && !state.isMill,
+        isDraw: () => state.cntMoves === NROW * NCOL && !state.isMill,
     }
 })()
 
