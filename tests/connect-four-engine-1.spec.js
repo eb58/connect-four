@@ -83,10 +83,10 @@ test('win7r', () => h({fen: 'red|3633241003021332110021266', depth: 12, bestMove
 
 test('win1b', () => h({fen: 'blue|2242', depth: 2, bestMove: 3}))
 test('win2b', () => h({fen: 'blue|5443421244553533332222', depth: 10, bestMove: 4}))
-test('win2b', () => h({fen: 'blue|3135', depth: 12, bestMove: 3}))
-test('win3b', () => h({fen: 'blue|323121', depth: 10, bestMove: 3}))
-test('win4b', () => h({fen: 'blue|4332330222332211', depth: 14, bestMove: 4}))
-test('win5b', () => h({fen: 'blue|333231331011041100', depth: 16, bestMove: 4}))
-test('win6b', () => h({fen: 'blue|323122334104334522', depth: 18, bestMove: 1}))
-// test('win7b', () => h({fen: 'blue|3036', depth: 12, bestMove: 3}))  //  ~600ms
-// test('win8b', () => h({fen: 'blue|3045', depth: 18, bestMove: 3, maxThinkingTime: 15000})) // ~6000ms
+test('win3b', () => h({fen: 'blue|3135', depth: 12, bestMove: 3}))
+test('win4b', () => h({fen: 'blue|323121', depth: 10, bestMove: 3}))
+test('win5b', () => h({fen: 'blue|4332330222332211', depth: 14, bestMove: 4}))
+test('win6b', () => h({fen: 'blue|333231331011041100', depth: 16, bestMove: 4}))
+test('win7b', () => h({fen: 'blue|323122334104334522', depth: 18, bestMove: 1}))
+// test('win8b', () => h({fen: 'blue|3036', depth: 12, bestMove: 3}))  //  ~700ms
+// test('win9b', () => h({fen: 'blue|3045', depth: 18, bestMove: 3, maxThinkingTime: 15000})) // ~6000ms

@@ -8,8 +8,8 @@ const cfGame = (cfEngine, divId) => {
 
     const infoStr = (sc) => {
         const scores = sc.bestMoves.map((m) => `${m.move + 1}:${m.score}`).join(' ')
-        const player = this.beginner === cfEngine.Player.blue ? 'blue' : 'red'
-        return `DEPTH:${sc.depth} { ${scores} } NODES:${sc.nodes} ${cfEngine.CACHE.info()} ${Date.now() - sc.startAt}ms FEN:${player}|${moveHistory.map(x => x.move).join('').trim()} `
+        const side = moveHistory[0].side === cfEngine.Player.blue ? 'blue' : 'red'
+        return `DEPTH:${sc.depth} { ${scores} } NODES:${sc.nodes} ${cfEngine.CACHE.info()} ${Date.now() - sc.startAt}ms FEN:${side}|${moveHistory.map(x => x.move).join('').trim()} `
     }
 
     const myAlert = msg => $('<div id="alert"></div').dialog({
@@ -63,9 +63,9 @@ const cfGame = (cfEngine, divId) => {
 
     const renderBoard = () => {
         const table = $('<table id="cf"></table>');
-        for (let r = 0; r < cfEngine.DIM.NROW; r++) {
+        for (let r = 0; r < cfEngine.NROW; r++) {
             const row = $('<tr></tr>');
-            for (let c = 0; c < cfEngine.DIM.NCOL; c++) row.append($('<td></td>').on('click', onClickHandler(c)));
+            for (let c = 0; c < cfEngine.NCOL; c++) row.append($('<td></td>').on('click', onClickHandler(c)));
             table.append(row);
         }
         $(divId).empty().append(table);
@@ -74,7 +74,7 @@ const cfGame = (cfEngine, divId) => {
     const doMove = (c) => {
         if (!cfEngine.isAllowedMove(c)) return;
         moveHistory.push({move: c, side: cfEngine.side()})
-        const row = cfEngine.DIM.NROW - cfEngine.getHeightOfCol(c) - 1;
+        const row = cfEngine.NROW - cfEngine.getHeightOfCol(c) - 1;
         const cls = cfEngine.side() === cfEngine.Player.red ? 'red' : 'blue';
         $($("#cf tr > td:nth-child(" + (c + 1) + ")")[row]).addClass(cls);
         $("#info").html("Mein letzter Zug:" + (c + 1));

@@ -76,8 +76,11 @@ const cfEngine = (() => {
         state.heightCols[c]++;
         state.side = state.side === Player.red ? Player.blue : Player.red;
         const counters = state.side === Player.blue ? state.wrCounterBlue : state.wrCounterRed;
-        winningRowsForFields[idxBoard].forEach(i => ++counters[i])
-        state.isMill = winningRowsForFields[idxBoard].some(i => counters[i] >= 4)
+        winningRowsForFields[idxBoard].forEach(i => {
+            ++counters[i]
+            state.isMill |= counters[i] >= 4
+        })
+        // state.isMill = winningRowsForFields[idxBoard].some(i => counters[i] >= 4)
         state.hash ^= pieceKeys[idxBoard * state.side] ^ sideKeys[state.side];
         state.cntMoves++
     }
@@ -93,6 +96,11 @@ const cfEngine = (() => {
         state.isMill = false
     }
 
+    const isWinningMove = (m, side) => {
+        const counters = side === Player.red ? state.wrCounterBlue : state.wrCounterRed;
+        return winningRowsForFields[m + NCOL * state.heightCols[m]].some(i => counters[i] === 3)
+    }
+
     const _computeScore = () => {
         const x = winningRows.reduce((res, wr, i) => res + (state.wrCounterRed[i] !== 0 && state.wrCounterBlue[i] !== 0 ? 0 : (state.wrCounterBlue[i] - state.wrCounterRed[i])) * wr.val, 0)
         return state.side === Player.blue ? -x : x
@@ -103,6 +111,7 @@ const cfEngine = (() => {
         if (state.isMill) return -MAXVAL + depth
         if (depth === maxDepth) return computeScore();
         if (state.cntMoves === 42) return 0
+        for (const m of moves) if (state.heightCols[m] < NROW && (isWinningMove(m, state.side))) return MAXVAL - depth - 1
         for (const m of moves) if (state.heightCols[m] < NROW) {
             doMove(m)
             const score = -negamax(depth + 1, maxDepth, -beta, -alpha, moves)
