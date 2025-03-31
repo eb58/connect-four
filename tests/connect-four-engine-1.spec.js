@@ -15,8 +15,16 @@ test('initialized correctly', () => {
     expect(winningRowsForFields[10]).toEqual([7, 11, 15, 18, 21, 24, 25, 26, 48, 54])
     expect(cf.side()).toBe(Player.blue);
     range(7).forEach(c => expect(cf.getHeightOfCol(c)).toEqual(0));
-    expect(cf.isMill()).toBe(false);
+    expect(cf.isMill()).toBeFalsy();
 });
+
+test('isMill', () => {
+    cf.initGame('blue|')
+    expect(cf.isMill()).toBeFalsy();
+    cf.initGame('blue|0303030')
+    expect(cf.isMill()).toBeTruthy();
+});
+
 
 test('whoseTurn works', () => {
     expect(cf.side()).toBe(Player.blue);
@@ -24,6 +32,7 @@ test('whoseTurn works', () => {
     expect(cf.side()).toBe(Player.red);
     cf.doMove(3)
     expect(cf.side()).toBe(cf.Player.blue);
+    expect(cf.isMill()).toBe(false);
 });
 
 test('draw - full board', () => {
@@ -42,12 +51,10 @@ test('draw - board almost full', () => {
 })
 
 const h = (t) => {
-    // if (t.act !== true) return
-
     cf.initGame(t.fen)
     const sc = cf.searchBestMove({maxDepth: t.maxDepth || t.depth || 42, maxThinkingTime: t.maxThinkingTime || 1000})
 
-    // if (t.act) console.log(t.fen, sc)
+    // console.log(t.fen, sc)
     if (t.depth) expect(sc.depth).toBe(t.depth)
     if (t.bestMove) {
         const expectedMoves = typeof t.bestMove === "number" ? [t.bestMove] : t.bestMove
@@ -78,9 +85,10 @@ test('win4r', () => h({fen: 'red|040323001', depth: 6, bestMove: [2, 4, 5]}))
 test('win5r', () => h({fen: 'red|041323233223226361666', depth: 10, bestMove: 5}))
 test('win6r', () => h({fen: 'red|33333535212225510112245514444', depth: 8, bestMove: 4}))
 test('win7r', () => h({fen: 'red|3633241003021332110021266', depth: 12, bestMove: 6}))
-// test('win8r', () => h({fen: 'red|332410233334225', depth: 20, bestMove: 4, maxThinkingTime: 5000}))
-// test('win9r', () => h({fen: 'red|04032300233322434', depth: 22, bestMove: 4, maxThinkingTime: 5000,}))
+// test('win8r', () => h({fen: 'red|332410233334225', depth: 20, bestMove: 4, maxThinkingTime: 1500})) // ~700ms
+// test('win9r', () => h({fen: 'red|04032300233322434', depth: 22, bestMove: 4, maxThinkingTime: 1500,})) // ~550ms
 
+test('win0b', () => h({fen: 'blue|3340', depth: 8, bestMoves: [2, 4]}))
 test('win1b', () => h({fen: 'blue|2242', depth: 2, bestMove: 3}))
 test('win2b', () => h({fen: 'blue|5443421244553533332222', depth: 10, bestMove: 4}))
 test('win3b', () => h({fen: 'blue|3135', depth: 12, bestMove: 3}))
