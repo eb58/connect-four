@@ -131,7 +131,7 @@ const cfEngine = (() => {
         searchInfo.startAt = Date.now()
         searchInfo.stopAt = searchInfo.startAt + maxThinkingTime;
         const columns = [3, 4, 2, 5, 1, 6, 0].filter(c => state.heightCols[c] < NROW);
-        for (const depth of [1, ...range(Math.floor((maxDepth + 1) / 2)).map(x => 2 * (x + 1))]) {
+        for (const depth of range(Math.floor((maxDepth + 1) / 2)).map(x => 2 * (x + 1))) {
             searchInfo.depth = depth
             searchInfo.bestMoves = []
             let score = 0
@@ -143,9 +143,7 @@ const cfEngine = (() => {
                 if (score > MAXVAL - 50 || timeOut()) break
             }
             if (score > MAXVAL - 50 || timeOut()) break;
-            if (searchInfo.bestMoves.every((m) => m.score < -MAXVAL + 50) ||           // all moves lead to disaster
-                searchInfo.bestMoves.filter((m) => m.score > -MAXVAL + 50).length === 1 // all moves but one lead to disaster
-            ) break;
+            if (searchInfo.bestMoves.every((m) => m.score < -MAXVAL + 50)) break// all moves lead to disaster
         }
         searchInfo.bestMoves.sort((a, b) => b.score - a.score)
         // console.log(`DEPTH:${searchInfo.depth} { ${searchInfo.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${searchInfo.nodes} ${Date.now() - searchInfo.startAt + 'ms'} ${CACHE.info()}`)
@@ -163,7 +161,7 @@ const cfEngine = (() => {
 
     const initGame = (fen) => {
         init()
-        fen.trim().split('').map(x => +x-1 ).forEach(c => doMove(c));
+        fen.trim().split('').map(x => +x - 1).forEach(c => doMove(c));
     }
 
     const isMill = () => state.wrCounterRed.some(i => i >= 4) || state.wrCounterBlue.some(i => i >= 4)
@@ -172,7 +170,7 @@ const cfEngine = (() => {
     return {
         CACHE, winningRows, winningRowsForFields, NCOL, NROW, MAXVAL, Player,
         init, initGame, doMove, searchBestMove, isMill,
-        isAllowedMove: m => state.heightCols[m-1] < NROW && !isMill() && state.cntMoves !== NROW * NCOL,
+        isAllowedMove: m => state.heightCols[m - 1] < NROW && !isMill() && state.cntMoves !== NROW * NCOL,
         getHeightOfCol: c => state.heightCols[c],
         side: () => state.side,
         isDraw: () => state.cntMoves === NROW * NCOL && !isMill(),

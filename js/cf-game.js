@@ -95,11 +95,11 @@ const cfGame = (cfEngine, divId) => {
             const sc = cfEngine.searchBestMove(gameSettings)
             thinking = false
             $("body").css("cursor", "default");
+            $.ajax(`https://ludolab.net/solve/connect4?position=${moveHistory.map(m => m.move).join('')}&level=10`).done(res => console.log(res))
+            console.log(infoStr(sc))
             doMove(sc.bestMoves[0].move);
             if (cfEngine.isMill()) myAlert("Bedaure, du hast verloren!");
             if (cfEngine.isDraw()) myAlert("Gratuliere, du hast ein Remis geschafft!");
-            console.log(infoStr(sc))
-            $.ajax(`https://ludolab.net/solve/connect4?position=${moveHistory.map(m => m.move).join('')}&level=10`).done(res => console.log(res))
         }, 10)
     }
 
@@ -111,10 +111,8 @@ const cfGame = (cfEngine, divId) => {
         if (cfEngine.side() === cfEngine.Player.blue) actAsAI()
     }
 
-    const restartFromFEN = (fen) => {
-        game.restart(gameSettings.beginner, fen.split('').map(x => +x));
-        $.ajax(`https://ludolab.net/solve/connect4?position=${fen}&level=10`).done(res => console.log(res))
-    }
+    const restartFromFEN = (fen) => game.restart(gameSettings.beginner, fen.split('').map(x => +x));
+
 
     return { // Interface
         undoMove, renderBoard, newGameDlg, actAsAI, restart, restartFromFEN,

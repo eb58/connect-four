@@ -54,7 +54,7 @@ const h = (t) => {
     cf.initGame(t.fen)
     const sc = cf.searchBestMove({maxDepth: t.maxDepth || t.depth || 42, maxThinkingTime: t.maxThinkingTime || 1000})
 
-    // console.log(`FEN:${t.fen} DEPTH:${sc.depth} BestMove:${sc.bestMoves[0].move}:${sc.bestMoves[0].score} NODES:${sc.nodes} ${Date.now() - sc.startAt}ms ${CACHE.info()}`, sc.bestMoves)
+    console.log(`FEN:${t.fen} DEPTH:${sc.depth} BestMove:${sc.bestMoves[0].move}:${sc.bestMoves[0].score} NODES:${sc.nodes} ${Date.now() - sc.startAt}ms ${CACHE.info()}`, sc.bestMoves)
     if (t.depth) expect(sc.depth).toBe(t.depth)
     if (t.bestMove) {
         const expectedMoves = typeof t.bestMove === "number" ? [t.bestMove] : t.bestMove
@@ -63,19 +63,19 @@ const h = (t) => {
     if (t.cond) expect(t.cond(sc.bestMoves)).toBeTruthy()
 }
 
-test('eval1', () => h({fen: '14141', maxDepth: 8, depth: 1, bestMove: 1, cond: bm => bm.slice(1).every(p)}))
-test('eval2', () => h({fen: '41414', maxDepth: 8, depth: 1, bestMove: 4, cond: bm => bm.slice(1).every(p)}))
-test('eval3', () => h({fen: '415', depth: 6, bestMove: [3, 6], cond: bm => bm.slice(2).every(p)}))
-test('eval4', () => h({fen: '41415', depth: 6, bestMove: [1, 3, 6], cond: bm => bm.slice(3).every(p)}))
-test('eval5', () => h({fen: '375', depth: 6, bestMove: [2, 4, 6], cond: bm => bm.slice(3).every(p)}))
-test('eval6', () => h({fen: '553', depth: 6, bestMove: [2, 4, 6], cond: bm => bm.slice(3).every(p)}))
-test('eval7', () => h({fen: '445', depth: 6, bestMove: [3, 6], cond: bm => bm.slice(2).every(p)}))
+test('eval1', () => h({fen: '14141', depth: 2, bestMove: 1, cond: bm => bm.slice(1).every(p)}))
+test('eval2', () => h({fen: '41414', depth: 2, bestMove: 4, cond: bm => bm.slice(1).every(p)}))
+test('eval3', () => h({fen: '415', depth: 4, bestMove: [3, 6], cond: bm => bm.slice(2).every(p)}))
+test('eval4', () => h({fen: '41415', depth: 4, bestMove: [1, 3, 6], cond: bm => bm.slice(3).every(p)}))
+test('eval5', () => h({fen: '375', depth: 4, bestMove: [2, 4, 6], cond: bm => bm.slice(3).every(p)}))
+test('eval6', () => h({fen: '553', depth: 4, bestMove: [2, 4, 6], cond: bm => bm.slice(3).every(p)}))
+test('eval7', () => h({fen: '445', depth: 4, bestMove: [3, 6], cond: bm => bm.slice(2).every(p)}))
 test('eval8', () => h({fen: '', depth: 8}))
 
-test('loose1', () => h({fen: '141526', maxDepth: 8, depth: 1, cond: bm => bm.every(p)}))
-test('loose2', () => h({fen: '44516', maxDepth: 8, depth: 1, cond: bm => bm.every(p)}))
-test('loose3', () => h({fen: '1514341123', maxDepth: 8, depth: 4, cond: bm => bm.slice(1).every(p)}))
-test('loose4', () => h({fen: '15143411235443', maxDepth: 8, depth: 4, cond: bm => bm.every(p)}))
+test('loose1', () => h({fen: '141526', cond: bm => bm.every(p)}))
+test('loose2', () => h({fen: '44516', cond: bm => bm.every(p)}))
+test('loose3', () => h({fen: '1514341123', cond: bm => bm.every(p)}))
+test('loose4', () => h({fen: '15143411235443', cond: bm => bm.every(p)}))
 
 // winning
 // ??? test('win1r', () => h({fen: '0606061', depth: 1, bestMove: 6,}))
