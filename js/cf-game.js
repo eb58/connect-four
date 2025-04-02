@@ -7,7 +7,7 @@ const cfGame = (cfEngine, divId) => {
     let moveHistory = []
 
     const infoStr = (sc) => {
-        const scores = sc.bestMoves.map((m) => `${m.move + 1}:${m.score}`).join(' ')
+        const scores = sc.bestMoves.map((m) => `${m.move}:${m.score}`).join(' ')
         const side = moveHistory[0].side === cfEngine.Player.blue ? 'blue' : 'red'
         return `DEPTH:${sc.depth} { ${scores} } NODES:${sc.nodes} ${cfEngine.CACHE.info()} ${Date.now() - sc.startAt}ms FEN:${side}|${moveHistory.map(x => x.move).join('').trim()} `
     }
@@ -51,10 +51,10 @@ const cfGame = (cfEngine, divId) => {
         if (cfEngine.side() === cfEngine.Player.blue) actAsAI()
     });
 
-    const onClickHandler = c => {
+    const onClickHandler = m => {
         return () => {
-            if (thinking || !cfEngine.isAllowedMove(c)) return;
-            doMove(c);
+            if (thinking || !cfEngine.isAllowedMove(m)) return;
+            doMove(m);
             if (cfEngine.isMill()) myAlert("Gratuliere, du hast gewonnen!");
             if (cfEngine.isDraw()) myAlert("Gratuliere, du hast ein Remis geschafft!");
             actAsAI()
@@ -65,20 +65,20 @@ const cfGame = (cfEngine, divId) => {
         const table = $('<table id="cf"></table>');
         for (let r = 0; r < cfEngine.NROW; r++) {
             const row = $('<tr></tr>');
-            for (let c = 0; c < cfEngine.NCOL; c++) row.append($('<td></td>').on('click', onClickHandler(c)));
+            for (let c = 0; c < cfEngine.NCOL; c++) row.append($('<td></td>').on('click', onClickHandler(c + 1)));
             table.append(row);
         }
         $(divId).empty().append(table);
     }
 
-    const doMove = (c) => {
-        if (!cfEngine.isAllowedMove(c)) return;
-        moveHistory.push({move: c, side: cfEngine.side()})
-        const row = cfEngine.NROW - cfEngine.getHeightOfCol(c) - 1;
+    const doMove = (move) => {
+        if (!cfEngine.isAllowedMove(move)) return;
+        moveHistory.push({move, side: cfEngine.side()})
+        const row = cfEngine.NROW - cfEngine.getHeightOfCol(move - 1) - 1;
         const cls = cfEngine.side() === cfEngine.Player.red ? 'red' : 'blue';
-        $($("#cf tr > td:nth-child(" + (c + 1) + ")")[row]).addClass(cls);
-        $("#info").html("Mein letzter Zug:" + (c + 1));
-        cfEngine.doMove(c)
+        $($("#cf tr > td:nth-child(" + move + ")")[row]).addClass(cls);
+        $("#info").html("Mein letzter Zug:" + (move));
+        cfEngine.doMove(move - 1)
     }
 
     const undoMove = () => {
@@ -99,6 +99,7 @@ const cfGame = (cfEngine, divId) => {
             if (cfEngine.isMill()) myAlert("Bedaure, du hast verloren!");
             if (cfEngine.isDraw()) myAlert("Gratuliere, du hast ein Remis geschafft!");
             console.log(infoStr(sc))
+            $.ajax(`https://ludolab.net/solve/connect4?position=${moveHistory.map(m => m.move).join('')}&level=10`).done(res => console.log(res))
         }, 10)
     }
 
@@ -106,14 +107,13 @@ const cfGame = (cfEngine, divId) => {
         moveHistory = [];
         renderBoard();
         cfEngine.init(side)
-        moves.forEach(v => doMove(v));
+        moves.forEach(m => doMove(m));
         if (cfEngine.side() === cfEngine.Player.blue) actAsAI()
     }
 
     const restartFromFEN = (fen) => {
-        const x = fen.replace(':', '|').split('|')
-        const side = x[0] === 'red' ? cfEngine.Player.red : cfEngine.Player.blue
-        game.restart(side, x[1].split('').map(x => +x));
+        game.restart(gameSettings.beginner, fen.split('').map(x => +x));
+        $.ajax(`https://ludolab.net/solve/connect4?position=${fen}&level=10`).done(res => console.log(res))
     }
 
     return { // Interface

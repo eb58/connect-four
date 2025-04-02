@@ -15,7 +15,7 @@
     <script src="js/cf-game.js"></script>
 
     <script>
-        const game = cfGame(cfEngine, '#field')
+        const game = cfGame(cfEngine, '#board')
         $(() => {
             game.renderBoard();
             if (cfEngine.side() === cfEngine.Player.blue) game.actAsAI()
@@ -33,7 +33,7 @@
 
 <body>
 <h2 style="text-align:left;">Vier Gewinnt</h2>
-<div id="field"></div>
+<div id="board"></div>
 <div id='info'></div>
 <div style="width:100%">
     <button id="undo">Zug zurücknehmen</button>
@@ -57,7 +57,7 @@
         </select>
     </div>
     <label for="fen">FEN:</label>
-    <input id="fen" type="text" placeholder="red|024" value="red|024">
+    <input id="fen" type="text" placeholder="135" value="135">
 </div>
 </body>
 

@@ -4,12 +4,12 @@ body {
     min-width: 300px;
 }
 
-#field table {
+#board table {
     background-color: #070;
     width: 100%;
 }
 
-#field td {
+#board td {
     border-collapse: separate;
     border: 2px solid #070;
     padding-bottom: 15%; /* = width for a square aspect ratio */
@@ -17,12 +17,12 @@ body {
     border-radius: 50%;
 }
 
-#field td.red {
+#board td.red {
     background: #a00;
     border-width: 2px;
 }
 
-#field td.blue {
+#board td.blue {
     background: #00a;
     border-width: 2px;
 }
@@ -47,6 +47,6 @@ label {
     text-align: left;
 }
 
-select{
+select {
     width: 900px;
 }
