@@ -8,7 +8,7 @@ const cfGame = (cfEngine, divId) => {
 
     const infoStr = (sc) => {
         const scores = sc.bestMoves.map((m) => `${m.move}:${m.score}`).join(' ')
-        const side = moveHistory[0].side === cfEngine.Player.blue ? 'blue' : 'red'
+        const side = moveHistory[0]?.side === cfEngine.Player.blue ? 'blue' : 'red'
         return `DEPTH:${sc.depth} { ${scores} } NODES:${sc.nodes} ${cfEngine.CACHE.info()} ${Date.now() - sc.startAt}ms FEN:${side}|${moveHistory.map(x => x.move).join('').trim()} `
     }
 
