@@ -11,7 +11,7 @@ const cfEngine = (() => {
         add: (key, val, ...args) => {
             if (insertCondition(val, ...args)) {
                 cnt++ > 10000000 && (c = {}, cnt = 0)
-            c[key] = val;
+                c[key] = val;
             }
             return val
         },
@@ -48,17 +48,17 @@ const cfEngine = (() => {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    // const rand8 = () => BigInt(Math.floor((Math.random() * 255) + 1))
-    // const rand32 = () =>  rand8() << 23 | rand8() << 16 | rand8() << 8 | rand8();
-    //
-    // const sideKeys = range(3).map(() => BigInt(rand32()))
-    // const pieceKeys = range(84).map(() => BigInt(rand32()))
+    // const rand8 = () => Math.floor((Math.random() * 255) + 1)
+    // const rand32 = () => rand8() << 23 | rand8() << 16 | rand8() << 8 | rand8();
+    // const sideKeys = range(3).map( rand32)
+    // const pieceKeys = range(84).map(rand32)
     const sideKeys = [127938607, 1048855538]
     const pieceKeys = [227019481, 1754434862, 629481213, 887205851, 529032562, 2067323277, 1070040335, 567190488, 468610655, 1669182959, 236891527, 1211317841, 849223426, 1031915473, 315781957, 1594703270, 114113554, 966088184, 2114417493, 340442843, 410051610, 1895709998, 502837645, 2046296443, 1720231708, 1437032187, 80592865, 1757570123, 2063094472, 1123905671, 901800952, 1894943568, 732390329, 401463737, 2055893758, 1688751506, 115630249, 391883254, 249795256, 1341740832, 807352454, 2122692086, 851678180, 1154773536, 64453931, 311845715, 1173309830, 1855940732, 1662371745, 998042207, 2121332908, 1905657426, 873276463, 1048910740, 1181863470, 136324833, 881754029, 1037297764, 1385633069, 2037058967, 398045724, 1522858950, 1892619084, 1364648567, 771375215, 983991136, 260316522, 648466817, 1502780386, 1733680598, 401803338, 2136229086, 718267066, 485772484, 1936892066, 1051148609, 1018878751, 1721684837, 1720651398, 2073094346, 526823540, 1170625524, 465996760, 1587572180]
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     const state = {}  // state that is used for evaluating
+    let columns = []
 
     const init = (player = Player.blue) => {
         state.heightCols = range(NCOL).map(() => 0)
@@ -96,20 +96,26 @@ const cfEngine = (() => {
         return winningRowsForFields[c + NCOL * state.heightCols[c]].some(i => counters[i] === 3)
     }
 
+    const isWinningColumn2 = (c) => {
+        const counters = state.cntMoves % 2 === 0 ? state.wrCounterBlue : state.wrCounterRed;
+        return winningRowsForFields[c + NCOL * state.heightCols[c]].some(i => counters[i] >= 3)
+    }
+
     const _computeScore = () => {
         const x = winningRows.reduce((res, wr, i) => res + (state.wrCounterRed[i] !== 0 && state.wrCounterBlue[i] !== 0 ? 0 : (state.wrCounterBlue[i] - state.wrCounterRed[i])) * wr.val, 0)
         return state.side === Player.blue ? -x : x
     }
     let computeScore = _computeScore
 
-    let negamax = (depth, maxDepth, alpha, beta, cols) => {
+    let negamax = (depth, maxDepth, alpha, beta) => {
         if (state.isMill) return -MAXVAL + depth
-        if (depth === maxDepth) return computeScore();
+        if (depth === maxDepth) return 0
         if (state.cntMoves === 42) return 0
-        for (const c of cols) if (state.heightCols[c] < NROW && isWinningColumn(c)) return MAXVAL - depth - 1
-        for (const c of cols) if (state.heightCols[c] < NROW) {
+        for (const c of columns) if (state.heightCols[c] < NROW && isWinningColumn(c)) return MAXVAL - depth - 1
+        // no performance gain ???!!! ---if (columns.reduce((acc, c) => acc + (state.heightCols[c] < NROW && isWinningColumn2(c)) ? 1 : 0, 0) >= 2) return -MAXVAL + depth
+        for (const c of columns) if (state.heightCols[c] < NROW) {
             doMove(c)
-            const score = -negamax(depth + 1, maxDepth, -beta, -alpha, cols)
+            const score = -negamax(depth + 1, maxDepth, -beta, -alpha)
             undoMove(c)
             if (score > alpha) alpha = score;
             if (alpha >= beta) return alpha;
@@ -128,14 +134,14 @@ const cfEngine = (() => {
         searchInfo.nodes = 0
         searchInfo.startAt = Date.now()
         searchInfo.stopAt = searchInfo.startAt + maxThinkingTime;
-        const columns = [3, 4, 2, 5, 1, 6, 0].filter(c => state.heightCols[c] < NROW);
+        columns = [3, 4, 2, 5, 1, 6, 0].filter(c => state.heightCols[c] < NROW);
         for (const depth of range(maxDepth / 2).map(x => 2 * (x + 1))) {
             searchInfo.depth = depth
             searchInfo.bestMoves = []
             let score = 0
             for (const c of columns) {
                 doMove(c)
-                score = -negamax(0, depth, -MAXVAL, +MAXVAL, columns)
+                score = -negamax(0, depth, -MAXVAL, +MAXVAL)
                 searchInfo.bestMoves.push({move: c + 1, score});
                 undoMove(c)
                 if (score > MAXVAL - 50 || timeOut()) break

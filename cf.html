@@ -27,6 +27,10 @@
             $('#level').val(game.gameSettings.maxThinkingTime);
             $("#level").selectmenu({width: "100%", change: (_, ui) => game.setMaxThinkingTime(Number(ui.item.value))})
             $("#fen").on('focusout', () => game.restartFromFEN($('#fen').val()))
+            $("#hint").on('click', () => {
+                const sc = cfEngine.searchBestMove()
+                console.log(`DEPTH:${sc.depth} BestMoves:{${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${Date.now() - sc.startAt}ms}`)
+            })
         })
     </script>
 </head>
@@ -58,6 +62,7 @@
     </div>
     <label for="fen">FEN:</label>
     <input id="fen" type="text" placeholder="135" value="135">
+    <button id="hint">HINT</button>
 </div>
 </body>
 
