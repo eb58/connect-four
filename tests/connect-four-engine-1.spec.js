@@ -55,7 +55,7 @@ const h = (t) => {
     cf.initGame(t.fen)
     const sc = cf.searchBestMove({maxDepth: t.maxDepth || t.depth || 42, maxThinkingTime: t.maxThinkingTime || 1000})
 
-    console.log(`FEN:${t.fen} DEPTH:${sc.depth} ${sc.n} BestMoves:{${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${Date.now() - sc.startAt}ms ${CACHE.info()}`)
+    // console.log(`FEN:${t.fen} DEPTH:${sc.depth} BestMoves:{${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${Date.now() - sc.startAt}ms ${CACHE.info()}`)
     if (t.depth) expect(sc.depth).toBe(t.depth)
     if (t.bestMove) {
         const expectedMoves = typeof t.bestMove === "number" ? [t.bestMove] : t.bestMove
@@ -98,10 +98,10 @@ test('win10', () => h({fen: '5443441333443322', depth: 14, bestMove: 5}))
 test('win11', () => h({fen: '444342442122152211', depth: 16, bestMove: 5}))
 test('win12', () => h({fen: '434232', depth: 12, bestMove: 4}))
 test('win13', () => h({fen: '434233445215445633', depth: 18, bestMove: 2}))
-// test('win14', () => h({fen: '4246', depth: 12, bestMove: 4}))
-// test('win15', () => h({fen: '6165173152', bestMoves: 3}))
+// test('win15', () => h({fen: '6165173152', depth: 12, bestMoves: 3}))
 // test('win16', () => h({fen: '15143411344433545', depth: 22, bestMove: 5})) // ~750ms
 // test('win17', () => h({fen: '443521344445336', depth: 20, bestMove: 5, maxThinkingTime: 2000})) // ~1200ms
+// test('win14', () => h({fen: '4246', bestMove: 4, maxThinkingTime: 2000})) // ~3000
 // test('win18', () => h({fen: '4147', depth: 18, bestMove: 4, maxThinkingTime: 15000}))  //  ~8000ms
 // test('win19', () => h({fen: '4156', depth: 18, bestMove: 4, maxThinkingTime: 30000})) // ~20000ms
 
