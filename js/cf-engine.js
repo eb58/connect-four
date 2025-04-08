@@ -11,7 +11,7 @@ const cfEngine = (() => {
         add: (key, val, ...args) => {
             if (insertCondition(val, ...args)) {
                 cnt++ > 10000000 && (c = {}, cnt = 0)
-                c[key] = val;
+            c[key] = val;
             }
             return val
         },
@@ -48,14 +48,13 @@ const cfEngine = (() => {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    const rand8 = () => BigInt(Math.floor((Math.random() * 255) + 1))
-    const rand48 = () => rand8() << 40n | rand8() << 32n | rand8() << 24n | rand8() << 16n | rand8() << 8n | rand8();
-
-    const sideKeys = range(3).map(() => BigInt(rand48()))
-    const pieceKeys = range(84).map(() => BigInt(rand48()))
-    // */
-    // const sideKeys = [127938607, 1048855538]
-    // const pieceKeys = [227019481, 1754434862, 629481213, 887205851, 529032562, 2067323277, 1070040335, 567190488, 468610655, 1669182959, 236891527, 1211317841, 849223426, 1031915473, 315781957, 1594703270, 114113554, 966088184, 2114417493, 340442843, 410051610, 1895709998, 502837645, 2046296443, 1720231708, 1437032187, 80592865, 1757570123, 2063094472, 1123905671, 901800952, 1894943568, 732390329, 401463737, 2055893758, 1688751506, 115630249, 391883254, 249795256, 1341740832, 807352454, 2122692086, 851678180, 1154773536, 64453931, 311845715, 1173309830, 1855940732, 1662371745, 998042207, 2121332908, 1905657426, 873276463, 1048910740, 1181863470, 136324833, 881754029, 1037297764, 1385633069, 2037058967, 398045724, 1522858950, 1892619084, 1364648567, 771375215, 983991136, 260316522, 648466817, 1502780386, 1733680598, 401803338, 2136229086, 718267066, 485772484, 1936892066, 1051148609, 1018878751, 1721684837, 1720651398, 2073094346, 526823540, 1170625524, 465996760, 1587572180]
+    // const rand8 = () => BigInt(Math.floor((Math.random() * 255) + 1))
+    // const rand32 = () =>  rand8() << 23 | rand8() << 16 | rand8() << 8 | rand8();
+    //
+    // const sideKeys = range(3).map(() => BigInt(rand32()))
+    // const pieceKeys = range(84).map(() => BigInt(rand32()))
+    const sideKeys = [127938607, 1048855538]
+    const pieceKeys = [227019481, 1754434862, 629481213, 887205851, 529032562, 2067323277, 1070040335, 567190488, 468610655, 1669182959, 236891527, 1211317841, 849223426, 1031915473, 315781957, 1594703270, 114113554, 966088184, 2114417493, 340442843, 410051610, 1895709998, 502837645, 2046296443, 1720231708, 1437032187, 80592865, 1757570123, 2063094472, 1123905671, 901800952, 1894943568, 732390329, 401463737, 2055893758, 1688751506, 115630249, 391883254, 249795256, 1341740832, 807352454, 2122692086, 851678180, 1154773536, 64453931, 311845715, 1173309830, 1855940732, 1662371745, 998042207, 2121332908, 1905657426, 873276463, 1048910740, 1181863470, 136324833, 881754029, 1037297764, 1385633069, 2037058967, 398045724, 1522858950, 1892619084, 1364648567, 771375215, 983991136, 260316522, 648466817, 1502780386, 1733680598, 401803338, 2136229086, 718267066, 485772484, 1936892066, 1051148609, 1018878751, 1721684837, 1720651398, 2073094346, 526823540, 1170625524, 465996760, 1587572180]
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -66,15 +65,14 @@ const cfEngine = (() => {
         state.wrCounterRed = winningRows.map(() => 0)
         state.wrCounterBlue = winningRows.map(() => 0)
         state.side = player
-        state.isMill = false
         state.cntMoves = 0
-        state.hash = 0n
+        state.hash = 0
     }
 
     const doMove = (c) => {
         const idxBoard = c + NCOL * state.heightCols[c]
         state.heightCols[c]++;
-        state.side = state.side === Player.red ? Player.blue : Player.red;
+        state.side = 3 - state.side
         const counters = state.side === Player.blue ? state.wrCounterBlue : state.wrCounterRed;
         winningRowsForFields[idxBoard].forEach(i => ++counters[i])
         state.isMill = winningRowsForFields[idxBoard].some(i => counters[i] >= 4)
@@ -89,12 +87,12 @@ const cfEngine = (() => {
         state.hash ^= pieceKeys[idxBoard] ^ sideKeys[state.side];
         const counters = state.side === Player.blue ? state.wrCounterBlue : state.wrCounterRed;
         winningRowsForFields[idxBoard].forEach((i) => counters[i]--)
-        state.side = state.side === Player.red ? Player.blue : Player.red;
+        state.side = 3 - state.side
         state.isMill = false
     }
 
-    const isWinningColumn = (c, side) => {
-        const counters = side === Player.red ? state.wrCounterBlue : state.wrCounterRed;
+    const isWinningColumn = (c) => {
+        const counters = state.cntMoves % 2 === 1 ? state.wrCounterBlue : state.wrCounterRed;
         return winningRowsForFields[c + NCOL * state.heightCols[c]].some(i => counters[i] === 3)
     }
 
@@ -108,7 +106,7 @@ const cfEngine = (() => {
         if (state.isMill) return -MAXVAL + depth
         if (depth === maxDepth) return computeScore();
         if (state.cntMoves === 42) return 0
-        for (const c of cols) if (state.heightCols[c] < NROW && isWinningColumn(c, state.side)) return MAXVAL - depth - 1
+        for (const c of cols) if (state.heightCols[c] < NROW && isWinningColumn(c)) return MAXVAL - depth - 1
         for (const c of cols) if (state.heightCols[c] < NROW) {
             doMove(c)
             const score = -negamax(depth + 1, maxDepth, -beta, -alpha, cols)
@@ -131,22 +129,22 @@ const cfEngine = (() => {
         searchInfo.startAt = Date.now()
         searchInfo.stopAt = searchInfo.startAt + maxThinkingTime;
         const columns = [3, 4, 2, 5, 1, 6, 0].filter(c => state.heightCols[c] < NROW);
-        for (const depth of range(Math.floor((maxDepth + 1) / 2)).map(x => 2 * (x + 1))) {
+        for (const depth of range(maxDepth / 2).map(x => 2 * (x + 1))) {
             searchInfo.depth = depth
             searchInfo.bestMoves = []
             let score = 0
             for (const c of columns) {
                 doMove(c)
-                const score = -negamax(0, depth, -MAXVAL, +MAXVAL, columns)
+                score = -negamax(0, depth, -MAXVAL, +MAXVAL, columns)
                 searchInfo.bestMoves.push({move: c + 1, score});
                 undoMove(c)
                 if (score > MAXVAL - 50 || timeOut()) break
             }
+            // console.log(`DEPTH:${searchInfo.depth} { ${searchInfo.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${searchInfo.nodes} ${Date.now() - searchInfo.startAt + 'ms'} ${CACHE.info()}`)
             if (score > MAXVAL - 50 || timeOut()) break;
             if (searchInfo.bestMoves.every((m) => m.score < -MAXVAL + 50)) break// all moves lead to disaster
         }
         searchInfo.bestMoves.sort((a, b) => b.score - a.score)
-        // console.log(`DEPTH:${searchInfo.depth} { ${searchInfo.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${searchInfo.nodes} ${Date.now() - searchInfo.startAt + 'ms'} ${CACHE.info()}`)
         return searchInfo;
     }
 
