@@ -70,8 +70,9 @@ test('eval3', () => h({fen: '415', depth: 4, bestMove: [3, 6], cond: bm => bm.sl
 test('eval4', () => h({fen: '41415', depth: 4, bestMove: [1, 3, 6], cond: bm => bm.slice(3).every(p)}))
 test('eval5', () => h({fen: '375', depth: 4, bestMove: [2, 4, 6], cond: bm => bm.slice(3).every(p)}))
 test('eval6', () => h({fen: '553', depth: 4, bestMove: [2, 4, 6], cond: bm => bm.slice(3).every(p)}))
-test('eval7', () => h({fen: '445', depth: 4, bestMove: [3, 6], cond: bm => bm.slice(2).every(p)}))
-test('eval8', () => h({fen: '', depth: 8}))
+test('eval7', () => h({fen: '445', bestMove: [3, 6], cond: bm => bm.slice(2).every(p)}))
+test('eval8', () => h({fen: '443', bestMove: [2, 5], cond: bm => bm.slice(2).every(p)}))
+test('eval9', () => h({fen: '', depth: 8}))
 
 test('loose1', () => h({fen: '141526', cond: bm => bm.every(p)}))
 test('loose2', () => h({fen: '44516', cond: bm => bm.every(p)}))
@@ -98,10 +99,10 @@ test('win10', () => h({fen: '5443441333443322', depth: 14, bestMove: 5}))
 test('win11', () => h({fen: '444342442122152211', depth: 16, bestMove: 5}))
 test('win12', () => h({fen: '434232', depth: 12, bestMove: 4}))
 test('win13', () => h({fen: '434233445215445633', depth: 18, bestMove: 2}))
-// test('win15', () => h({fen: '6165173152', depth: 12, bestMoves: 3}))
-// test('win16', () => h({fen: '15143411344433545', depth: 22, bestMove: 5})) // ~750ms
-// test('win17', () => h({fen: '443521344445336', depth: 20, bestMove: 5, maxThinkingTime: 2000})) // ~1200ms
-// test('win14', () => h({fen: '4246', bestMove: 4, maxThinkingTime: 2000})) // ~3000
+// test('win14', () => h({fen: '6165173152', depth: 12, bestMoves: 3}))
+// test('win15', () => h({fen: '15143411344433545', depth: 22, bestMove: 5})) // ~750ms
+// test('win16', () => h({fen: '443521344445336', depth: 20, bestMove: 5, maxThinkingTime: 2000})) // ~1200ms
+// test('win17', () => h({fen: '4246', bestMove: 4, maxThinkingTime: 2000})) // ~3000
 // test('win18', () => h({fen: '4147', depth: 18, bestMove: 4, maxThinkingTime: 15000}))  //  ~8000ms
 // test('win19', () => h({fen: '4156', depth: 18, bestMove: 4, maxThinkingTime: 30000})) // ~20000ms
 

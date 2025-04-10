@@ -17,7 +17,7 @@ const cfEngine = (() => {
         },
         get: key => c[key],
         clear: () => (cnt = 0, c = {}),
-        info: (s = "") => `${s}CACHE:${cnt}`
+        info: (s = "") => cnt ? `${s}CACHE:${cnt}` : ''
     })
     const CACHE = cache(score => score >= MAXVAL - 50);
     const memoize = (f, hash, c = CACHE) => (...args) => {
@@ -92,13 +92,8 @@ const cfEngine = (() => {
     }
 
     const isWinningColumn = (c) => {
-        const counters = state.cntMoves % 2 === 1 ? state.wrCounterBlue : state.wrCounterRed;
+        const counters = state.side === Player.red ? state.wrCounterBlue : state.wrCounterRed;
         return winningRowsForFields[c + NCOL * state.heightCols[c]].some(i => counters[i] === 3)
-    }
-
-    const isWinningColumn2 = (c) => {
-        const counters = state.cntMoves % 2 === 0 ? state.wrCounterBlue : state.wrCounterRed;
-        return winningRowsForFields[c + NCOL * state.heightCols[c]].some(i => counters[i] >= 3)
     }
 
     const _computeScore = () => {
