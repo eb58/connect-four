@@ -1,9 +1,9 @@
 const cf = require('../js/cf-engine.js');
 
 const range = (n) => [...Array(n).keys()]
-const p = m => m.score <= -MAXVAL + 50
+const p = m => m.score < 0
 
-const {Player, winningRows, winningRowsForFields, MAXVAL, CACHE} = {...cf}
+const {Player, winningRows, winningRowsForFields, CACHE} = {...cf}
 
 beforeEach(() => cf.init());
 
@@ -70,8 +70,8 @@ test('eval3', () => h({fen: '415', depth: 4, bestMove: [3, 6], cond: bm => bm.sl
 test('eval4', () => h({fen: '41415', depth: 4, bestMove: [1, 3, 6], cond: bm => bm.slice(3).every(p)}))
 test('eval5', () => h({fen: '375', depth: 4, bestMove: [2, 4, 6], cond: bm => bm.slice(3).every(p)}))
 test('eval6', () => h({fen: '553', depth: 4, bestMove: [2, 4, 6], cond: bm => bm.slice(3).every(p)}))
-test('eval7', () => h({fen: '445', bestMove: [3, 6], cond: bm => bm.slice(2).every(p)}))
-test('eval8', () => h({fen: '443', bestMove: [2, 5], cond: bm => bm.slice(2).every(p)}))
+test('eval7', () => h({fen: '445', depth: 4, bestMove: [3, 6], cond: bm => bm.slice(2).every(p)}))
+test('eval8', () => h({fen: '443', depth: 4, bestMove: [2, 5], cond: bm => bm.slice(2).every(p)}))
 test('eval9', () => h({fen: '', depth: 8}))
 
 test('loose1', () => h({fen: '141526', cond: bm => bm.every(p)}))

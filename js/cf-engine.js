@@ -2,7 +2,7 @@ const cfEngine = (() => {
     const range = n => [...Array(n).keys()]
 
     const NCOL = 7, NROW = 6;
-    const MAXVAL = 1000000
+    const MAXVAL = 50
     const Player = {blue: 1, red: 2} // AI / human player
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -102,15 +102,15 @@ const cfEngine = (() => {
     }
     let computeScore = _computeScore
 
-    let negamax = (depth, maxDepth, alpha, beta) => {
-        if (state.isMill) return -MAXVAL + depth
-        if (depth === maxDepth) return 0
+    let negamax = (depth, alpha, beta) => {
+        if (state.isMill) return -depth
+        if (depth === 0) return 0
         if (state.cntMoves === 42) return 0
-        for (const c of columns) if (state.heightCols[c] < NROW && isWinningColumn(c)) return MAXVAL - depth - 1
+        for (const c of columns) if (state.heightCols[c] < NROW && isWinningColumn(c)) return depth
         // no performance gain ???!!! ---if (columns.reduce((acc, c) => acc + (state.heightCols[c] < NROW && isWinningColumn2(c)) ? 1 : 0, 0) >= 2) return -MAXVAL + depth
         for (const c of columns) if (state.heightCols[c] < NROW) {
             doMove(c)
-            const score = -negamax(depth + 1, maxDepth, -beta, -alpha)
+            const score = -negamax(depth - 1, -beta, -alpha)
             undoMove(c)
             if (score > alpha) alpha = score;
             if (alpha >= beta) return alpha;
@@ -136,14 +136,14 @@ const cfEngine = (() => {
             let score = 0
             for (const c of columns) {
                 doMove(c)
-                score = -negamax(0, depth, -MAXVAL, +MAXVAL)
+                score = -negamax(depth, -MAXVAL, +MAXVAL)
                 searchInfo.bestMoves.push({move: c + 1, score});
                 undoMove(c)
-                if (score > MAXVAL - 50 || timeOut()) break
+                if (score > 0 || timeOut()) break
             }
             // console.log(`DEPTH:${searchInfo.depth} { ${searchInfo.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${searchInfo.nodes} ${Date.now() - searchInfo.startAt + 'ms'} ${CACHE.info()}`)
-            if (score > MAXVAL - 50 || timeOut()) break;
-            if (searchInfo.bestMoves.every((m) => m.score < -MAXVAL + 50)) break// all moves lead to disaster
+            if (score > 0 || timeOut()) break;
+            if (searchInfo.bestMoves.every(m => m.score < 0)) break// all moves lead to disaster
         }
         searchInfo.bestMoves.sort((a, b) => b.score - a.score)
         return searchInfo;
@@ -152,7 +152,7 @@ const cfEngine = (() => {
     const searchBestMove = (opts) => {
         opts = {maxThinkingTime: 1000, maxDepth: 42, ...opts}
         // 1: look as far possible if we can find a winning move
-        const sc = _searchBestMove(opts.maxThinkingTime / 2, opts.maxDepth, () => 0)
+        return _searchBestMove(opts.maxThinkingTime, opts.maxDepth, () => 0)
         if (sc.bestMoves.length === 0 || sc.bestMoves[0].score > MAXVAL - 50) return sc;
         // 2:  look for best move with better evaluating function
         return _searchBestMove(opts.maxThinkingTime / 2, opts.maxDepth, _computeScore)
@@ -167,7 +167,7 @@ const cfEngine = (() => {
 
     init();
     return {
-        CACHE, winningRows, winningRowsForFields, NCOL, NROW, MAXVAL, Player,
+        CACHE, winningRows, winningRowsForFields, NCOL, NROW, Player,
         init, initGame, doMove, searchBestMove, isMill,
         isAllowedMove: m => state.heightCols[m - 1] < NROW && !isMill() && state.cntMoves !== NROW * NCOL,
         getHeightOfCol: c => state.heightCols[c],
