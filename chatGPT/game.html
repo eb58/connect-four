@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connect Four with AI</title>
+  <style>
+      canvas {
+          border: 2px solid #333;
+          background-color: #0099cc;
+          display: block;
+          margin: 20px auto;
+      }
+      body {
+          text-align: center;
+          font-family: sans-serif;
+      }
+      button {
+          padding: 10px 20px;
+          font-size: 16px;
+          margin-top: 10px;
+          cursor: pointer;
+      }
+  </style>
+</head>
+<body>
+<h1>Connect Four vs AI</h1>
+<canvas id="gameCanvas" width="700" height="600"></canvas>
+<p id="status">Your turn (click a column)</p>
+<button id="restartBtn">Restart Game</button>
+<script type="module">
+  import Game from './game.js';
+
+  const canvas = document.getElementById("gameCanvas");
+  const statusText = document.getElementById("status");
+  const restartBtn = document.getElementById("restartBtn");
+
+  let game = new Game(canvas, statusText);
+  game.draw();
+
+  canvas.addEventListener("click", e => game.handleClick(e));
+  restartBtn.addEventListener("click", () => {
+    game = new Game(canvas, statusText);
+    game.draw();
+  });
+</script>
+</body>
+</html>
