@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connect Four with AI</title>
+  <style>
+      canvas {
+          border: 2px solid #333;
+          background-color: #0099cc;
+          display: block;
+          margin: 20px auto;
+      }
+      body {
+          text-align: center;
+          font-family: sans-serif;
+      }
+  </style>
+</head>
+<body>
+<h1>Connect Four vs AI</h1>
+<canvas id="gameCanvas" width="700" height="600"></canvas>
+<p id="status">Your turn (click a column)</p>
+<script>
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
+  const ROWS = 6, COLS = 7, CELL = 100;
+  let board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+  let currentPlayer = -1; // -1 = Human, 1 = AI
+  const MAX_DEPTH = 10;
+
+  function drawBoard() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        ctx.beginPath();
+        ctx.arc(c * CELL + CELL / 2, r * CELL + CELL / 2, 40, 0, Math.PI * 2);
+        ctx.fillStyle = board[r][c] === 1 ? "red" : board[r][c] === -1 ? "yellow" : "white";
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+  }
+
+  function makeMove(board, col, player) {
+    const newBoard = board.map(row => row.slice());
+    for (let r = ROWS - 1; r >= 0; r--) {
+      if (newBoard[r][col] === 0) {
+        newBoard[r][col] = player;
+        return newBoard;
+      }
+    }
+    return null;
+  }
+
+  function generateMoves(board) {
+    return [...Array(COLS).keys()].filter(c => board[0][c] === 0);
+  }
+
+  function isTerminal(board) {
+    return checkWinner(board) !== 0 || generateMoves(board).length === 0;
+  }
+
+  function checkWinner(board) {
+    const dirs = [ [0,1],[1,0],[1,1],[1,-1] ];
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const player = board[r][c];
+        if (player === 0) continue;
+        for (let [dr, dc] of dirs) {
+          let win = true;
+          for (let i = 1; i < 4; i++) {
+            const nr = r + dr * i, nc = c + dc * i;
+            if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS || board[nr][nc] !== player) {
+              win = false;
+              break;
+            }
+          }
+          if (win) return player;
+        }
+      }
+    }
+    return 0;
+  }
+
+  function evaluate(board) {
+    const winner = checkWinner(board);
+    if (winner === 1) return 100000;
+    if (winner === -1) return -100000;
+    return scorePosition(board, 1) - scorePosition(board, -1);
+  }
+
+  function scorePosition(board, player) {
+    let score = 0;
+    const center = board.map(row => row[3]);
+    score += center.filter(c => c === player).length * 3;
+
+    function countLine(cells) {
+      const count = cells.filter(c => c === player).length;
+      const empty = cells.filter(c => c === 0).length;
+      if (count === 4) return 100;
+      if (count === 3 && empty === 1) return 5;
+      if (count === 2 && empty === 2) return 2;
+      return 0;
+    }
+
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS - 3; c++) {
+        score += countLine(board[r].slice(c, c + 4));
+      }
+    }
+
+    for (let r = 0; r < ROWS - 3; r++) {
+      for (let c = 0; c < COLS; c++) {
+        score += countLine([0,1,2,3].map(i => board[r+i][c]));
+      }
+    }
+
+    for (let r = 0; r < ROWS - 3; r++) {
+      for (let c = 0; c < COLS - 3; c++) {
+        score += countLine([0,1,2,3].map(i => board[r+i][c+i]));
+        score += countLine([0,1,2,3].map(i => board[r+i][c+3-i]));
+      }
+    }
+
+    return score;
+  }
+
+  function negascout(board, depth, alpha, beta, player) {
+    if (depth === 0 || isTerminal(board)) return evaluate(board) * player;
+    let b = beta, best = -Infinity, first = true;
+    for (let move of generateMoves(board)) {
+      const newBoard = makeMove(board, move, player);
+      let score;
+      if (first) {
+        score = -negascout(newBoard, depth - 1, -b, -alpha, -player);
+      } else {
+        score = -negascout(newBoard, depth - 1, -alpha - 1, -alpha, -player);
+        if (alpha < score && score < beta) {
+          score = -negascout(newBoard, depth - 1, -b, -alpha, -player);
+        }
+      }
+      best = Math.max(best, score);
+      alpha = Math.max(alpha, score);
+      if (alpha >= beta) break;
+      b = alpha + 1;
+      first = false;
+    }
+    return best;
+  }
+
+  function bestMove(board, depth, player) {
+    let bestScore = -Infinity, best = null;
+    for (let move of generateMoves(board)) {
+      const newBoard = makeMove(board, move, player);
+      const score = -negascout(newBoard, depth - 1, -Infinity, Infinity, -player);
+      if (score > bestScore) {
+        bestScore = score;
+        best = move;
+      }
+    }
+    return best;
+  }
+
+  function handleClick(e) {
+    if (currentPlayer !== -1) return;
+    const col = Math.floor(e.offsetX / CELL);
+    if (!generateMoves(board).includes(col)) return;
+    board = makeMove(board, col, currentPlayer);
+    drawBoard();
+    const winner = checkWinner(board);
+    if (winner || isTerminal(board)) {
+      document.getElementById("status").innerText = winner ? (winner === 1 ? "AI Wins!" : "You Win!") : "Draw!";
+      canvas.removeEventListener("click", handleClick);
+      return;
+    }
+    currentPlayer *= -1;
+    document.getElementById("status").innerText = "AI thinking...";
+    setTimeout(() => {
+      const aiMove = bestMove(board, MAX_DEPTH, currentPlayer);
+      board = makeMove(board, aiMove, currentPlayer);
+      drawBoard();
+      const winner = checkWinner(board);
+      if (winner || isTerminal(board)) {
+        document.getElementById("status").innerText = winner ? (winner === 1 ? "AI Wins!" : "You Win!") : "Draw!";
+        return;
+      }
+      currentPlayer *= -1;
+      document.getElementById("status").innerText = "Your turn (click a column)";
+    }, 500);
+  }
+
+  canvas.addEventListener("click", handleClick);
+  drawBoard();
+</script>
+</body>
+</html>
