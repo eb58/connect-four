@@ -5,7 +5,7 @@ const MAX_DEPTH = 5
 const range = (n) => [...Array(n).keys()]
 
 export default class Game {
-  constructor(canvas, statusText, sounds) {
+  constructor(canvas, statusText) {
     this.canvas = canvas
     this.ctx = canvas.getContext('2d')
     this.statusText = statusText
@@ -37,11 +37,10 @@ export default class Game {
     const winner = this.checkWinner(this.board)
     if (winner || this.isTerminal(this.board)) {
       this.statusText.innerText = winner ? (winner === 1 ? 'AI Wins!' : 'You Win!') : 'Draw!'
-      winner ? this.sounds.win?.play() : this.sounds.draw?.play()
       return
     }
 
-    this.currentPlayer *= -1
+    this.currentPlayer = 1
     this.statusText.innerText = 'AI thinking...'
     setTimeout(() => {
       const aiMove = this.bestMove(this.board, MAX_DEPTH, this.currentPlayer)
@@ -54,7 +53,7 @@ export default class Game {
         return
       }
 
-      this.currentPlayer *= -1
+      this.currentPlayer = -1
       this.statusText.innerText = 'Your turn (click a column)'
     }, 500)
   }
@@ -79,7 +78,7 @@ export default class Game {
       [0, 1],
       [1, 0],
       [1, 1],
-      [1, -1],
+      [1, -1]
     ]
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
@@ -172,12 +171,24 @@ export default class Game {
     return best
   }
 
+  negamax = (board, depth, alpha, beta, player) => {
+    if (depth === 0 || this.isTerminal(board)) return this.evaluate(board) * player
+
+    for (const move of this.generateMoves(board)) {
+      const newBoard = this.makeMove(board, move, player)
+      const score = -this.negamax(newBoard, depth - 1, -beta, -alpha, -player)
+      if (score > alpha) alpha = score
+      if (alpha >= beta) return alpha
+    }
+    return alpha
+  }
+
   bestMove = (board, depth, player) => {
     let bestScore = -Infinity
     let best = null
     for (const move of this.generateMoves(board)) {
       const newBoard = this.makeMove(board, move, player)
-      const score = -this.negascout(newBoard, depth - 1, -Infinity, Infinity, -player)
+      const score = -this.negamax(newBoard, depth - 1, -Infinity, Infinity, -player)
       if (score > bestScore) {
         bestScore = score
         best = move

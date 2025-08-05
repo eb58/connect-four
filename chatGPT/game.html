@@ -11,10 +11,12 @@
           display: block;
           margin: 20px auto;
       }
+
       body {
           text-align: center;
           font-family: sans-serif;
       }
+
       button {
           padding: 10px 20px;
           font-size: 16px;
@@ -29,20 +31,20 @@
 <p id="status">Your turn (click a column)</p>
 <button id="restartBtn">Restart Game</button>
 <script type="module">
-  import Game from './game.js';
+  import Game from './game.js'
 
-  const canvas = document.getElementById("gameCanvas");
-  const statusText = document.getElementById("status");
-  const restartBtn = document.getElementById("restartBtn");
+  const canvas = document.getElementById('gameCanvas')
+  const statusText = document.getElementById('status')
+  const restartBtn = document.getElementById('restartBtn')
 
-  let game = new Game(canvas, statusText);
-  game.draw();
+  let game = new Game(canvas, statusText)
+  game.draw()
 
-  canvas.addEventListener("click", e => game.handleClick(e));
-  restartBtn.addEventListener("click", () => {
-    game = new Game(canvas, statusText);
-    game.draw();
-  });
+  canvas.addEventListener('click', e => game.handleClick(e))
+  restartBtn.addEventListener('click', () => {
+    game = new Game(canvas, statusText)
+    game.draw()
+  })
 </script>
 </body>
 </html>
