@@ -45,8 +45,8 @@ const cfEngine = (() => {
 
   const init = (player = Player.ai) => {
     state.heightCols = range(NCOL).map(() => 0)
-    state.wrCounterRed = winningRows.map(() => 0)
-    state.wrCounterBlue = winningRows.map(() => 0)
+    state.wrCounterHumanPlayer = winningRows.map(() => 0)
+    state.wrCounterAI = winningRows.map(() => 0)
     state.side = player
     state.cntMoves = 0
   }
@@ -55,7 +55,7 @@ const cfEngine = (() => {
     const idxBoard = c + NCOL * state.heightCols[c]
     state.heightCols[c]++
     state.side = 3 - state.side
-    const counters = state.side === Player.ai ? state.wrCounterBlue : state.wrCounterRed
+    const counters = state.side === Player.ai ? state.wrCounterAI : state.wrCounterHumanPlayer
     winningRowsForFields[idxBoard].forEach((i) => ++counters[i])
     state.isMill = winningRowsForFields[idxBoard].some((i) => counters[i] >= 4)
     state.cntMoves++
@@ -65,14 +65,14 @@ const cfEngine = (() => {
     --state.heightCols[c]
     state.cntMoves--
     const idxBoard = c + NCOL * state.heightCols[c]
-    const counters = state.side === Player.ai ? state.wrCounterBlue : state.wrCounterRed
+    const counters = state.side === Player.ai ? state.wrCounterAI : state.wrCounterHumanPlayer
     winningRowsForFields[idxBoard].forEach((i) => counters[i]--)
     state.side = 3 - state.side
     state.isMill = false
   }
 
   const isWinningColumn = (c) => {
-    const counters = state.side === Player.hp ? state.wrCounterBlue : state.wrCounterRed
+    const counters = state.side === Player.hp ? state.wrCounterAI : state.wrCounterHumanPlayer
     return winningRowsForFields[c + NCOL * state.heightCols[c]].some((i) => counters[i] === 3)
   }
 
@@ -96,12 +96,13 @@ const cfEngine = (() => {
   const searchInfo = { nodes: 0, stopAt: 0, depth: 0, bestMoves: [] }
   const timeOut = () => Date.now() >= searchInfo.stopAt
 
-  const _searchBestMove = (maxThinkingTime, maxDepth) => {
+  const searchBestMove = (opts) => {
+    opts = { maxThinkingTime: 1000, maxDepth: 42, ...opts }
     searchInfo.nodes = 0
     searchInfo.startAt = Date.now()
-    searchInfo.stopAt = searchInfo.startAt + maxThinkingTime
+    searchInfo.stopAt = searchInfo.startAt + opts.maxThinkingTime
     const columns = [3, 4, 2, 5, 1, 6, 0].filter((c) => state.heightCols[c] < NROW)
-    for (const depth of range(maxDepth).map((x) => x + 1)) {
+    for (const depth of range(opts.maxDepth).map((x) => x + 1)) {
       searchInfo.depth = depth
       const bestMoves = []
       let score = 0
@@ -123,12 +124,6 @@ const cfEngine = (() => {
     return searchInfo
   }
 
-  const searchBestMove = (opts) => {
-    opts = { maxThinkingTime: 1000, maxDepth: 42, ...opts }
-    // 1: look as far possible if we can find a winning move
-    return _searchBestMove(opts.maxThinkingTime, opts.maxDepth)
-  }
-
   const initGame = (fen, player) => {
     init(player)
     const moves = fen
@@ -138,7 +133,7 @@ const cfEngine = (() => {
     moves.forEach((c) => doMove(c))
   }
 
-  const isMill = () => state.wrCounterRed.some((i) => i >= 4) || state.wrCounterBlue.some((i) => i >= 4)
+  const isMill = () => state.wrCounterHumanPlayer.some((i) => i >= 4) || state.wrCounterAI.some((i) => i >= 4)
 
   init()
   return {
