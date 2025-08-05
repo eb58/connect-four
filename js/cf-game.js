@@ -9,7 +9,7 @@ const cfGame = (cfEngine, divId) => {
 
   const infoStr = (sc) => {
     const scores = sc.bestMoves.map((m) => `${m.move}:${m.score}`).join(' ')
-    const side = moveHistory[0]?.side === cfEngine.Player.ai ? 'blue' : 'red'
+    const side = moveHistory[0]?.side === cfEngine.Player.ai ? 'ai' : 'hp'
     return `DEPTH:${sc.depth} { ${scores} } NODES:${sc.nodes} ${Date.now() - sc.startAt}ms FEN:${side}|${moveHistory
       .map((x) => x.move)
       .join('')
@@ -93,7 +93,7 @@ const cfGame = (cfEngine, divId) => {
     if (!cfEngine.isAllowedMove(move)) return
     moveHistory.push({ move, side: cfEngine.side() })
     const row = cfEngine.NROW - cfEngine.getHeightOfCol(move - 1) - 1
-    const cls = cfEngine.side() === cfEngine.Player.hp ? 'red' : 'blue'
+    const cls = cfEngine.side() === cfEngine.Player.ai ? 'blue' : 'red'
     $($('#cf tr > td:nth-child(' + move + ')')[row]).addClass(cls)
     cfEngine.doMove(move - 1)
   }
