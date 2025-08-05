@@ -8,12 +8,13 @@ const cfGame = (cfEngine, divId) => {
   let moveHistory = []
 
   const infoStr = (sc) => {
-    const scores = sc.bestMoves.map((m) => `${m.move}:${m.score}`).join(' ')
+    const scores = cfEngine.movesStr(sc.bestMoves)
     const side = moveHistory[0]?.side === cfEngine.Player.ai ? 'ai' : 'hp'
-    return `DEPTH:${sc.depth} { ${scores} } NODES:${sc.nodes} ${Date.now() - sc.startAt}ms FEN:${side}|${moveHistory
+    const fen = `${side}|${moveHistory
       .map((x) => x.move)
       .join('')
-      .trim()} `
+      .trim()}`
+    return `DEPTH:${sc.depth} { ${scores} } NODES:${sc.nodes} ${Date.now() - sc.startAt}ms FEN:${fen}`
   }
 
   const myAlert = (msg) =>

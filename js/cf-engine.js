@@ -115,8 +115,7 @@ const cfEngine = (() => {
       }
       if (!timeOut()) searchInfo.bestMoves = bestMoves.sort((a, b) => b.score - a.score)
 
-      const moves = searchInfo.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')
-      console.log(`DEPTH:${searchInfo.depth} { ${moves}} NODES:${searchInfo.nodes} ${Date.now() - searchInfo.startAt + 'ms'}`)
+      // console.log(`DEPTH:${searchInfo.depth} { ${movesStr(searchInfo.bestMoves)}} NODES:${searchInfo.nodes} ${Date.now() - searchInfo.startAt + 'ms'}`)
       if (score > 0 || timeOut()) return searchInfo
       const loosingMoves = searchInfo.bestMoves.filter(loosingMove)
       if (loosingMoves.length >= searchInfo.bestMoves.length - 1) return searchInfo // all moves (but one) lead to disaster
@@ -135,6 +134,8 @@ const cfEngine = (() => {
 
   const isMill = () => state.wrCounterHumanPlayer.some((i) => i >= 4) || state.wrCounterAI.some((i) => i >= 4)
 
+  const movesStr = (bm) => bm.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')
+
   init()
   return {
     winningRows,
@@ -151,6 +152,7 @@ const cfEngine = (() => {
     isAllowedMove: (m) => state.heightCols[m - 1] < NROW && !isMill() && state.cntMoves !== NROW * NCOL,
     getHeightOfCol: (c) => state.heightCols[c],
     side: () => state.side,
+    movesStr,
     isDraw: () => state.cntMoves === NROW * NCOL && !isMill()
   }
 })()
