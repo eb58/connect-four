@@ -19,8 +19,9 @@
     "jest": "29.7.0"
   },
   "prettier": {
+    "trailingComma": "none",
     "semi": false,
     "singleQuote": true,
-    "printWidth" : 180
+    "printWidth": 180
   }
 }
