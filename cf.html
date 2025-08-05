@@ -1,69 +1,71 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-    <meta charset="utf-8">
-    <title>Vier Gewinnt</title>
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width">
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/smoothness/jquery-ui.css">
-    <link rel="stylesheet" href="css/cf.css">
+  <meta charset="utf-8" />
+  <title>Vier Gewinnt</title>
+  <meta name="description" content="" />
+  <meta name="viewport" content="width=device-width" />
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/smoothness/jquery-ui.css" />
+  <link rel="stylesheet" href="css/cf.css" />
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 
-    <script src="js/cf-engine.js"></script>
-    <script src="js/cf-game.js"></script>
+  <script src="js/cf-engine.js"></script>
+  <script src="js/cf-game.js"></script>
 
-    <script>
-        const game = cfGame(cfEngine, '#board')
-        $(() => {
-            game.renderBoard();
-            if (cfEngine.side() === cfEngine.Player.blue) game.actAsAI()
+  <script>
+    const game = cfGame(cfEngine, '#board')
+    $(() => {
+      const fen = $('#fen')
+      game.renderBoard()
+      if (cfEngine.side() === cfEngine.Player.ai) game.actAsAI()
 
-            $("#restart").button().click(game.newGameDlg);
-            $("#undo").button().click(game.undoMove);
-            $('#beginner').val(game.gameSettings.beginner);
-            $("#beginner").selectmenu({width: "100%", change: (_, ui) => game.setBeginner(Number(ui.item.value))})
-            $('#level').val(game.gameSettings.maxThinkingTime);
-            $("#level").selectmenu({width: "100%", change: (_, ui) => game.setMaxThinkingTime(Number(ui.item.value))})
-            $("#fen").on('focusout', () => game.restartFromFEN($('#fen').val()))
-            $("#hint").on('click', () => {
-                const sc = cfEngine.searchBestMove()
-                console.log(`DEPTH:${sc.depth} BestMoves:{${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${Date.now() - sc.startAt}ms}`)
-            })
-        })
-    </script>
+      $('#restart').button().on('click', game.newGameDlg)
+      $('#undo').button().on('click', game.undoMove)
+      $('#beginner')
+        .val(game.gameSettings.beginner)
+        .selectmenu({ width: '100%', change: (_, ui) => game.setBeginner(Number(ui.item.value)) })
+      $('#level')
+        .val(game.gameSettings.maxThinkingTime)
+        .selectmenu({ width: '100%', change: (_, ui) => game.setMaxThinkingTime(Number(ui.item.value)) })
+      fen.on('focusout', () => game.restartFromFEN(fen.val()))
+      $('#hint').on('click', () => {
+        const sc = cfEngine.searchBestMove()
+        console.log(`DEPTH:${sc.depth} BestMoves:{${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${Date.now() - sc.startAt}ms}`)
+      })
+    })
+  </script>
 </head>
 
 <body>
-<h2 style="text-align:left;">Vier Gewinnt</h2>
+<h2 style="text-align: left">Vier Gewinnt</h2>
 <div id="board"></div>
-<div id='info'></div>
-<div style="width:100%">
-    <button id="undo">Zug zurücknehmen</button>
-    <button id="restart">Neu starten</button>
-    <hr>
-    <div>
-        <label for="beginner">Wer fängt an:</label>
-        <select id="beginner">
-            <option value="1">Computer</option>
-            <option value="2">Spieler</option>
-        </select>
-    </div>
-    <div>
-        <label for="level">Spielstärke:</label>
-        <select id="level">
-            <option value="100">Anfänger</option>
-            <option value="200">Amateur</option>
-            <option value="500">Fortgeschrittener</option>
-            <option value="1000">Meister</option>
-            <option value="3000">Großmeister</option>
-        </select>
-    </div>
-    <label for="fen">FEN:</label>
-    <input id="fen" type="text" placeholder="135" value="135">
-    <button id="hint">HINT</button>
+<div id="info"></div>
+<div style="width: 100%">
+  <button id="undo">Zug zurücknehmen</button>
+  <button id="restart">Neu starten</button>
+  <hr />
+  <div>
+    <label for="beginner">Wer fängt an:</label>
+    <select id="beginner">
+      <option value="1">Computer</option>
+      <option value="2">Spieler</option>
+    </select>
+  </div>
+  <div>
+    <label for="level">Spielstärke:</label>
+    <select id="level">
+      <option value="100">Anfänger</option>
+      <option value="200">Amateur</option>
+      <option value="500">Fortgeschrittener</option>
+      <option value="1000">Meister</option>
+      <option value="3000">Großmeister</option>
+    </select>
+  </div>
+  <label for="fen">FEN:</label>
+  <input id="fen" type="text" placeholder="135" value="135" />
+  <button id="hint">HINT</button>
 </div>
 </body>
-
 </html>

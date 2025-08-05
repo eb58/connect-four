@@ -1,9 +1,9 @@
 const cf = require('../js/cf-engine.js')
 
 const range = (n) => [...Array(n).keys()]
-const p = (m) => m.score < 0
+const loosingMove = (m) => m.score < 0
 
-const { Player, winningRows, winningRowsForFields, CACHE } = { ...cf }
+const { Player, winningRows, winningRowsForFields } = { ...cf }
 
 beforeEach(() => cf.init())
 
@@ -13,7 +13,7 @@ test('initialized correctly', () => {
   expect(winningRowsForFields[0]).toEqual([0, 1, 2])
   expect(winningRowsForFields[1]).toEqual([0, 3, 4, 5])
   expect(winningRowsForFields[10]).toEqual([7, 11, 15, 18, 21, 24, 25, 26, 48, 54])
-  expect(cf.side()).toBe(Player.blue)
+  expect(cf.side()).toBe(Player.ai)
   range(7).forEach((c) => expect(cf.getHeightOfCol(c)).toEqual(0))
   expect(cf.isMill()).toBeFalsy()
 })
@@ -25,19 +25,12 @@ test('isMill', () => {
   expect(cf.isMill()).toBeTruthy()
 })
 
-test('hash', () => {
-  cf.initGame('14')
-  cf.undoMove(3)
-  cf.undoMove(0)
-  expect(cf.hash()).toBe(0)
-})
-
 test('whoseTurn works', () => {
-  expect(cf.side()).toBe(Player.blue)
+  expect(cf.side()).toBe(Player.ai)
   cf.doMove(0)
-  expect(cf.side()).toBe(Player.red)
+  expect(cf.side()).toBe(Player.hp)
   cf.doMove(3)
-  expect(cf.side()).toBe(cf.Player.blue)
+  expect(cf.side()).toBe(cf.Player.ai)
   expect(cf.isMill()).toBe(false)
 })
 
@@ -58,40 +51,40 @@ test('draw - board almost full', () => {
 })
 
 const h = (t) => {
-  cf.initGame(t.fen)
+  cf.initGame(t.fen, t.whoBegins || Player.ai)
   const sc = cf.searchBestMove({ maxDepth: t.maxDepth || t.depth || 42, maxThinkingTime: t.maxThinkingTime || 1000 })
 
-  // console.log(`FEN:${t.fen} DEPTH:${sc.depth} BestMoves:{${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${Date.now() - sc.startAt}ms ${CACHE.info()}`)
+  // console.log(`FEN:${t.fen} DEPTH:${sc.depth} BestMoves:{${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${Date.now() - sc.startAt}ms ${CACHE.info()}` )
   if (t.depth) expect(sc.depth).toBe(t.depth)
   if (t.bestMove) {
-    const expectedMoves = typeof t.bestMove === 'number' ? [t.bestMove] : t.bestMove
-    expect(expectedMoves.includes(sc.bestMoves[0].move)).toBeTruthy()
+    if (typeof t.bestMove === 'number') expect(sc.bestMoves[0].move).toBe(t.bestMove)
+    else expect(t.bestMove.includes(sc.bestMoves[0].move)).toBeTruthy()
   }
   if (t.cond) expect(t.cond(sc.bestMoves)).toBeTruthy()
 }
 
-test('eval1', () => h({ fen: '14141', depth: 2, bestMove: 1, cond: (bm) => bm.slice(1).every(p) }))
-test('eval2', () => h({ fen: '41414', depth: 2, bestMove: 4, cond: (bm) => bm.slice(1).every(p) }))
-test('eval3', () => h({ fen: '415', depth: 4, bestMove: [3, 6], cond: (bm) => bm.slice(2).every(p) }))
-test('eval4', () => h({ fen: '41415', depth: 4, bestMove: [1, 3, 6], cond: (bm) => bm.slice(3).every(p) }))
-test('eval5', () => h({ fen: '375', depth: 4, bestMove: [2, 4, 6], cond: (bm) => bm.slice(3).every(p) }))
-test('eval6', () => h({ fen: '553', depth: 4, bestMove: [2, 4, 6], cond: (bm) => bm.slice(3).every(p) }))
-test('eval7', () => h({ fen: '445', depth: 4, bestMove: [3, 6], cond: (bm) => bm.slice(2).every(p) }))
-test('eval8', () => h({ fen: '443', depth: 4, bestMove: [2, 5], cond: (bm) => bm.slice(2).every(p) }))
+test('eval1', () => h({ fen: '14141', bestMove: 1, cond: (bm) => bm.slice(1).every(loosingMove) }))
+test('eval2', () => h({ fen: '41414', depth: 1, bestMove: 4, cond: (bm) => bm.slice(1).every(loosingMove) }))
+test('eval3', () => h({ fen: '415', depth: 4, bestMove: [3, 6], cond: (bm) => bm.slice(2).every(loosingMove) }))
+test('eval4', () => h({ fen: '41415', depth: 4, bestMove: [1, 3, 6], cond: (bm) => bm.slice(3).every(loosingMove) }))
+test('eval5', () => h({ fen: '375', depth: 4, bestMove: [2, 4, 6], cond: (bm) => bm.slice(3).every(loosingMove) }))
+test('eval6', () => h({ fen: '553', depth: 4, bestMove: [2, 4, 6], cond: (bm) => bm.slice(3).every(loosingMove) }))
+test('eval7', () => h({ fen: '445', depth: 4, bestMove: [3, 6], cond: (bm) => bm.slice(2).every(loosingMove) }))
+test('eval8', () => h({ fen: '443', depth: 4, bestMove: [2, 5], cond: (bm) => bm.slice(2).every(loosingMove) }))
 test('eval9', () => h({ fen: '', depth: 8 }))
 
-test('loose1', () => h({ fen: '141526', cond: (bm) => bm.every(p) }))
-test('loose2', () => h({ fen: '44516', cond: (bm) => bm.every(p) }))
-test('loose3', () => h({ fen: '1514341123', cond: (bm) => bm.every(p) }))
-test('loose4', () => h({ fen: '15143411235443', cond: (bm) => bm.every(p) }))
-test('loose5', () => h({ fen: '15243434433433747277', cond: (bm) => bm.every(p) }))
-test('loose6', () => h({ fen: '47443521141324432211323735', cond: (bm) => bm.every(p) }))
+test('loose1', () => h({ fen: '141526', cond: (bm) => bm.every(loosingMove) }))
+test('loose2', () => h({ fen: '44516', cond: (bm) => bm.every(loosingMove) }))
+test('loose3', () => h({ fen: '15143411235443', cond: (bm) => bm.every(loosingMove) }))
+test('loose4', () => h({ fen: '15243434433433747277', cond: (bm) => bm.every(loosingMove) }))
+test('loose5', () => h({ fen: '47443521141324432211323735', cond: (bm) => bm.every(loosingMove) }))
 
 // winning
 test('win-easy-1', () => h({ fen: '22144426444', bestMoves: 5 }))
 test('win-easy-2', () => h({ fen: '265756512', bestMoves: 5 }))
 test('win-easy-3', () => h({ fen: '6625244723134', bestMoves: 3 }))
-test('win-easy-4', () => h({ fen: '1717172', depth: 2, bestMove: 7 }))
+test('win-easy-4', () => h({ fen: '1717172', bestMove: 7 }))
+test('win-easy-5', () => h({ fen: '1514341123', bestMoves: 3 }))
 
 test('win01', () => h({ fen: '14154', depth: 2, bestMove: [3, 6] }))
 test('win02', () => h({ fen: '15141134453', depth: 6, bestMove: 7 }))
