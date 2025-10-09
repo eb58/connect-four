@@ -1,3 +1,5 @@
+const timer = (start = performance.now()) => ({ elapsedTime: () => ((performance.now() - start) / 1000).toFixed(3) })
+
 const cfEngine = (() => {
   const range = (n) => [...Array(n).keys()]
   const loosingMove = (m) => m.score < 0
@@ -97,10 +99,10 @@ const cfEngine = (() => {
   const timeOut = () => Date.now() >= searchInfo.stopAt
 
   const searchBestMove = (opts) => {
+    const t = timer()
     opts = { maxThinkingTime: 1000, maxDepth: 42, ...opts }
     searchInfo.nodes = 0
-    searchInfo.startAt = Date.now()
-    searchInfo.stopAt = searchInfo.startAt + opts.maxThinkingTime
+    searchInfo.stopAt = Date.now() + opts.maxThinkingTime
     const columns = [3, 4, 2, 5, 1, 6, 0].filter((c) => state.heightCols[c] < NROW)
     for (const depth of range(opts.maxDepth).map((x) => x + 1)) {
       searchInfo.depth = depth
@@ -115,12 +117,12 @@ const cfEngine = (() => {
       }
       if (!timeOut()) searchInfo.bestMoves = bestMoves.sort((a, b) => b.score - a.score)
 
-      // console.log(`DEPTH:${searchInfo.depth} { ${movesStr(searchInfo.bestMoves)}} NODES:${searchInfo.nodes} ${Date.now() - searchInfo.startAt + 'ms'}`)
-      if (score > 0 || timeOut()) return searchInfo
+      // console.log(`DEPTH:${searchInfo.depth} { ${movesStr(searchInfo.bestMoves)}} NODES:${searchInfo.nodes} ${t.elapsedTime()}ms`)
+      if (score > 0 || timeOut()) return { ...searchInfo, t }
       const loosingMoves = searchInfo.bestMoves.filter(loosingMove)
       if (loosingMoves.length >= searchInfo.bestMoves.length - 1) return searchInfo // all moves (but one) lead to disaster
     }
-    return searchInfo
+    return { ...searchInfo, t }
   }
 
   const initGame = (fen, player) => {
