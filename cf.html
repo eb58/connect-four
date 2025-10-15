@@ -32,7 +32,7 @@
       fen.on('focusout', () => game.restartFromFEN(fen.val()))
       $('#hint').on('click', () => {
         const sc = cfEngine.searchBestMove()
-        console.log(`DEPTH:${sc.depth} BestMoves:{${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${Date.now() - sc.startAt}ms}`)
+        console.log(`DEPTH:${sc.depth} BestMoves:{${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${sc.elapsedTime}ms}`)
       })
     })
   </script>

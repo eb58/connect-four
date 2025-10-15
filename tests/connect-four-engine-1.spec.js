@@ -43,7 +43,7 @@ test('draw - full board', () => {
 test('draw - board almost full', () => {
   cf.initGame('434447474773233337766665661111112225552')
   const sc = cf.searchBestMove()
-  // console.log(`DEPTH:${sc.depth} BestMoves:{${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${Date.now() - sc.startAt}ms ${CACHE.info()}`)
+  // console.log(`DEPTH:${sc.depth} BestMoves:{${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${sc.elapsedTime}ms}`)
   expect(sc.bestMoves.length).toBe(2)
   expect(sc.bestMoves[0].move === 2 || sc.bestMoves[0].move === 5).toBeTruthy()
   expect(sc.bestMoves[0].score === 0).toBeTruthy() // -0!!
@@ -51,10 +51,10 @@ test('draw - board almost full', () => {
 })
 
 const h = (t) => {
-  cf.initGame(t.fen, t.whoBegins || Player.ai)
+  cf.initGame(t.fen,  Player.ai)
   const sc = cf.searchBestMove({ maxDepth: t.maxDepth || t.depth || 42, maxThinkingTime: t.maxThinkingTime || 1000 })
 
-  // console.log(`FEN:${t.fen} DEPTH:${sc.depth} BestMoves:{${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${Date.now() - sc.startAt}ms ${CACHE.info()}` )
+  // console.log(`FEN:${t.fen} DEPTH:${sc.depth} BestMoves:{${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${sc.elapsedTime}ms}` )
   if (t.depth) expect(sc.depth).toBe(t.depth)
   if (t.bestMove) {
     if (typeof t.bestMove === 'number') expect(sc.bestMoves[0].move).toBe(t.bestMove)
