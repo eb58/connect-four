@@ -10,14 +10,17 @@ const cfEngine = (() => {
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  const cache = (insertCondition = (_) => true, c = {}) => ({
+  const cache = (insertCondition = (_) => true, c = {}, fromCache = 0) => ({
     add: (key, val) => {
       if (insertCondition(val)) c[key] = val
       return val
     },
-    get: (key) => c[key],
-    clear: () => (c = {}),
-    info: (s = '') => `${s}CACHE:${Object.keys(c).length}`
+    get: (key) => {
+      if (c[key] !== undefined) fromCache++
+      return c[key]
+    },
+    clear: () => ((c = {}), (fromCache = 0)),
+    info: (s = '') => `${s}CACHE: Size:${Object.keys(c).length}  FromCache:${fromCache}` // ${JSON.stringify(c)}`
   })
   const CACHE = cache((x) => x > 0)
   const memoize =
@@ -78,6 +81,11 @@ const cfEngine = (() => {
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  const hash = (idxBoard) => {
+    const idx = state.side === Player.ai ? 1 : 2
+    state.hash ^= pieceKeys[idxBoard * idx] ^ sideKeys[idx]
+  }
+
   const state = {} // state that is used for evaluating
 
   const init = (player = Player.ai) => {
@@ -96,23 +104,22 @@ const cfEngine = (() => {
     winningRowsForFields[idxBoard].forEach((i) => ++counters[i])
     state.isMill = winningRowsForFields[idxBoard].some((i) => counters[i] >= 4)
     state.cntMoves++
-    state.hash ^= pieceKeys[idxBoard * (state.side === Player.ai) ? 1 : 2] ^ sideKeys[state.side === Player.ai ? 1 : 2]
+    hash(idxBoard)
   }
 
   const undoMove = (c) => {
     --state.heightCols[c]
-    state.cntMoves--
     const idxBoard = c + NCOL * state.heightCols[c]
-    state.hash ^= pieceKeys[idxBoard * (state.side === Player.ai) ? 1 : 2] ^ sideKeys[state.side === Player.ai ? 1 : 2]
     const counters = state.side === Player.ai ? state.wrCounterAI : state.wrCounterHumanPlayer
     winningRowsForFields[idxBoard].forEach((i) => counters[i]--)
+    hash(idxBoard)
     state.side = -state.side
     state.isMill = false
+    state.cntMoves--
   }
 
-  const computeScoreOfNode = (state) =>
-    state.side *
-    winningRows.reduce((res, wr, i) => res + (state.wrCounterAI[i] > 0 && state.wrCounterHumanPlayer[i] > 0 ? 0 : state.wrCounterHumanPlayer[i] - state.wrCounterAI[i]), 0)
+  const computeScoreOfNode = (s) =>
+    s.side * winningRows.reduce((res, wr, i) => res + (s.wrCounterAI[i] > 0 && s.wrCounterHumanPlayer[i] > 0 ? 0 : s.wrCounterHumanPlayer[i] - s.wrCounterAI[i]), 0)
 
   const isWinningColumn = (c) => {
     const counters = state.side === Player.hp ? state.wrCounterAI : state.wrCounterHumanPlayer
@@ -134,7 +141,7 @@ const cfEngine = (() => {
       }
     return alpha
   }
-  // negamax = memoize(negamax, () => state.hash)
+  negamax = memoize(negamax, () => state.hash)
   negamax = decorator(negamax, () => ++searchInfo.nodes & 65535 || !timeOut())
 
   const searchInfo = {}
@@ -162,7 +169,7 @@ const cfEngine = (() => {
         if (score > 0 || timeOut()) break
       }
       searchInfo.bestMoves.sort((a, b) => b.score - a.score)
-      // console.log(`DEPTH:${searchInfo.depth} { ${movesStr(searchInfo.bestMoves)}} NODES:${searchInfo.nodes} ${t.elapsedTime()}ms`)
+      // console.log(`DEPTH:${searchInfo.depth} { ${movesStr(searchInfo.bestMoves)}} NODES:${searchInfo.nodes} ${t.elapsedTime()}ms ${CACHE.info()}`)
       if (score > 0 || timeOut()) break
       const loosingMoves = searchInfo.bestMoves.filter(loosingMove)
       if (loosingMoves.length >= searchInfo.bestMoves.length - 1) break // all moves but one lead to disaster
