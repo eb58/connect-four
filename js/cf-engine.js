@@ -20,7 +20,7 @@ const cfEngine = (() => {
       return c[key]
     },
     clear: () => ((c = {}), (fromCache = 0)),
-    info: (s = '') => `${s}CACHE: Size:${Object.keys(c).length}  FromCache:${fromCache}` // ${JSON.stringify(c)}`
+    info: (s = '') => `${s}CACHE:{ size:${Object.keys(c).length},  hits:${fromCache} }` // ${JSON.stringify(c)}`
   })
   const CACHE = cache((x) => x > 0)
   const memoize =
@@ -174,7 +174,7 @@ const cfEngine = (() => {
       const loosingMoves = searchInfo.bestMoves.filter(loosingMove)
       if (loosingMoves.length >= searchInfo.bestMoves.length - 1) break // all moves but one lead to disaster
     }
-    return { ...searchInfo, elapsedTime: t.elapsedTime() }
+    return { ...searchInfo, elapsedTime: t.elapsedTime(), CACHE }
   }
 
   const initGame = (fen, player) => {
