@@ -5,7 +5,7 @@ const cfEngine = (() => {
   const loosingMove = (m) => m.score < 0
 
   const [NCOL, NROW] = [7, 6]
-  const MAXVAL = 50
+  const MAXVAL = 100
   const Player = { ai: -1, hp: +1 } // AI / human player
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,14 +96,14 @@ const cfEngine = (() => {
     winningRowsForFields[idxBoard].forEach((i) => ++counters[i])
     state.isMill = winningRowsForFields[idxBoard].some((i) => counters[i] >= 4)
     state.cntMoves++
-    // !!! state.hash ^= pieceKeys[idxBoard * state.side] ^ sideKeys[state.side]
+    state.hash ^= pieceKeys[idxBoard * (state.side === Player.ai) ? 1 : 2] ^ sideKeys[state.side === Player.ai ? 1 : 2]
   }
 
   const undoMove = (c) => {
     --state.heightCols[c]
     state.cntMoves--
     const idxBoard = c + NCOL * state.heightCols[c]
-    // !!!state.hash ^= pieceKeys[idxBoard * state.side] ^ sideKeys[state.side]
+    state.hash ^= pieceKeys[idxBoard * (state.side === Player.ai) ? 1 : 2] ^ sideKeys[state.side === Player.ai ? 1 : 2]
     const counters = state.side === Player.ai ? state.wrCounterAI : state.wrCounterHumanPlayer
     winningRowsForFields[idxBoard].forEach((i) => counters[i]--)
     state.side = -state.side
@@ -122,7 +122,7 @@ const cfEngine = (() => {
   let negamax = (columns, depth, maxDepth, alpha, beta) => {
     if (depth === maxDepth || state.cntMoves === 42) return 0
 
-    for (const c of columns) if (state.heightCols[c] < NROW && isWinningColumn(c)) return maxDepth
+    for (const c of columns) if (state.heightCols[c] < NROW && isWinningColumn(c)) return MAXVAL - depth - 1
 
     for (const c of columns)
       if (state.heightCols[c] < NROW) {
@@ -134,20 +134,21 @@ const cfEngine = (() => {
       }
     return alpha
   }
-  // negamax = memoize(negamax, (s) => s.hash)
+  // negamax = memoize(negamax, () => state.hash)
   negamax = decorator(negamax, () => ++searchInfo.nodes & 65535 || !timeOut())
 
   const searchInfo = {}
   const timeOut = () => Date.now() >= searchInfo.stopAt
 
   const searchBestMove = (opts) => {
+    CACHE.clear()
     const t = timer()
     opts = { maxThinkingTime: 1000, maxDepth: 42, ...opts }
     searchInfo.nodes = 0
     searchInfo.stopAt = Date.now() + opts.maxThinkingTime
     const columns = [3, 4, 2, 5, 1, 6, 0].filter((c) => state.heightCols[c] < NROW)
 
-    for (const c of columns) if (isWinningColumn(c)) return { depth: 1, bestMoves: [{ move: c + 1, score: 1 }], elapsedTime: t.elapsedTime() }
+    for (const c of columns) if (isWinningColumn(c)) return { nodes: 0, depth: 1, bestMoves: [{ move: c + 1, score: 1 }], elapsedTime: t.elapsedTime() }
 
     for (let depth = 1; depth <= opts.maxDepth; depth++) {
       searchInfo.depth = depth

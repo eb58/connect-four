@@ -1,6 +1,6 @@
 const cfGame = (cfEngine, divId) => {
   const gameSettings = JSON.parse(localStorage.getItem('connect-4-settings') || 'false') || {
-    beginner: cfEngine.Player.ai,
+    startingPlayer: '' + cfEngine.Player.ai,
     maxThinkingTime: 1000
   }
 
@@ -64,7 +64,7 @@ const cfGame = (cfEngine, divId) => {
     confirm('Frage', 'Neues Spiel', () => {
       $('#info').text('')
       moveHistory = []
-      cfEngine.init(gameSettings.beginner)
+      cfEngine.init(Number(gameSettings.startingPlayer))
       renderBoard(divId)
       if (cfEngine.side() === cfEngine.Player.ai) actAsAI()
     })
@@ -133,7 +133,7 @@ const cfGame = (cfEngine, divId) => {
 
   const restartFromFEN = (fen) =>
     game.restart(
-      gameSettings.beginner,
+      Number(gameSettings.startingPlayer),
       fen.split('').map((x) => +x)
     )
 
@@ -146,9 +146,9 @@ const cfGame = (cfEngine, divId) => {
     restart,
     restartFromFEN,
     gameSettings,
-    setBeginner: (beginner) => {
-      gameSettings.beginner = beginner
-      localStorage.setItem('connect-4-settings', JSON.stringify({ ...gameSettings, beginner }))
+    setStartingPlayer: (startingPlayer) => {
+      gameSettings.startingPlayer = startingPlayer
+      localStorage.setItem('connect-4-settings', JSON.stringify(gameSettings))
     },
     setMaxThinkingTime: (n) => {
       gameSettings.maxThinkingTime = n

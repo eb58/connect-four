@@ -23,9 +23,9 @@
 
       $('#restart').button().on('click', game.newGameDlg)
       $('#undo').button().on('click', game.undoMove)
-      $('#beginner')
-        .val(game.gameSettings.beginner)
-        .selectmenu({ width: '100%', change: (_, ui) => game.setBeginner(Number(ui.item.value)) })
+      $('#startingPlayer')
+        .val(game.gameSettings.startingPlayer)
+        .selectmenu({ width: '100%', change: (_, ui) => game.setStartingPlayer(ui.item.value) })
       $('#level')
         .val(game.gameSettings.maxThinkingTime)
         .selectmenu({ width: '100%', change: (_, ui) => game.setMaxThinkingTime(Number(ui.item.value)) })
@@ -47,8 +47,8 @@
   <button id="restart">Neu starten</button>
   <hr />
   <div>
-    <label for="beginner">Wer fängt an:</label>
-    <select id="beginner">
+    <label for="startingPlayer">Wer fängt an:</label>
+    <select id="startingPlayer">
       <option value="-1">Computer</option>
       <option value="+1">Spieler</option>
     </select>
