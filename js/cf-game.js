@@ -14,7 +14,7 @@ const cfGame = (cfEngine, divId) => {
       .map((x) => x.move)
       .join('')
       .trim()}`
-    return `DEPTH:${sc.depth} { ${scores} } NODES:${sc.nodes} ${sc.elapsedTime}ms FEN:${fen} ${sc.CACHE.info()}`
+    return `DEPTH:${sc.depth} { ${scores} } NODES:${sc.nodes} ${sc.elapsedTime}ms FEN:${fen} ${sc.CACHE?.info()}`
   }
 
   const myAlert = (msg) =>
