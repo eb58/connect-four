@@ -8,6 +8,10 @@ const { Player, winningRows, winningRowsForFields } = { ...cf }
 beforeEach(() => cf.init())
 
 describe('SIMPLE TESTS', () => {
+  test('code & decode is correct', () => {
+    expect(winningRows.map((wr) => cf.decode(cf.code(wr.row)).toSorted())).toEqual(winningRows.map((wr) => wr.row.toSorted()))
+  })
+
   test('initialized correctly', () => {
     expect(winningRows.length).toBe(69)
     expect(winningRowsForFields.length).toBe(42)
@@ -56,7 +60,7 @@ const h = (name, t) => {
   cf.initGame(t.fen, Player.ai)
   const si = cf.searchBestMove({ maxDepth: t.maxDepth || t.depth || 42, maxThinkingTime: t.maxThinkingTime || 1000 })
 
-  console.log(`${name} --- DEPTH:${si.depth} { ${cf.movesStr(si.bestMoves)}} NODES:${si.nodes} ${si.elapsedTime}ms ${si.CACHE?.info()} FEN:${t.fen} `)
+  // console.log(`${name} --- DEPTH:${si.depth} { ${cf.movesStr(si.bestMoves)}} NODES:${si.nodes} ${si.elapsedTime}ms ${si.CACHE?.info()} FEN:${t.fen} `)
   if (t.depth) expect(si.depth).toBe(t.depth)
   if (t.bestMove) {
     if (typeof t.bestMove === 'number') expect(si.bestMoves[0].move).toBe(t.bestMove)
@@ -116,5 +120,6 @@ describe('WIN 2 ', () => {
   test('win3', () => h('win3', { fen: '15143411344433545', depth: 22, bestMove: 5 })) // ~600ms
   test('win4', () => h('win4', { fen: '443521344445336', depth: 20, bestMove: 5 })) // ~650ms
   test('win5', () => h('win5', { fen: '414144', depth: 14, bestMove: 5, score: 86 })) // ~650ms
-  // ??? test('win6', () => h('win6', { fen: '4156', bestMove: 4, score: 82, maxThinkingTime: 30000 })) // ~5000ms
+  // ??? test('win6', () => h('win6', { fen: '4443424433', depth: 18, bestMove: 3, maxThinkingTime: 2000 })) // ~650ms
+  // ??? test('win7', () => h('win6', { fen: '4156', bestMove: 4, score: 82, maxThinkingTime: 30000 })) // ~5000ms
 })

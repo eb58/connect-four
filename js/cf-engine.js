@@ -36,8 +36,9 @@ const cfEngine = (() => {
       preCondition() ? f(...args) : 0
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
-  const computeWinningRows = (r, c, dr, dc) => {
+  const computeWinningRows = (p, dr, dc) => {
     // dr = delta row,  dc = delta col
+    let {r,c} = p;
     const row = []
     const startRow = NROW - r
     while (r >= 0 && r < NROW && c >= 0 && c < NCOL && row.length < 4) {
@@ -49,14 +50,22 @@ const cfEngine = (() => {
   }
 
   // winning rows - length should be 69 for DIM (7x6)
-  const winningRows = range(NROW).reduce(
-    (acc, r) =>
-      range(NCOL).reduce(
-        (acc, c) => [...acc, ...computeWinningRows(r, c, 0, 1), ...computeWinningRows(r, c, 1, 1), ...computeWinningRows(r, c, 1, 0), ...computeWinningRows(r, c, -1, 1)],
-        acc
-      ),
-    []
-  )
+  const winningRows = range(NROW)
+    .reduce((acc, r) => [...acc, ...range(NCOL).map((c) => ({ r, c }))], [])
+    .reduce((acc, p) => [...acc, ...computeWinningRows(p, 0, 1), ...computeWinningRows(p, 1, 1), ...computeWinningRows(p, 1, 0), ...computeWinningRows(p, -1, 1)], [])
+
+  const code = (xs) => xs.reduce((acc, n) => acc + Math.pow(2, n), 0)
+
+  const decode = (x) => {
+    const y = Number(x)
+      .toString(2)
+      .split('')
+      .map((x) => Number(x))
+      .toReversed()
+    return y.reduce((acc, x, idx) => (x ? [...acc, idx] : acc), [])
+  }
+
+  const winningRowsX = winningRows.map((x) => code(x.row))
 
   // list of indices on allWinningRows for each field of board
   const winningRowsForFields = range(NCOL * NROW).map((i) => winningRows.reduce((acc, wr, j) => (wr.row.includes(i) ? [...acc, j] : acc), []))
@@ -194,6 +203,8 @@ const cfEngine = (() => {
   return {
     winningRows,
     winningRowsForFields,
+    code,
+    decode,
     NCOL,
     NROW,
     Player,
