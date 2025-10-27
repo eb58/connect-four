@@ -44,7 +44,7 @@ class TranspositionTable {
   }
 }
 
-export class Board {
+class Board {
   constructor() {
     this.bitboards = { 1: [0, 0], 2: [0, 0] } // 64-bit integers simulated with two 32-bit ints, bottom and top bits
     this.currentPlayer = 1
@@ -277,7 +277,7 @@ const negamax = (board, depth, alpha, beta) => {
   let flag = 1
   const colHeights = board.colHeights
 
-  for (const col of [3, 2, 4, 1, 5, 0, 6]) if (colHeights[col] < NROW && board.winForColumn(col,)) return { score: 22 - ((board.moveCount + 2) >> 1), move: col }
+  for (const col of [3, 2, 4, 1, 5, 0, 6]) if (colHeights[col] < NROW && board.winForColumn(col)) return { score: 22 - ((board.moveCount + 2) >> 1), move: col }
 
   for (const col of [3, 2, 4, 1, 5, 0, 6])
     if (colHeights[col] < NROW) {
@@ -308,8 +308,24 @@ const negamax = (board, depth, alpha, beta) => {
   return { score: bestScore, nodes, move: bestMove }
 }
 
-export const findBestMove = (board, depth) => {
+const findBestMove = (board, depth) => {
   tt = new TranspositionTable()
   const result = negamax(board, depth, -100, 100)
   return { move: result.move, score: result.score, nodes }
 }
+
+const initGame = (fen) => {
+  const board = new Board()
+  const moves = fen
+    .trim()
+    .split('')
+    .map((x) => x - 1)
+  moves.forEach((c) => board.makeMove(c))
+  return board
+}
+
+if (typeof module !== 'undefined')
+  module.exports = {
+    findBestMove,
+    initGame
+  }
