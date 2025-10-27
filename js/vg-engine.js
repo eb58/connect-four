@@ -311,7 +311,7 @@ const negamax = (board, depth, alpha, beta) => {
 const findBestMove = (board, depth) => {
   tt = new TranspositionTable()
   const result = negamax(board, depth, -100, 100)
-  return { move: result.move, score: result.score, nodes }
+  return { move: result.move, score: result.score, nodes, depth }
 }
 
 const initGame = (fen) => {
