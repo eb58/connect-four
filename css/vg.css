@@ -1,0 +1,155 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.game-container {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+}
+
+.board-container {
+    background-color: #1a73e8;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(7, 60px);
+    grid-template-rows: repeat(6, 60px);
+    gap: 5px;
+    background-color: #1a73e8;
+}
+
+.cell {
+    width: 60px;
+    height: 60px;
+    background-color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.cell:hover {
+    background-color: #e8f0fe;
+}
+
+.cell.player1 {
+    background-color: #ff4444;
+}
+
+.cell.player2 {
+    background-color: #ffeb3b;
+}
+
+.controls {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-width: 350px;
+    height: 420px;
+}
+
+.control-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+select,
+input,
+button {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+button {
+    background-color: #1a73e8;
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: #0d62d9;
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.status {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: white;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.status.win {
+    background-color: #4caf50;
+    color: white;
+}
+
+.status.draw {
+    background-color: #ff9800;
+    color: white;
+}
+
+.move-indicator {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.player-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin: 0 5px;
+}
+
+.player1-indicator {
+    background-color: #ff4444;
+}
+
+.player2-indicator {
+    background-color: #ffeb3b;
+}
+
+.current-player {
+    border: 3px solid #333;
+}
+
+.stats {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
