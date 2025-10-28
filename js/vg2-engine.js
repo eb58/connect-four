@@ -2,6 +2,7 @@ const timer = (start = performance.now()) => ({ elapsedTime: () => ((performance
 const range = (n) => [...Array(n).keys()]
 const [COLS, ROWS] = [7, 6]
 const BOARD_SIZE = COLS * ROWS
+const MAXVAL = 1000
 
 // Create a simple PRNG for Zobrist hashing to always get the same result when running tests
 const makePRNG = (seed) => {
@@ -294,7 +295,7 @@ const negamax = (board, depth, alpha, beta) => {
   if (board.checkWin()) return { score: ((moveCount + 1) >> 1) - 22, move: null }
   if (moveCount >= BOARD_SIZE || depth === 0) return { score: 0, move: null }
 
-  let bestScore = -100
+  let bestScore = -MAXVAL
   let bestMove = null
   let flag = 1
   const colHeights = board.colHeights
@@ -343,7 +344,7 @@ const findBestMove = (board, depth = 14) => {
   const t = timer()
   let res
   for (let d = 1; d <= depth; d++) {
-    res = negamax(board, d, -100, 100)
+    res = negamax(board, d, -MAXVAL, MAXVAL)
     if (res.score) {
       // console.log(`DEPTH:${d} SCORE: ${res.score} MOVE:${res.move} NODES:${nodes} ${t.elapsedTime()}ms`)
       return { ...res, depth: d, nodes, elapsedTime: t.elapsedTime() }
