@@ -88,30 +88,33 @@ class Board {
     this.moveHistory[this.moveCount] = col
     this.moveCount++
 
-    // Zobrist
+    // Hash
     this.hash ^= zobrist[index][this.currentPlayer]
 
     // Switch player
     this.currentPlayer = 3 - this.currentPlayer
   }
 
-  undoMove() {
-    const col = this.moveHistory[--this.moveCount]
+  undoMove(col) {
+    col = col || this.moveHistory[this.moveCount-1]
     const row = this.colHeights[col] - 1
     const index = row * COLS + col
+
+    // switch player
     this.currentPlayer = 3 - this.currentPlayer
 
-    // Clear column mask
-    this.cols[this.currentPlayer][col] &= ~(1 << row)
+    // hash
+    this.hash ^= zobrist[index][this.currentPlayer]
 
-    // Clear bitboards
+    // undo history & heights
+    this.colHeights[col]--
+    this.moveCount--
+
+    // clear bitboards
     this.bitboards[this.currentPlayer][index < 32 ? 0 : 1] &= ~(1 << index % 32)
 
-    // Undo heights
-    this.colHeights[col]--
-
-    // Zobrist
-    this.hash ^= zobrist[index][this.currentPlayer]
+    // clear column mask
+    this.cols[this.currentPlayer][col] &= ~(1 << row)
   }
 
   checkWin() {
@@ -274,14 +277,13 @@ let nodes = 0
 const negamax = (columns, board, depth, alpha, beta) => {
   nodes++
   const originalAlpha = alpha
-  const moveCount = board.moveCount
 
   // Check for cached result
   const cached = tt.getScore(board.hash, depth, alpha, beta)
   if (cached !== null) return { score: cached }
 
-  if (board.checkWin()) return { score: ((moveCount + 1) >> 1) - 22 }
-  if (moveCount >= BOARD_SIZE || depth === 0) return { score: 0 }
+  if (board.checkWin()) return { score: ((board.moveCount + 1) >> 1) - 22 }
+  if (board.moveCount >= BOARD_SIZE || depth === 0) return { score: 0 }
 
   let bestScore = -MAXVAL
   let bestMove = null
@@ -290,15 +292,15 @@ const negamax = (columns, board, depth, alpha, beta) => {
 
   for (const col of columns)
     if (colHeights[col] < ROWS && board.winForColumn(col)) {
-      tt.put(board.hash, 22 - ((moveCount + 2) >> 1), depth, flag)
-      return { score: 22 - ((moveCount + 2) >> 1), move: col }
+      tt.put(board.hash, 22 - ((board.moveCount + 2) >> 1), depth, flag)
+      return { score: 22 - ((board.moveCount + 2) >> 1), move: col }
     }
 
   for (const col of columns)
     if (colHeights[col] < ROWS) {
       board.makeMove(col)
       const child = negamax(columns, board, depth - 1, -beta, -alpha)
-      board.undoMove()
+      board.undoMove(col)
 
       const score = -child.score
 
@@ -326,10 +328,10 @@ const negamax = (columns, board, depth, alpha, beta) => {
 const findBestMove = (board, maxDepth = 14) => {
   const t = timer()
   nodes = 0
-  tt = new TranspositionTable(getTTSizeForDepth(maxDepth))
   let res, depth
   const columns = [3, 2, 4, 1, 5, 0, 6].filter((c) => board.colHeights[c] < ROWS)
   for (depth = 1; depth <= maxDepth; depth++) {
+    tt = new TranspositionTable(getTTSizeForDepth(depth))
     res = negamax(columns, board, depth, -MAXVAL, MAXVAL)
     if (res.score) break
   }
