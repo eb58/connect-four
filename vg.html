@@ -99,9 +99,7 @@
         handleCellClick(col) {
           if (this.isGameOver) return
 
-          const currentPlayerIsHuman =
-            (this.board.currentPlayer === 1 && this.gameMode === 'human-vs-ai') ||
-            (this.board.currentPlayer === 2 && this.gameMode === 'ai-vs-human')
+          const currentPlayerIsHuman = (this.board.currentPlayer === 1 && this.gameMode === 'human-vs-ai') || (this.board.currentPlayer === 2 && this.gameMode === 'ai-vs-human')
 
           if (!currentPlayerIsHuman) return
 
@@ -126,9 +124,7 @@
         makeAIMoveIfNeeded() {
           if (this.isGameOver) return
 
-          const currentPlayerIsAI =
-            (this.board.currentPlayer === 1 && this.gameMode === 'ai-vs-human') ||
-            (this.board.currentPlayer === 2 && this.gameMode === 'human-vs-ai')
+          const currentPlayerIsAI = (this.board.currentPlayer === 1 && this.gameMode === 'ai-vs-human') || (this.board.currentPlayer === 2 && this.gameMode === 'human-vs-ai')
 
           if (currentPlayerIsAI) {
             this.makeAIMove()
@@ -139,18 +135,15 @@
           const result = findBestMove(this.board, this.difficulty)
           this.lastSearchStats = result
           console.log(result)
-          setTimeout(() => this.makeMove(result.move), 100)
+          setTimeout(() => this.makeMove(result.bestMoves[0].move - 1), 100)
         }
 
         undoMove() {
-          if (this.board.moveCount > 0) {
-            this.board.unmakeMove()
-            this.board.unmakeMove()
+          if (this.board.moveCount > 1) {
+            this.board.undoMove()
+            this.board.undoMove()
             this.isGameOver = false
             this.updateUI()
-
-            // Falls nach Rückgängig der aktuelle Spieler eine KI ist, mache sofort einen Zug
-            setTimeout(() => this.makeAIMoveIfNeeded(), 300)
           }
         }
 
@@ -186,6 +179,7 @@
             const col = parseInt(cell.dataset.col)
             const row = parseInt(cell.dataset.row)
             const index = row * 7 + col
+
             cell.className = 'cell'
             // Update GUI Vg
             if (this.board.bitboards[1][index < 32 ? 0 : 1] & (1 << index % 32)) cell.classList.add('player1')
@@ -222,7 +216,8 @@
           }
 
           // Aktualisiere Statistiken
-          document.getElementById('stats').textContent = `Züge: ${this.board.moveCount} | Knoten: ${this.lastSearchStats.nodes} | Score: ${this.lastSearchStats.score || 0}`
+          document.getElementById('stats').textContent =
+            `Züge:${this.board.moveCount} | Knoten:${this.lastSearchStats.nodes} | Score:${this.lastSearchStats.score || 0} | Tiefe:${this.lastSearchStats.depth || 0}`
         }
       }
 

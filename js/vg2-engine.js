@@ -60,11 +60,10 @@ class Board {
     this.currentPlayer = 1
     this.moveHistory = new Uint8Array(COLS * ROWS)
     this.colHeights = new Uint8Array(COLS)
-    this.lastMove = null
     this.moveCount = 0
 
     // Zobrist (32-bit per entry), incremental mirrored hash kept too
-    this.zobristHash = 0
+    this.hash = 0
 
     // Per-column bit masks for incremental symmetry
     this.cols = [
@@ -77,54 +76,48 @@ class Board {
   makeMove(col) {
     const row = this.colHeights[col]
     const index = row * COLS + col
-    const player = this.currentPlayer
 
     // Update column mask
-    this.cols[player][col] |= 1 << row
+    this.cols[this.currentPlayer][col] |= 1 << row
 
     // Bitboards
-    this.bitboards[player][index < 32 ? 0 : 1] |= 1 << index % 32
+    this.bitboards[this.currentPlayer][index < 32 ? 0 : 1] |= 1 << index % 32
 
     // History & heights
-    this.lastMove = col
-    this.moveHistory[this.moveCount++] = col
     this.colHeights[col]++
+    this.moveHistory[this.moveCount] = col
+    this.moveCount++
 
     // Zobrist
-    this.zobristHash ^= zobrist[index][player]
+    this.hash ^= zobrist[index][this.currentPlayer]
 
     // Switch player
-    this.currentPlayer = 3 - player
+    this.currentPlayer = 3 - this.currentPlayer
   }
 
   undoMove() {
-    const col = this.moveHistory[this.moveCount - 1]
+    const col = this.moveHistory[--this.moveCount]
     const row = this.colHeights[col] - 1
     const index = row * COLS + col
-    const player = 3 - this.currentPlayer
+    this.currentPlayer = 3 - this.currentPlayer
 
     // Clear column mask
-    this.cols[player][col] &= ~(1 << row)
+    this.cols[this.currentPlayer][col] &= ~(1 << row)
 
     // Clear bitboards
-    this.bitboards[player][index < 32 ? 0 : 1] &= ~(1 << index % 32)
+    this.bitboards[this.currentPlayer][index < 32 ? 0 : 1] &= ~(1 << index % 32)
 
-    // Undo history/heights
+    // Undo heights
     this.colHeights[col]--
-    this.moveHistory[this.moveCount - 1] = 0
-    this.moveCount--
-    this.lastMove = this.moveHistory[this.moveCount - 1] ?? null
 
     // Zobrist
-    this.zobristHash ^= zobrist[index][player]
-
-    this.currentPlayer = player
+    this.hash ^= zobrist[index][this.currentPlayer]
   }
 
   checkWin() {
     // Check using lastMove only
     const player = 3 - this.currentPlayer
-    const col = this.lastMove
+    const col = this.moveHistory[this.moveCount - 1]
     const row = this.colHeights[col] - 1
 
     const bbLo = this.bitboards[player][0]
@@ -276,43 +269,35 @@ class Board {
 }
 
 let tt
-
-// Variable size of TT depending on depth
-
 let nodes = 0
-const negamax = (board, depth, alpha, beta) => {
+
+const negamax = (columns, board, depth, alpha, beta) => {
   nodes++
   const originalAlpha = alpha
   const moveCount = board.moveCount
 
-  // Check for symmetry and get appropriate hash
-  const hash = board.zobristHash
-
   // Check for cached result
-  const cached = tt.getScore(hash, depth, alpha, beta)
-  if (cached !== null) return { score: cached, move: null }
+  const cached = tt.getScore(board.hash, depth, alpha, beta)
+  if (cached !== null) return { score: cached }
 
-  if (board.checkWin()) return { score: ((moveCount + 1) >> 1) - 22, move: null }
-  if (moveCount >= BOARD_SIZE || depth === 0) return { score: 0, move: null }
+  if (board.checkWin()) return { score: ((moveCount + 1) >> 1) - 22 }
+  if (moveCount >= BOARD_SIZE || depth === 0) return { score: 0 }
 
   let bestScore = -MAXVAL
   let bestMove = null
   let flag = 1
   const colHeights = board.colHeights
 
-  // Immediate win: use symmetric ordering if mirror
-  const colOrder = [3, 2, 4, 1, 5, 0, 6]
-  for (const col of colOrder)
+  for (const col of columns)
     if (colHeights[col] < ROWS && board.winForColumn(col)) {
-      tt.put(hash, 22 - ((moveCount + 2) >> 1), depth, flag)
+      tt.put(board.hash, 22 - ((moveCount + 2) >> 1), depth, flag)
       return { score: 22 - ((moveCount + 2) >> 1), move: col }
     }
 
-  // Recursive search
-  for (const col of colOrder)
+  for (const col of columns)
     if (colHeights[col] < ROWS) {
       board.makeMove(col)
-      const child = negamax(board, depth - 1, -beta, -alpha)
+      const child = negamax(columns, board, depth - 1, -beta, -alpha)
       board.undoMove()
 
       const score = -child.score
@@ -333,22 +318,20 @@ const negamax = (board, depth, alpha, beta) => {
   if (bestScore <= originalAlpha) flag = 3
   else if (bestScore >= beta) flag = 2
 
-  tt.put(hash, bestScore, depth, flag)
+  tt.put(board.hash, bestScore, depth, flag)
 
   return { score: bestScore, move: bestMove }
 }
 
-const findBestMove = (board, depth = 14) => {
-  nodes = 0
-  tt = new TranspositionTable(getTTSizeForDepth(depth))
+const findBestMove = (board, maxDepth = 14) => {
   const t = timer()
-  let res
-  for (let d = 1; d <= depth; d++) {
-    res = negamax(board, d, -MAXVAL, MAXVAL)
-    if (res.score) {
-      // console.log(`DEPTH:${d} SCORE: ${res.score} MOVE:${res.move} NODES:${nodes} ${t.elapsedTime()}ms`)
-      return { ...res, depth: d, nodes, elapsedTime: t.elapsedTime() }
-    }
+  nodes = 0
+  tt = new TranspositionTable(getTTSizeForDepth(maxDepth))
+  let res, depth
+  const columns = [3, 2, 4, 1, 5, 0, 6].filter((c) => board.colHeights[c] < ROWS)
+  for (depth = 1; depth <= maxDepth; depth++) {
+    res = negamax(columns, board, depth, -MAXVAL, MAXVAL)
+    if (res.score) break
   }
   // console.log(`DEPTH:${depth} SCORE: ${res.score} MOVE:${res.move} NODES:${nodes} ${t.elapsedTime()}ms`)
   return { ...res, depth, nodes, elapsedTime: t.elapsedTime() }

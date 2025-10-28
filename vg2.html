@@ -22,9 +22,9 @@
         <div class="control-group">
           <label for="difficulty">Schwierigkeitsgrad:</label>
           <select id="difficulty">
-            <option value="8">Leicht</option>
+            <option value="6">Leicht</option>
             <option value="12">Mittel</option>
-            <option value="16" selected>Schwer</option>
+            <option value="18" selected>Schwer</option>
             <option value="24">Sehr schwer</option>
           </select>
         </div>
@@ -34,27 +34,23 @@
           <select id="game-mode">
             <option value="human-vs-ai">Mensch vs KI</option>
             <option value="ai-vs-human">KI vs Mensch</option>
-            <option value="human-vs-human">Mensch vs Mensch</option>
-            <option value="ai-vs-ai">KI vs KI</option>
           </select>
         </div>
 
         <button id="new-game">Neues Spiel</button>
         <button id="undo-move">Zug rückgängig</button>
-
         <div class="status" id="status">Spieler 1 ist am Zug</div>
-
-        <div class="stats" id="stats">Züge: 0 | Knoten: 0</div>
+        <div class="stats" id="stats"></div>
       </div>
     </div>
     <script src="js/vg2-engine.js"></script>
 
-    <script type="module">
+    <script>
       class ConnectFourGUI {
         constructor() {
           this.board = new Board()
           this.gameMode = 'human-vs-ai'
-          this.difficulty = 16
+          this.difficulty = 18
           this.isGameOver = false
           this.lastSearchStats = { nodes: 0 }
 
@@ -64,9 +60,8 @@
         }
 
         initializeBoard() {
-          const boardElement = document.getElementById('board')
-          boardElement.innerHTML = ''
-
+          const b = document.getElementById('board')
+          b.innerHTML = ''
           for (let row = 5; row >= 0; row--) {
             for (let col = 0; col < 7; col++) {
               const cell = document.createElement('div')
@@ -74,7 +69,7 @@
               cell.dataset.col = col
               cell.dataset.row = row
               cell.addEventListener('click', () => this.handleCellClick(col))
-              boardElement.appendChild(cell)
+              b.appendChild(cell)
             }
           }
         }
@@ -104,10 +99,7 @@
         handleCellClick(col) {
           if (this.isGameOver) return
 
-          const currentPlayerIsHuman =
-            (this.board.currentPlayer === 1 && this.gameMode === 'human-vs-ai') ||
-            (this.board.currentPlayer === 2 && this.gameMode === 'ai-vs-human') ||
-            this.gameMode === 'human-vs-human'
+          const currentPlayerIsHuman = (this.board.currentPlayer === 1 && this.gameMode === 'human-vs-ai') || (this.board.currentPlayer === 2 && this.gameMode === 'ai-vs-human')
 
           if (!currentPlayerIsHuman) return
 
@@ -132,10 +124,7 @@
         makeAIMoveIfNeeded() {
           if (this.isGameOver) return
 
-          const currentPlayerIsAI =
-            (this.board.currentPlayer === 1 && this.gameMode === 'ai-vs-human') ||
-            (this.board.currentPlayer === 2 && this.gameMode === 'human-vs-ai') ||
-            this.gameMode === 'ai-vs-ai'
+          const currentPlayerIsAI = (this.board.currentPlayer === 1 && this.gameMode === 'ai-vs-human') || (this.board.currentPlayer === 2 && this.gameMode === 'human-vs-ai')
 
           if (currentPlayerIsAI) {
             this.makeAIMove()
@@ -145,20 +134,16 @@
         makeAIMove() {
           const result = findBestMove(this.board, this.difficulty)
           this.lastSearchStats = result
-
-          if (result.move !== null && result.move !== undefined) {
-            setTimeout(() => this.makeMove(result.move), 100)
-          }
+          console.log(result)
+          setTimeout(() => this.makeMove(result.move), 100)
         }
 
         undoMove() {
-          if (this.board.moveCount > 0) {
+          if (this.board.moveCount > 1) {
+            this.board.undoMove()
             this.board.undoMove()
             this.isGameOver = false
             this.updateUI()
-
-            // Falls nach Rückgängig der aktuelle Spieler eine KI ist, mache sofort einen Zug
-            setTimeout(() => this.makeAIMoveIfNeeded(), 100)
           }
         }
 
@@ -169,7 +154,7 @@
           this.updateUI()
 
           // Falls KI beginnt, mache ersten Zug
-          setTimeout(() => this.makeAIMoveIfNeeded(), 300)
+          setTimeout(() => this.makeAIMoveIfNeeded(), 100)
         }
 
         handleGameEnd() {
@@ -196,15 +181,9 @@
             const index = row * 7 + col
 
             cell.className = 'cell'
-
-            // Prüfe Spieler 1
-            if (this.board.bitboards[1][index < 32 ? 0 : 1] & (1 << index % 32)) {
-              cell.classList.add('player1')
-            }
-            // Prüfe Spieler 2
-            else if (this.board.bitboards[2][index < 32 ? 0 : 1] & (1 << index % 32)) {
-              cell.classList.add('player2')
-            }
+            // Update GUI Vg
+            if (this.board.bitboards[1][index < 32 ? 0 : 1] & (1 << index % 32)) cell.classList.add('player1')
+            if (this.board.bitboards[2][index < 32 ? 0 : 1] & (1 << index % 32)) cell.classList.add('player2')
           })
 
           // Aktualisiere Spieler-Indikatoren
@@ -237,15 +216,13 @@
           }
 
           // Aktualisiere Statistiken
-          const statsElement = document.getElementById('stats')
-          statsElement.textContent = `Züge: ${this.board.moveCount} | Knoten: ${this.lastSearchStats.nodes}`
+          document.getElementById('stats').textContent =
+            `Züge: ${this.board.moveCount} | Knoten: ${this.lastSearchStats.nodes} | Score: ${this.lastSearchStats.score || 0} | Tiefe:${this.lastSearchStats.depth}`
         }
       }
 
       // Initialisiere das Spiel, wenn die Seite geladen ist
-      document.addEventListener('DOMContentLoaded', () => {
-        new ConnectFourGUI()
-      })
+      document.addEventListener('DOMContentLoaded', () => new ConnectFourGUI())
     </script>
   </body>
 </html>
