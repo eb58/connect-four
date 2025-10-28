@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vier Gewinnt</title>
+    <link rel="stylesheet" href="css/vg.css" />
+  </head>
+  <body>
+    <h1>Vier Gewinnt</h1>
+
+    <div class="game-container">
+      <div class="board-container">
+        <div class="move-indicator">
+          <div class="player-indicator player1-indicator" id="player1-indicator"></div>
+          <div class="player-indicator player2-indicator" id="player2-indicator"></div>
+        </div>
+        <div class="board" id="board"></div>
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <label for="difficulty">Schwierigkeitsgrad:</label>
+          <select id="difficulty">
+            <option value="8">Leicht</option>
+            <option value="12">Mittel</option>
+            <option value="16" selected>Schwer</option>
+            <option value="24">Sehr schwer</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label for="game-mode">Spielmodus:</label>
+          <select id="game-mode">
+            <option value="human-vs-ai">Mensch vs KI</option>
+            <option value="ai-vs-human">KI vs Mensch</option>
+            <option value="human-vs-human">Mensch vs Mensch</option>
+            <option value="ai-vs-ai">KI vs KI</option>
+          </select>
+        </div>
+
+        <button id="new-game">Neues Spiel</button>
+        <button id="undo-move">Zug rückgängig</button>
+
+        <div class="status" id="status">Spieler 1 ist am Zug</div>
+
+        <div class="stats" id="stats">Züge: 0 | Knoten: 0</div>
+      </div>
+    </div>
+    <script src="js/vg2-engine.js"></script>
+
+    <script type="module">
+      class ConnectFourGUI {
+        constructor() {
+          this.board = new Board()
+          this.gameMode = 'human-vs-ai'
+          this.difficulty = 16
+          this.isGameOver = false
+          this.lastSearchStats = { nodes: 0 }
+
+          this.initializeBoard()
+          this.setupEventListeners()
+          this.updateUI()
+        }
+
+        initializeBoard() {
+          const boardElement = document.getElementById('board')
+          boardElement.innerHTML = ''
+
+          for (let row = 5; row >= 0; row--) {
+            for (let col = 0; col < 7; col++) {
+              const cell = document.createElement('div')
+              cell.className = 'cell'
+              cell.dataset.col = col
+              cell.dataset.row = row
+              cell.addEventListener('click', () => this.handleCellClick(col))
+              boardElement.appendChild(cell)
+            }
+          }
+        }
+
+        setupEventListeners() {
+          document.getElementById('game-mode').addEventListener('change', (e) => {
+            this.gameMode = e.target.value
+            this.resetGame()
+          })
+
+          document.getElementById('difficulty').addEventListener('change', (e) => {
+            this.difficulty = parseInt(e.target.value)
+          })
+
+          document.getElementById('new-game').addEventListener('click', () => {
+            this.resetGame()
+          })
+
+          document.getElementById('undo-move').addEventListener('click', () => {
+            this.undoMove()
+          })
+
+          // KI-Zug automatisch starten, falls nötig
+          setTimeout(() => this.makeAIMoveIfNeeded(), 100)
+        }
+
+        handleCellClick(col) {
+          if (this.isGameOver) return
+
+          const currentPlayerIsHuman =
+            (this.board.currentPlayer === 1 && this.gameMode === 'human-vs-ai') ||
+            (this.board.currentPlayer === 2 && this.gameMode === 'ai-vs-human') ||
+            this.gameMode === 'human-vs-human'
+
+          if (!currentPlayerIsHuman) return
+
+          if (this.board.colHeights[col] < 6) {
+            this.makeMove(col)
+          }
+        }
+
+        makeMove(col) {
+          this.board.makeMove(col)
+          this.updateUI()
+
+          if (this.board.checkWin()) {
+            this.handleGameEnd()
+          } else if (this.board.moveCount >= 42) {
+            this.handleDraw()
+          } else {
+            setTimeout(() => this.makeAIMoveIfNeeded(), 100)
+          }
+        }
+
+        makeAIMoveIfNeeded() {
+          if (this.isGameOver) return
+
+          const currentPlayerIsAI =
+            (this.board.currentPlayer === 1 && this.gameMode === 'ai-vs-human') ||
+            (this.board.currentPlayer === 2 && this.gameMode === 'human-vs-ai') ||
+            this.gameMode === 'ai-vs-ai'
+
+          if (currentPlayerIsAI) {
+            this.makeAIMove()
+          }
+        }
+
+        makeAIMove() {
+          const result = findBestMove(this.board, this.difficulty)
+          this.lastSearchStats = result
+
+          if (result.move !== null && result.move !== undefined) {
+            setTimeout(() => this.makeMove(result.move), 100)
+          }
+        }
+
+        undoMove() {
+          if (this.board.moveCount > 0) {
+            this.board.undoMove()
+            this.isGameOver = false
+            this.updateUI()
+
+            // Falls nach Rückgängig der aktuelle Spieler eine KI ist, mache sofort einen Zug
+            setTimeout(() => this.makeAIMoveIfNeeded(), 100)
+          }
+        }
+
+        resetGame() {
+          this.board = new Board()
+          this.isGameOver = false
+          this.lastSearchStats = { nodes: 0 }
+          this.updateUI()
+
+          // Falls KI beginnt, mache ersten Zug
+          setTimeout(() => this.makeAIMoveIfNeeded(), 300)
+        }
+
+        handleGameEnd() {
+          this.isGameOver = true
+          const winner = 3 - this.board.currentPlayer
+          const statusElement = document.getElementById('status')
+          statusElement.textContent = `Spieler ${winner} hat gewonnen!`
+          statusElement.className = 'status win'
+        }
+
+        handleDraw() {
+          this.isGameOver = true
+          const statusElement = document.getElementById('status')
+          statusElement.textContent = 'Unentschieden!'
+          statusElement.className = 'status draw'
+        }
+
+        updateUI() {
+          // Aktualisiere das Spielfeld
+          const cells = document.querySelectorAll('.cell')
+          cells.forEach((cell) => {
+            const col = parseInt(cell.dataset.col)
+            const row = parseInt(cell.dataset.row)
+            const index = row * 7 + col
+
+            cell.className = 'cell'
+
+            // Prüfe Spieler 1
+            if (this.board.bitboards[1][index < 32 ? 0 : 1] & (1 << index % 32)) {
+              cell.classList.add('player1')
+            }
+            // Prüfe Spieler 2
+            else if (this.board.bitboards[2][index < 32 ? 0 : 1] & (1 << index % 32)) {
+              cell.classList.add('player2')
+            }
+          })
+
+          // Aktualisiere Spieler-Indikatoren
+          const player1Indicator = document.getElementById('player1-indicator')
+          const player2Indicator = document.getElementById('player2-indicator')
+
+          player1Indicator.classList.remove('current-player')
+          player2Indicator.classList.remove('current-player')
+
+          if (this.board.currentPlayer === 1) {
+            player1Indicator.classList.add('current-player')
+          } else {
+            player2Indicator.classList.add('current-player')
+          }
+
+          // Aktualisiere Status
+          if (!this.isGameOver) {
+            const statusElement = document.getElementById('status')
+            statusElement.className = 'status'
+
+            if (
+              (this.board.currentPlayer === 1 && this.gameMode === 'human-vs-ai') ||
+              (this.board.currentPlayer === 2 && this.gameMode === 'ai-vs-human') ||
+              this.gameMode === 'human-vs-human'
+            ) {
+              statusElement.textContent = `Spieler ${this.board.currentPlayer} ist am Zug`
+            } else {
+              statusElement.textContent = 'KI denkt nach...'
+            }
+          }
+
+          // Aktualisiere Statistiken
+          const statsElement = document.getElementById('stats')
+          statsElement.textContent = `Züge: ${this.board.moveCount} | Knoten: ${this.lastSearchStats.nodes}`
+        }
+      }
+
+      // Initialisiere das Spiel, wenn die Seite geladen ist
+      document.addEventListener('DOMContentLoaded', () => {
+        new ConnectFourGUI()
+      })
+    </script>
+  </body>
+</html>
