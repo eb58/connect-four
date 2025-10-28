@@ -15,7 +15,7 @@ const makePRNG = (seed) => {
 }
 
 const rand = makePRNG(123456789)
-const zobrist = range(BOARD_SIZE).map(() => [rand(), rand(), rand()])
+const zobrist = range(BOARD_SIZE).map(() => [0, rand(), rand()])
 
 function getTTSizeForDepth(depth) {
   if (depth >= 38) return 1 << 28
