@@ -86,9 +86,8 @@ class Board {
 
     // History & heights
     this.lastMove = col
-    this.moveHistory[this.moveCount] = col
+    this.moveHistory[this.moveCount++] = col
     this.colHeights[col]++
-    this.moveCount++
 
     // Zobrist
     this.zobristHash ^= zobrist[index][player]
@@ -136,13 +135,13 @@ class Board {
     let count = 1
     for (let c = col + 1; c < COLS && c <= col + 3; c++) {
       const idx = rowCols + c
-      if (idx < 32 ? (bbLo & (1 << idx)) !== 0 : (bbHi & (1 << (idx - 32))) !== 0) {
+      if (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32))) {
         if (++count >= 4) return true
       } else break
     }
     for (let c = col - 1; c >= 0 && c >= col - 3; c--) {
       const idx = rowCols + c
-      if (idx < 32 ? (bbLo & (1 << idx)) !== 0 : (bbHi & (1 << (idx - 32))) !== 0) {
+      if (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32))) {
         if (++count >= 4) return true
       } else break
     }
@@ -152,13 +151,13 @@ class Board {
     count = 1
     for (let r = row + 1; r < ROWS && r <= row + 3; r++) {
       const idx = r * COLS + col
-      if (idx < 32 ? (bbLo & (1 << idx)) !== 0 : (bbHi & (1 << (idx - 32))) !== 0) {
+      if (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32))) {
         if (++count >= 4) return true
       } else break
     }
     for (let r = row - 1; r >= 0 && r >= row - 3; r--) {
       const idx = r * COLS + col
-      if (idx < 32 ? (bbLo & (1 << idx)) !== 0 : (bbHi & (1 << (idx - 32))) !== 0) {
+      if (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32))) {
         if (++count >= 4) return true
       } else break
     }
@@ -168,13 +167,13 @@ class Board {
     count = 1
     for (let r = row + 1, c = col + 1; r < ROWS && c < COLS && r <= row + 3 && c <= col + 3; r++, c++) {
       const idx = r * COLS + c
-      if (idx < 32 ? (bbLo & (1 << idx)) !== 0 : (bbHi & (1 << (idx - 32))) !== 0) {
+      if (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32))) {
         if (++count >= 4) return true
       } else break
     }
     for (let r = row - 1, c = col - 1; r >= 0 && c >= 0 && r >= row - 3 && c >= col - 3; r--, c--) {
       const idx = r * COLS + c
-      if (idx < 32 ? (bbLo & (1 << idx)) !== 0 : (bbHi & (1 << (idx - 32))) !== 0) {
+      if (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32))) {
         if (++count >= 4) return true
       } else break
     }
@@ -184,13 +183,13 @@ class Board {
     count = 1
     for (let r = row + 1, c = col - 1; r < ROWS && c >= 0 && r <= row + 3 && c >= col - 3; r++, c--) {
       const idx = r * COLS + c
-      if (idx < 32 ? (bbLo & (1 << idx)) !== 0 : (bbHi & (1 << (idx - 32))) !== 0) {
+      if (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32))) {
         if (++count >= 4) return true
       } else break
     }
     for (let r = row - 1, c = col + 1; r >= 0 && c < COLS && r >= row - 3 && c <= col + 3; r--, c++) {
       const idx = r * COLS + c
-      if (idx < 32 ? (bbLo & (1 << idx)) !== 0 : (bbHi & (1 << (idx - 32))) !== 0) {
+      if (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32))) {
         count++
         if (count >= 4) return true
       } else break
@@ -212,13 +211,13 @@ class Board {
     let count = 1
     for (let c = col + 1; c < COLS && c <= col + 3; c++) {
       const idx = rowCols + c
-      if (idx === idxThisMove || (idx < 32 ? (bbLo & (1 << idx)) !== 0 : (bbHi & (1 << (idx - 32))) !== 0)) {
+      if (idx === idxThisMove || (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32)))) {
         if (++count >= 4) return true
       } else break
     }
     for (let c = col - 1; c >= 0 && c >= col - 3; c--) {
       const idx = rowCols + c
-      if (idx === idxThisMove || (idx < 32 ? (bbLo & (1 << idx)) !== 0 : (bbHi & (1 << (idx - 32))) !== 0)) {
+      if (idx === idxThisMove || (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32)))) {
         if (++count >= 4) return true
       } else break
     }
@@ -228,13 +227,13 @@ class Board {
     count = 1
     for (let r = row + 1; r < ROWS && r <= row + 3; r++) {
       const idx = r * COLS + col
-      if (idx === idxThisMove || (idx < 32 ? (bbLo & (1 << idx)) !== 0 : (bbHi & (1 << (idx - 32))) !== 0)) {
+      if (idx === idxThisMove || (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32)))) {
         if (++count >= 4) return true
       } else break
     }
     for (let r = row - 1; r >= 0 && r >= row - 3; r--) {
       const idx = r * COLS + col
-      if (idx === idxThisMove || (idx < 32 ? (bbLo & (1 << idx)) !== 0 : (bbHi & (1 << (idx - 32))) !== 0)) {
+      if (idx === idxThisMove || (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32)))) {
         if (++count >= 4) return true
       } else break
     }
@@ -244,13 +243,13 @@ class Board {
     count = 1
     for (let r = row + 1, c = col + 1; r < ROWS && c < COLS && r <= row + 3 && c <= col + 3; r++, c++) {
       const idx = r * COLS + c
-      if (idx === idxThisMove || (idx < 32 ? (bbLo & (1 << idx)) !== 0 : (bbHi & (1 << (idx - 32))) !== 0)) {
+      if (idx === idxThisMove || (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32)))) {
         if (++count >= 4) return true
       } else break
     }
     for (let r = row - 1, c = col - 1; r >= 0 && c >= 0 && r >= row - 3 && c >= col - 3; r--, c--) {
       const idx = r * COLS + c
-      if (idx === idxThisMove || (idx < 32 ? (bbLo & (1 << idx)) !== 0 : (bbHi & (1 << (idx - 32))) !== 0)) {
+      if (idx === idxThisMove || (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32)))) {
         if (++count >= 4) return true
       } else break
     }
@@ -259,13 +258,13 @@ class Board {
     count = 1
     for (let r = row + 1, c = col - 1; r < ROWS && c >= 0 && r <= row + 3 && c >= col - 3; r++, c--) {
       const idx = r * COLS + c
-      if (idx === idxThisMove || (idx < 32 ? (bbLo & (1 << idx)) !== 0 : (bbHi & (1 << (idx - 32))) !== 0)) {
+      if (idx === idxThisMove || (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32)))) {
         if (++count >= 4) return true
       } else break
     }
     for (let r = row - 1, c = col + 1; r >= 0 && c < COLS && r >= row - 3 && c <= col + 3; r--, c++) {
       const idx = r * COLS + c
-      if (idx === idxThisMove || (idx < 32 ? (bbLo & (1 << idx)) !== 0 : (bbHi & (1 << (idx - 32))) !== 0)) {
+      if (idx === idxThisMove || (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32)))) {
         count++
         if (count >= 4) return true
       } else break
@@ -345,9 +344,13 @@ const findBestMove = (board, depth = 14) => {
   let res
   for (let d = 1; d <= depth; d++) {
     res = negamax(board, d, -100, 100)
-    if (res.score !== 0) return { ...res, depth: d, elapsedTime: t.elapsedTime() }
+    if (res.score) {
+      // console.log(`DEPTH:${d} SCORE: ${res.score} MOVE:${res.move} NODES:${nodes} ${t.elapsedTime()}ms`)
+      return { ...res, depth: d, nodes, elapsedTime: t.elapsedTime() }
+    }
   }
-  return { ...res, depth, elapsedTime: t.elapsedTime() }
+  // console.log(`DEPTH:${depth} SCORE: ${res.score} MOVE:${res.move} NODES:${nodes} ${t.elapsedTime()}ms`)
+  return { ...res, depth, nodes, elapsedTime: t.elapsedTime() }
 }
 
 const initGame = (fen) => {
