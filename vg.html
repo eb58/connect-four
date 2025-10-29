@@ -52,7 +52,7 @@
           this.gameMode = 'human-vs-ai'
           this.difficulty = 18
           this.isGameOver = false
-          this.lastSearchStats = { nodes: 0 }
+          this.stats = { nodes: 0, score: 0 }
 
           this.initializeBoard()
           this.setupEventListeners()
@@ -129,7 +129,7 @@
 
         makeAIMove() {
           const result = findBestMove(this.board, this.difficulty)
-          this.lastSearchStats = result
+          this.stats = result
           console.log(result)
           setTimeout(() => this.makeMove(result.move), 100)
         }
@@ -146,7 +146,7 @@
         resetGame() {
           this.board = new Board()
           this.isGameOver = false
-          this.lastSearchStats = { nodes: 0 }
+          this.stats = { nodes: 0, score: 0 }
           this.updateUI()
 
           // Falls KI beginnt, mache ersten Zug
@@ -213,7 +213,7 @@
 
           // Aktualisiere Statistiken
           document.getElementById('stats').textContent =
-            `Züge:${this.board.moveCount} | Knoten:${this.lastSearchStats.nodes} | Score:${this.lastSearchStats.score || 0} | Tiefe:${this.lastSearchStats.depth || 0}`
+            `Zug:${this.stats.move|| ''} | Score:${this.stats.score} | Tiefe:${this.stats.depth || ''} | Züge:${this.board.moveCount} | Knoten:${this.stats.nodes} | `
         }
       }
 
