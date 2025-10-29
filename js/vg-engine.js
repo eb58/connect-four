@@ -27,7 +27,7 @@ function getTTSizeForDepth(depth) {
 }
 
 class TranspositionTable {
-  constructor(size = 1 << 22) {
+  constructor(size = 8388593) {
     this.size = size
     this.keys = new Uint32Array(size)
     this.scores = new Int16Array(size)
@@ -64,21 +64,11 @@ class Board {
 
     // Zobrist (32-bit per entry), incremental mirrored hash kept too
     this.hash = 0
-
-    // Per-column bit masks for incremental symmetry
-    this.cols = [
-      0, // unused to make indexing easier and faster
-      new Uint8Array(COLS), // player 1
-      new Uint8Array(COLS) // player 2
-    ]
   }
 
   makeMove(col) {
     const row = this.colHeights[col]
     const index = row * COLS + col
-
-    // Update column mask
-    this.cols[this.currentPlayer][col] |= 1 << row
 
     // Bitboards
     this.bitboards[this.currentPlayer][index < 32 ? 0 : 1] |= 1 << index % 32
@@ -96,7 +86,7 @@ class Board {
   }
 
   undoMove(col) {
-    col = col || this.moveHistory[this.moveCount-1]
+    col = col || this.moveHistory[this.moveCount - 1]
     const row = this.colHeights[col] - 1
     const index = row * COLS + col
 
@@ -112,9 +102,6 @@ class Board {
 
     // clear bitboards
     this.bitboards[this.currentPlayer][index < 32 ? 0 : 1] &= ~(1 << index % 32)
-
-    // clear column mask
-    this.cols[this.currentPlayer][col] &= ~(1 << row)
   }
 
   checkWin() {
