@@ -10,7 +10,7 @@
     <h1>Vier Gewinnt</h1>
 
     <div class="game-container">
-      <div class="board-container">
+      <div class="board-container" id="board-container">
         <div class="move-indicator">
           <div class="player-indicator player1-indicator" id="player1-indicator"></div>
           <div class="player-indicator player2-indicator" id="player2-indicator"></div>
@@ -80,18 +80,10 @@
             this.resetGame()
           })
 
-          document.getElementById('difficulty').addEventListener('change', (e) => {
-            this.difficulty = parseInt(e.target.value)
-          })
-
-          document.getElementById('new-game').addEventListener('click', () => {
-            this.resetGame()
-          })
-
-          document.getElementById('undo-move').addEventListener('click', () => {
-            this.undoMove()
-          })
-
+          document.getElementById('difficulty').addEventListener('change', (e) => (this.difficulty = parseInt(e.target.value)))
+          document.getElementById('new-game').addEventListener('click', () => this.resetGame())
+          document.getElementById('undo-move').addEventListener('click', () => this.undoMove())
+          document.getElementById('board-container').addEventListener('click', () => this.showHint())
           // KI-Zug automatisch starten, falls nötig
           setTimeout(() => this.makeAIMoveIfNeeded(), 100)
         }
@@ -132,6 +124,11 @@
           this.stats = result
           console.log(result)
           setTimeout(() => this.makeMove(result.move), 100)
+        }
+
+        showHint() {
+          const result = findBestMove(this.board, this.difficulty)
+          console.log('HINT', result)
         }
 
         undoMove() {
@@ -213,7 +210,7 @@
 
           // Aktualisiere Statistiken
           document.getElementById('stats').textContent =
-            `Zug:${this.stats.move|| ''} | Score:${this.stats.score} | Tiefe:${this.stats.depth || ''} | Züge:${this.board.moveCount} | Knoten:${this.stats.nodes} | `
+            `Zug:${this.stats.move || ''} | Score:${this.stats.score} | Tiefe:${this.stats.depth || ''} | Züge:${this.board.moveCount} | Knoten:${this.stats.nodes} | `
         }
       }
 
