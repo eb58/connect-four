@@ -23,8 +23,8 @@
           <label for="difficulty">Schwierigkeitsgrad:</label>
           <select id="difficulty">
             <option value="6">Leicht</option>
-            <option value="12" selected>Mittel</option>
-            <option value="18">Schwer</option>
+            <option value="12">Mittel</option>
+            <option value="18" selected>Schwer</option>
             <option value="24">Sehr schwer</option>
           </select>
         </div>
@@ -49,8 +49,8 @@
       class ConnectFourGUI {
         constructor() {
           this.board = new Board()
-          this.gameMode = 'ai-vs-human'
-          this.difficulty = 12
+          this.gameMode = 'human-vs-ai'
+          this.difficulty = 18
           this.isGameOver = false
           this.lastSearchStats = { nodes: 0 }
 
@@ -112,13 +112,9 @@
           this.board.makeMove(col)
           this.updateUI()
 
-          if (this.board.checkWin(3 - this.board.currentPlayer, this.board.lastMove)) {
-            this.handleGameEnd()
-          } else if (this.board.moveCount >= 42) {
-            this.handleDraw()
-          } else {
-            setTimeout(() => this.makeAIMoveIfNeeded(), 100)
-          }
+          if (this.board.checkWin()) this.handleGameEnd()
+          else if (this.board.moveCount >= 42) this.handleDraw()
+          else setTimeout(() => this.makeAIMoveIfNeeded(), 100)
         }
 
         makeAIMoveIfNeeded() {
@@ -135,7 +131,7 @@
           const result = findBestMove(this.board, this.difficulty)
           this.lastSearchStats = result
           console.log(result)
-          setTimeout(() => this.makeMove(result.bestMoves[0].move - 1), 100)
+          setTimeout(() => this.makeMove(result.move), 100)
         }
 
         undoMove() {
