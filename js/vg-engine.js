@@ -19,11 +19,11 @@ const rand = makePRNG(123456789)
 const zobrist = range(BOARD_SIZE).map(() => [0, rand(), rand()])
 
 function getTTSizeForDepth(depth) {
-  if (depth >= 38) return 1 << 28
-  if (depth >= 36) return 1 << 26
-  if (depth >= 18) return 1 << 23
-  if (depth >= 10) return 1 << 18
-  return 1 << 16
+  if (depth >= 38) return (1 << 28) - 1
+  if (depth >= 36) return (1 << 26) - 1
+  if (depth >= 18) return (1 << 23) - 1
+  if (depth >= 10) return (1 << 18) - 1
+  return (1 << 16) - 1
 }
 
 class TranspositionTable {
@@ -35,14 +35,14 @@ class TranspositionTable {
     this.flags = new Uint8Array(size)
   }
   put(hash, score, depth, flag) {
-    const idx = hash & (this.size - 1)
+    const idx = hash & this.size
     this.keys[idx] = hash
     this.scores[idx] = score
     this.depths[idx] = depth
     this.flags[idx] = flag
   }
   getScore(hash, depth, alpha, beta) {
-    const idx = hash & (this.size - 1)
+    const idx = hash & this.size
     if (this.keys[idx] === hash && this.depths[idx] >= depth) {
       const score = this.scores[idx]
       const flag = this.flags[idx]
