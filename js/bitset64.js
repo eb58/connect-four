@@ -15,10 +15,10 @@ class BitSet64 {
     }
   }
 
-  has = (pos) => !!(pos <= 31 ? this.lo & (1 << (pos - 1)) : this.hi & (1 << (pos - 32)))
-  set = (pos) => (pos <= 31 ? (this.lo |= 1 << (pos - 1)) : (this.hi |= 1 << (pos - 32)))
-  clear = (pos) => (pos <= 31 ? (this.lo &= ~(1 << (pos - 1))) : (this.hi &= ~(1 << (pos - 32))))
-  toggle = (pos) => (pos <= 31 ? (this.lo ^= 1 << (pos - 1)) : (this.hi ^= 1 << (pos - 32)))
+  has = (pos) => !!(pos <= 31 ? this.lo & (1 << pos % 32) : this.hi & (1 << pos % 32))
+  set = (pos) => (pos <= 31 ? (this.lo |= 1 << pos % 32) : (this.hi |= 1 << pos % 32))
+  clear = (pos) => (pos <= 31 ? (this.lo &= ~(1 << pos % 32)) : (this.hi &= ~(1 << pos % 32)))
+  toggle = (pos) => (pos <= 31 ? (this.lo ^= 1 << pos % 32) : (this.hi ^= 1 << pos % 32))
 
   intersect = (bs) => new BitSet64(this.lo & bs.lo, this.hi & bs.hi)
   union = (bs) => new BitSet64(this.lo | bs.lo, this.hi | bs.hi)
