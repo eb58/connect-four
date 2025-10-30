@@ -121,7 +121,6 @@ class Board {
     // clear bitboards
     this.bitboards[this.currentPlayer].clear(index)
     //this.bitboards[this.currentPlayer][index < 32 ? 0 : 1] &= ~(1 << index % 32)
-    // clear = (index) => (index < 32 ? (this.lo &= ~(1 << (index - 1))) : (this.hi &= ~(1 << (index - 32))))
   }
 
   checkWin() {
