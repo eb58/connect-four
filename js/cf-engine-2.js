@@ -1,5 +1,5 @@
 const BitSet64 = require('./bitset64.js')
-const { winningRowsBS } = require('./cf-winning-rows')
+const { winningRowsBS, winningRowsForFields } = require('./cf-winning-rows')
 
 const timer = (start = performance.now()) => ({ elapsedTime: () => ((performance.now() - start) / 1000).toFixed(3) })
 const range = (n) => [...Array(n).keys()]
@@ -21,7 +21,7 @@ const makePRNG = (seed) => {
 const rand = makePRNG(123456789)
 const zobrist = range(BOARD_SIZE).map(() => [0, rand(), rand()])
 
-const getTTSizeForDepth= (depth) => {
+const getTTSizeForDepth = (depth) => {
   if (depth >= 38) return (1 << 28) - 1
   if (depth >= 36) return (1 << 26) - 1
   if (depth >= 18) return (1 << 23) - 1
@@ -61,11 +61,9 @@ class Board {
   constructor() {
     this.bitboards = { 1: new BitSet64(), 2: new BitSet64() }
     this.currentPlayer = 1
-    this.moveHistory = new Uint8Array(COLS * ROWS)
-    this.colHeights = new Uint8Array(COLS)
+    this.moveHistory = new Uint32Array(COLS * ROWS)
+    this.colHeights = new Uint32Array(COLS)
     this.moveCount = 0
-
-    // Zobrist (32-bit per entry), incremental mirrored hash kept too
     this.hash = 0
   }
 
@@ -120,21 +118,30 @@ class Board {
 
     // clear bitboards
     this.bitboards[this.currentPlayer].clear(index)
-    //this.bitboards[this.currentPlayer][index < 32 ? 0 : 1] &= ~(1 << index % 32)
   }
 
-  checkWin() {
+  checkWin = () => {
+    const col = this.moveHistory[this.moveCount - 1]
+    const idx = (this.colHeights[col] - 1) * COLS + col
     const bs = this.bitboards[3 - this.currentPlayer]
-    return winningRowsBS.some((wr) => wr.isSubsetOf(bs))
+    const wr = winningRowsForFields[idx]
+    for (let i = 0; i < wr.length; i++) if (winningRowsBS[wr[i]].isSubsetOf(bs)) return true
+    return false
   }
 
   winForColumn = (col) => {
     const bs = this.bitboards[this.currentPlayer]
     const idx = this.colHeights[col] * COLS + col
+    const wr = winningRowsForFields[idx]
     bs.set(idx)
-    const res = winningRowsBS.some((wr) => wr.isSubsetOf(bs))
+    for (let i = 0; i < wr.length; i++) {
+      if (winningRowsBS[wr[i]].isSubsetOf(bs)) {
+        bs.clear(idx)
+        return true
+      }
+    }
     bs.clear(idx)
-    return res
+    return false
   }
 }
 
@@ -193,7 +200,6 @@ const negamax = (columns, board, depth, alpha, beta) => {
 }
 
 const findBestMove = (board, maxDepth = 14) => {
-  // board.printBoard()
   const t = timer()
   nodes = 0
   let res, depth
@@ -217,8 +223,4 @@ const initGame = (fen) => {
   return board
 }
 
-if (typeof module !== 'undefined')
-  module.exports = {
-    findBestMove,
-    initGame
-  }
+if (typeof module !== 'undefined') module.exports = { findBestMove, initGame }

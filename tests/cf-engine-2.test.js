@@ -17,7 +17,7 @@ const readData = (fileName) => {
 }
 
 const testData = (fileName, depth = 30) => {
-  readData(fileName).slice(0,200).forEach(({ input, expected }, index) => {
+  readData(fileName).slice(0,1000).forEach(({ input, expected }, index) => {
     test(`Test ${index + 1}: ${input} ->  ${expected}`, () => {
       const si = findBestMove(initGame(input), depth)
       // console.log('FEN:', input, JSON.stringify(si))
