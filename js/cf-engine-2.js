@@ -1,5 +1,5 @@
 const BitSet64 = require('./bitset64.js')
-const { winningRowsBS } = require('./cf-winning-rows')
+const { winningRowsBS, winningRowsForFields } = require('./cf-winning-rows')
 
 const timer = (start = performance.now()) => ({ elapsedTime: () => ((performance.now() - start) / 1000).toFixed(3) })
 const range = (n) => [...Array(n).keys()]
@@ -61,11 +61,9 @@ class Board {
   constructor() {
     this.bitboards = { 1: new BitSet64(), 2: new BitSet64() }
     this.currentPlayer = 1
-    this.moveHistory = new Uint8Array(COLS * ROWS)
-    this.colHeights = new Uint8Array(COLS)
+    this.moveHistory = new Uint32Array(COLS * ROWS)
+    this.colHeights = new Uint32Array(COLS)
     this.moveCount = 0
-
-    // Zobrist (32-bit per entry), incremental mirrored hash kept too
     this.hash = 0
   }
 
@@ -120,21 +118,24 @@ class Board {
 
     // clear bitboards
     this.bitboards[this.currentPlayer].clear(index)
-    //this.bitboards[this.currentPlayer][index < 32 ? 0 : 1] &= ~(1 << index % 32)
   }
 
-  checkWin() {
+  checkWin = () => {
+    const col = this.moveHistory[this.moveCount - 1]
+    const idx = (this.colHeights[col] - 1) * COLS + col
     const bs = this.bitboards[3 - this.currentPlayer]
-    return winningRowsBS.some((wr) => wr.isSubsetOf(bs))
+    const wrs = winningRowsForFields[idx]
+    return wrs.some(wr => (winningRowsBS[wr].isSubsetOf(bs)))
   }
 
   winForColumn = (col) => {
     const bs = this.bitboards[this.currentPlayer]
     const idx = this.colHeights[col] * COLS + col
+    const wrs = winningRowsForFields[idx]
     bs.set(idx)
-    const res = winningRowsBS.some((wr) => wr.isSubsetOf(bs))
+    const ret = wrs.some(wr => (winningRowsBS[wr].isSubsetOf(bs)))
     bs.clear(idx)
-    return res
+    return ret
   }
 }
 
@@ -193,7 +194,6 @@ const negamax = (columns, board, depth, alpha, beta) => {
 }
 
 const findBestMove = (board, maxDepth = 14) => {
-  // board.printBoard()
   const t = timer()
   nodes = 0
   let res, depth
