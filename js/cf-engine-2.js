@@ -1,6 +1,3 @@
-const BitSet64 = require('./bitset64.js')
-const { winningRowsBS, winningRowsForFields } = require('./cf-winning-rows')
-
 const timer = (start = performance.now()) => ({ elapsedTime: () => ((performance.now() - start) / 1000).toFixed(3) })
 const range = (n) => [...Array(n).keys()]
 const [COLS, ROWS] = [7, 6]
@@ -59,7 +56,7 @@ class TranspositionTable {
 
 class Board {
   constructor() {
-    this.bitboards = { 1: new BitSet64(), 2: new BitSet64() }
+    this.bitboards = { 1: [0, 0], 2: [0, 0] } // 64-bit integers simulated with two 32-bit ints, bottom and top bits
     this.currentPlayer = 1
     this.moveHistory = new Uint32Array(COLS * ROWS)
     this.colHeights = new Uint32Array(COLS)
@@ -87,7 +84,7 @@ class Board {
     const index = row * COLS + col
 
     // Bitboards
-    this.bitboards[this.currentPlayer].set(index)
+    this.bitboards[this.currentPlayer][index < 32 ? 0 : 1] |= 1 << index % 32
 
     // History & heights
     this.colHeights[col]++
@@ -117,7 +114,7 @@ class Board {
     this.moveCount--
 
     // clear bitboards
-    this.bitboards[this.currentPlayer].clear(index)
+    this.bitboards[this.currentPlayer][index < 32 ? 0 : 1] &= ~(1 << index % 32)
   }
 
   checkWinForBoard = () => {
@@ -131,28 +128,32 @@ class Board {
     return this.checkWin(col, row, this.currentPlayer)
   }
 
-  checkWin = (col, row, player) => {
-    const bb = this.bitboards[player]
+  checkWin(col, row, player) {
+    const bbLo = this.bitboards[player][0]
+    const bbHi = this.bitboards[player][1]
+    const has = (idx) => (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32)))
+
+    const rowCols = row * COLS
 
     // horizontal
     let count = 1
-    for (let c = col + 1; c < COLS && c <= col + 3 && bb.has(row * COLS + c); c++) if (++count >= 4) return true
-    for (let c = col - 1; c >= 0 && c >= col - 3 && bb.has(row * COLS + c); c--) if (++count >= 4) return true
+    for (let c = col + 1; c < COLS && c <= col + 3 && has(rowCols + c); c++) if (++count >= 4) return true
+    for (let c = col - 1; c >= 0 && c >= col - 3 && has(rowCols + c); c--) if (++count >= 4) return true
 
     // vertical
     count = 1
-    for (let r = row + 1; r < ROWS && r <= row + 3 && bb.has(r * COLS + col); r++) if (++count >= 4) return true
-    for (let r = row - 1; r >= 0 && r >= row - 3 && bb.has(r * COLS + col); r--) if (++count >= 4) return true
+    for (let r = row + 1; r < ROWS && r <= row + 3 && has(r * COLS + col); r++) if (++count >= 4) return true
+    for (let r = row - 1; r >= 0 && r >= row - 3 && has(r * COLS + col); r--) if (++count >= 4) return true
 
     // diagonal \
     count = 1
-    for (let r = row + 1, c = col + 1; c < COLS && c <= col + 3 && r < ROWS && r <= row + 3 && bb.has(r * COLS + c); r++, c++) if (++count >= 4) return true
-    for (let r = row - 1, c = col - 1; c >= 0 && c >= col - 3 && r >= row - 3 && r >= 0 && bb.has(r * COLS + c); r--, c--) if (++count >= 4) return true
+    for (let r = row + 1, c = col + 1; c < COLS && c <= col + 3 && r < ROWS && r <= row + 3 && has(r * COLS + c); r++, c++) if (++count >= 4) return true
+    for (let r = row - 1, c = col - 1; c >= 0 && c >= col - 3 && r >= row - 3 && r >= 0 && has(r * COLS + c); r--, c--) if (++count >= 4) return true
 
     // diagonal /
     count = 1
-    for (let r = row + 1, c = col - 1; c >= 0 && c >= col - 3 && r < ROWS && r <= row + 3 && bb.has(r * COLS + c); r++, c--) if (++count >= 4) return true
-    for (let r = row - 1, c = col + 1; c < COLS && c <= col + 3 && r >= 0 && r >= row - 3 && bb.has(r * COLS + c); r--, c++) if (++count >= 4) return true
+    for (let r = row + 1, c = col - 1; c >= 0 && c >= col - 3 && r < ROWS && r <= row + 3 && has(r * COLS + c); r++, c--) if (++count >= 4) return true
+    for (let r = row - 1, c = col + 1; c < COLS && c <= col + 3 && r >= 0 && r >= row - 3 && has(r * COLS + c); r--, c++) if (++count >= 4) return true
 
     return false
   }
@@ -175,16 +176,15 @@ const negamax = (columns, board, depth, alpha, beta) => {
   let bestScore = -MAXVAL
   let bestMove = null
   let flag = 1
-  const colHeights = board.colHeights
 
   for (const col of columns)
-    if (colHeights[col] < ROWS && board.checkWinForColumn(col)) {
+    if (board.colHeights[col] < ROWS && board.checkWinForColumn(col)) {
       tt.put(board.hash, 22 - ((board.moveCount + 2) >> 1), depth, flag)
       return { score: 22 - ((board.moveCount + 2) >> 1), move: col }
     }
 
   for (const col of columns)
-    if (colHeights[col] < ROWS) {
+    if (board.colHeights[col] < ROWS) {
       board.makeMove(col)
       const child = negamax(columns, board, depth - 1, -beta, -alpha)
       board.undoMove(col)
