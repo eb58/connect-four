@@ -135,23 +135,23 @@ class Board {
 
     // horizontal
     let count = 1
-    for (let c = col + 1, rr = row * COLS; c < COLS && c <= col + 3 && has(rr + c); c++) if (++count >= 4) return true
-    for (let c = col - 1, rr = row * COLS; c >= 0 && c >= col - 3 && has(rr + c); c--) if (++count >= 4) return true
+    for (let c = col + 1, rr = row * COLS; c < COLS && has(rr + c); c++) if (++count >= 4) return true
+    for (let c = col - 1, rr = row * COLS; c >= 0 && has(rr + c); c--) if (++count >= 4) return true
 
     // vertical
     count = 1
-    for (let r = row + 1, rr = r * COLS; r < ROWS && r <= row + 3 && has(rr + col); r++, rr += COLS) if (++count >= 4) return true
-    for (let r = row - 1, rr = r * COLS; r >= 0 && r >= row - 3 && has(rr + col); r--, rr -= COLS) if (++count >= 4) return true
+    for (let r = row + 1, rr = r * COLS; r < ROWS && has(rr + col); r++, rr += COLS) if (++count >= 4) return true
+    for (let r = row - 1, rr = r * COLS; r >= 0 && has(rr + col); r--, rr -= COLS) if (++count >= 4) return true
 
     // diagonal \
     count = 1
-    for (let r = row + 1, c = col + 1, rr = r * COLS; c < COLS && c <= col + 3 && r < ROWS && r <= row + 3 && has(rr + c); r++, c++, rr += COLS) if (++count >= 4) return true
-    for (let r = row - 1, c = col - 1, rr = r * COLS; c >= 0 && c >= col - 3 && r >= row - 3 && r >= 0 && has(rr + c); r--, c--, rr -= COLS) if (++count >= 4) return true
+    for (let r = row + 1, c = col + 1, rr = r * COLS; c < COLS && r < ROWS && has(rr + c); r++, c++, rr += COLS) if (++count >= 4) return true
+    for (let r = row - 1, c = col - 1, rr = r * COLS; c >= 0 && r >= 0 && has(rr + c); r--, c--, rr -= COLS) if (++count >= 4) return true
 
     // diagonal /
     count = 1
-    for (let r = row + 1, c = col - 1, rr = r * COLS; c >= 0 && c >= col - 3 && r < ROWS && r <= row + 3 && has(rr + c); r++, c--, rr += COLS) if (++count >= 4) return true
-    for (let r = row - 1, c = col + 1, rr = r * COLS; c < COLS && c <= col + 3 && r >= 0 && r >= row - 3 && has(rr + c); r--, c++, rr -= COLS) if (++count >= 4) return true
+    for (let r = row + 1, c = col - 1, rr = r * COLS; c >= 0 && r < ROWS && has(rr + c); r++, c--, rr += COLS) if (++count >= 4) return true
+    for (let r = row - 1, c = col + 1, rr = r * COLS; c < COLS && r >= 0 && has(rr + c); r--, c++, rr -= COLS) if (++count >= 4) return true
 
     return false
   }
