@@ -133,27 +133,25 @@ class Board {
     const bbHi = this.bitboards[player][1]
     const has = (idx) => (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32)))
 
-    const rowCols = row * COLS
-
     // horizontal
     let count = 1
-    for (let c = col + 1; c < COLS && c <= col + 3 && has(rowCols + c); c++) if (++count >= 4) return true
-    for (let c = col - 1; c >= 0 && c >= col - 3 && has(rowCols + c); c--) if (++count >= 4) return true
+    for (let c = col + 1, rr = row * COLS; c < COLS && c <= col + 3 && has(rr + c); c++) if (++count >= 4) return true
+    for (let c = col - 1, rr = row * COLS; c >= 0 && c >= col - 3 && has(rr + c); c--) if (++count >= 4) return true
 
     // vertical
     count = 1
-    for (let r = row + 1; r < ROWS && r <= row + 3 && has(r * COLS + col); r++) if (++count >= 4) return true
-    for (let r = row - 1; r >= 0 && r >= row - 3 && has(r * COLS + col); r--) if (++count >= 4) return true
+    for (let r = row + 1, rr = r * COLS; r < ROWS && r <= row + 3 && has(rr + col); r++, rr += COLS) if (++count >= 4) return true
+    for (let r = row - 1, rr = r * COLS; r >= 0 && r >= row - 3 && has(rr + col); r--, rr -= COLS) if (++count >= 4) return true
 
     // diagonal \
     count = 1
-    for (let r = row + 1, c = col + 1; c < COLS && c <= col + 3 && r < ROWS && r <= row + 3 && has(r * COLS + c); r++, c++) if (++count >= 4) return true
-    for (let r = row - 1, c = col - 1; c >= 0 && c >= col - 3 && r >= row - 3 && r >= 0 && has(r * COLS + c); r--, c--) if (++count >= 4) return true
+    for (let r = row + 1, c = col + 1, rr = r * COLS; c < COLS && c <= col + 3 && r < ROWS && r <= row + 3 && has(rr + c); r++, c++, rr += COLS) if (++count >= 4) return true
+    for (let r = row - 1, c = col - 1, rr = r * COLS; c >= 0 && c >= col - 3 && r >= row - 3 && r >= 0 && has(rr + c); r--, c--, rr -= COLS) if (++count >= 4) return true
 
     // diagonal /
     count = 1
-    for (let r = row + 1, c = col - 1; c >= 0 && c >= col - 3 && r < ROWS && r <= row + 3 && has(r * COLS + c); r++, c--) if (++count >= 4) return true
-    for (let r = row - 1, c = col + 1; c < COLS && c <= col + 3 && r >= 0 && r >= row - 3 && has(r * COLS + c); r--, c++) if (++count >= 4) return true
+    for (let r = row + 1, c = col - 1, rr = r * COLS; c >= 0 && c >= col - 3 && r < ROWS && r <= row + 3 && has(rr + c); r++, c--, rr += COLS) if (++count >= 4) return true
+    for (let r = row - 1, c = col + 1, rr = r * COLS; c < COLS && c <= col + 3 && r >= 0 && r >= row - 3 && has(rr + c); r--, c++, rr -= COLS) if (++count >= 4) return true
 
     return false
   }
