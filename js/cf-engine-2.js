@@ -65,13 +65,15 @@ class Board {
   }
 
   printBoard = () => {
+    const has = (bb,idx) => (idx < 32 ? bb[0] & (1 << idx) : bb[1] & (1 << (idx - 32)))
+
     let res = ''
     for (let r = ROWS - 1; r >= 0; r--) {
       let row = ''
       for (let c = 0; c < COLS; c++) {
         const idx = r * COLS + c
-        if (this.bitboards[1].has(idx)) row += ' X '
-        else if (this.bitboards[2].has(idx)) row += ' O '
+        if (has(this.bitboards[1],idx)) row += ' X '
+        else if (has(this.bitboards[2],idx)) row += ' O '
         else row += ' _ '
       }
       res += row + '\n'
@@ -158,10 +160,10 @@ class Board {
 }
 
 let tt
-let nodes = 0
+const searchInfo = { nodes: 0 }
 
 const negamax = (columns, board, depth, alpha, beta) => {
-  nodes++
+  searchInfo.nodes++
   const originalAlpha = alpha
 
   // Check for cached result
@@ -210,18 +212,21 @@ const negamax = (columns, board, depth, alpha, beta) => {
   return { score: bestScore, move: bestMove }
 }
 
-const findBestMove = (board, maxDepth = 14) => {
+const timeOut = () => Date.now() >= searchInfo.stopAt
+
+const findBestMove = (board, opts) => {
+  opts = { maxDepth: 14, maxThinkingTime: 1000, ...opts }
   const t = timer()
-  nodes = 0
+  searchInfo.nodes = 0
   let res, depth
   const columns = [3, 2, 4, 1, 5, 0, 6].filter((c) => board.colHeights[c] < ROWS)
-  for (depth = 1; depth <= maxDepth; depth++) {
+  for (depth = 1; depth <= opts.maxDepth; depth++) {
     tt = new TranspositionTable(getTTSizeForDepth(depth))
     res = negamax(columns, board, depth, -MAXVAL, MAXVAL)
-    if (res.score) break
+    if (res.score || timeOut()) break
   }
   // console.log(`DEPTH:${depth} SCORE: ${res.score} MOVE:${res.move} NODES:${nodes} ${t.elapsedTime()}ms`)
-  return { ...res, depth, nodes, elapsedTime: t.elapsedTime() }
+  return { ...res, ...searchInfo, depth, elapsedTime: t.elapsedTime() }
 }
 
 const initGame = (fen) => {

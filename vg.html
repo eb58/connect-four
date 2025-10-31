@@ -120,14 +120,14 @@
         }
 
         makeAIMove() {
-          const result = findBestMove(this.board, this.difficulty)
+          const result = findBestMove(this.board, {maxDepth:this.difficulty})
           this.stats = result
           console.log(result)
           setTimeout(() => this.makeMove(result.move), 100)
         }
 
         showHint() {
-          const result = findBestMove(this.board, this.difficulty)
+          const result = findBestMove(this.board, {maxDepth:this.difficulty})
           console.log('HINT', result)
         }
 
