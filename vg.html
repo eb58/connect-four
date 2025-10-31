@@ -83,7 +83,7 @@
           document.getElementById('difficulty').addEventListener('change', (e) => (this.difficulty = parseInt(e.target.value)))
           document.getElementById('new-game').addEventListener('click', () => this.resetGame())
           document.getElementById('undo-move').addEventListener('click', () => this.undoMove())
-          document.getElementById('board-container').addEventListener('click', () => this.showHint())
+          document.getElementById('player2-indicator').addEventListener('click', () => this.showHint())
           // KI-Zug automatisch starten, falls nötig
           setTimeout(() => this.makeAIMoveIfNeeded(), 100)
         }
@@ -104,7 +104,7 @@
           this.board.makeMove(col)
           this.updateUI()
 
-          if (this.board.checkWin()) this.handleGameEnd()
+          if (this.board.checkWinForBoard()) this.handleGameEnd()
           else if (this.board.moveCount >= 42) this.handleDraw()
           else setTimeout(() => this.makeAIMoveIfNeeded(), 100)
         }
@@ -175,8 +175,8 @@
 
             cell.className = 'cell'
             // Update GUI Vg
-            if (this.board.bitboards[1][index < 32 ? 0 : 1] & (1 << index % 32)) cell.classList.add('player1')
-            if (this.board.bitboards[2][index < 32 ? 0 : 1] & (1 << index % 32)) cell.classList.add('player2')
+            if (!!(this.board.bitboards[1][index < 32 ? 0 : 1] & (1 << index % 32))) cell.classList.add('player1')
+            if (!!(this.board.bitboards[2][index < 32 ? 0 : 1] & (1 << index % 32))) cell.classList.add('player2')
           })
 
           // Aktualisiere Spieler-Indikatoren
