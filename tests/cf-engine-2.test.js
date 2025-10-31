@@ -40,7 +40,7 @@ test('simple', ()=> {
   // const si = findBestMove(initGame('22144426444'), 3)
   const b = initGame('22144426444775')
   b.printBoard()
-  console.log(b.checkWin())
+  console.log(b.checkWinForBoard())
   // expect(si.move).toBe(5)
   //console.log( si)
 })

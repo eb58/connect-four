@@ -21,7 +21,7 @@ const makePRNG = (seed) => {
 const rand = makePRNG(123456789)
 const zobrist = range(BOARD_SIZE).map(() => [0, rand(), rand()])
 
-const getTTSizeForDepth= (depth) => {
+const getTTSizeForDepth = (depth) => {
   if (depth >= 38) return (1 << 28) - 1
   if (depth >= 36) return (1 << 26) - 1
   if (depth >= 18) return (1 << 23) - 1
@@ -120,22 +120,41 @@ class Board {
     this.bitboards[this.currentPlayer].clear(index)
   }
 
-  checkWin = () => {
+  checkWinForBoard = () => {
     const col = this.moveHistory[this.moveCount - 1]
-    const idx = (this.colHeights[col] - 1) * COLS + col
-    const bs = this.bitboards[3 - this.currentPlayer]
-    const wrs = winningRowsForFields[idx]
-    return wrs.some(wr => (winningRowsBS[wr].isSubsetOf(bs)))
+    const row = this.colHeights[col] - 1
+    return this.checkWin(col, row, 3 - this.currentPlayer)
   }
 
-  winForColumn = (col) => {
-    const bs = this.bitboards[this.currentPlayer]
-    const idx = this.colHeights[col] * COLS + col
-    const wrs = winningRowsForFields[idx]
-    bs.set(idx)
-    const ret = wrs.some(wr => (winningRowsBS[wr].isSubsetOf(bs)))
-    bs.clear(idx)
-    return ret
+  checkWinForColumn = (col) => {
+    const row = this.colHeights[col]
+    return this.checkWin(col, row, this.currentPlayer)
+  }
+
+  checkWin = (col, row, player) => {
+    const bb = this.bitboards[player]
+
+    // horizontal
+    let count = 1
+    for (let c = col + 1; c < COLS && c <= col + 3 && bb.has(row * COLS + c); c++) if (++count >= 4) return true
+    for (let c = col - 1; c >= 0 && c >= col - 3 && bb.has(row * COLS + c); c--) if (++count >= 4) return true
+
+    // vertical
+    count = 1
+    for (let r = row + 1; r < ROWS && r <= row + 3 && bb.has(r * COLS + col); r++) if (++count >= 4) return true
+    for (let r = row - 1; r >= 0 && r >= row - 3 && bb.has(r * COLS + col); r--) if (++count >= 4) return true
+
+    // diagonal \
+    count = 1
+    for (let r = row + 1, c = col + 1; c < COLS && c <= col + 3 && r < ROWS && r <= row + 3 && bb.has(r * COLS + c); r++, c++) if (++count >= 4) return true
+    for (let r = row - 1, c = col - 1; c >= 0 && c >= col - 3 && r >= row - 3 && r >= 0 && bb.has(r * COLS + c); r--, c--) if (++count >= 4) return true
+
+    // diagonal /
+    count = 1
+    for (let r = row + 1, c = col - 1; c >= 0 && c >= col - 3 && r < ROWS && r <= row + 3 && bb.has(r * COLS + c); r++, c--) if (++count >= 4) return true
+    for (let r = row - 1, c = col + 1; c < COLS && c <= col + 3 && r >= 0 && r >= row - 3 && bb.has(r * COLS + c); r--, c++) if (++count >= 4) return true
+
+    return false
   }
 }
 
@@ -150,7 +169,7 @@ const negamax = (columns, board, depth, alpha, beta) => {
   const cached = tt.getScore(board.hash, depth, alpha, beta)
   if (cached !== null) return { score: cached }
 
-  if (board.checkWin()) return { score: ((board.moveCount + 1) >> 1) - 22 }
+  if (board.checkWinForBoard()) return { score: ((board.moveCount + 1) >> 1) - 22 }
   if (board.moveCount >= BOARD_SIZE || depth === 0) return { score: 0 }
 
   let bestScore = -MAXVAL
@@ -159,7 +178,7 @@ const negamax = (columns, board, depth, alpha, beta) => {
   const colHeights = board.colHeights
 
   for (const col of columns)
-    if (colHeights[col] < ROWS && board.winForColumn(col)) {
+    if (colHeights[col] < ROWS && board.checkWinForColumn(col)) {
       tt.put(board.hash, 22 - ((board.moveCount + 2) >> 1), depth, flag)
       return { score: 22 - ((board.moveCount + 2) >> 1), move: col }
     }
@@ -217,8 +236,4 @@ const initGame = (fen) => {
   return board
 }
 
-if (typeof module !== 'undefined')
-  module.exports = {
-    findBestMove,
-    initGame
-  }
+if (typeof module !== 'undefined') module.exports = { findBestMove, initGame }
