@@ -156,7 +156,34 @@ const cfEngine = (() => {
   }
 
   // negamax = memoize(negamax, () => state.hash)
-  // negamax = decorator(negamax, () => ++searchInfo.nodes & 65535 || !timeOut())
+   negamax = decorator(negamax, () => ++searchInfo.nodes & 65535 || !timeOut())
+
+  let negascout = (columns, depth, alpha, beta) => {
+    if (depth === 0 || state.cntMoves === 42) return 0
+
+    for (const c of columns) if (state.heightCols[c] < ROWS && checkWinForColumn(c)) return 22 - ((state.cntMoves + 2) >> 1)
+
+    let isFirstChild = true
+
+    for (const c of columns) {
+      if (state.heightCols[c] < ROWS) {
+        doMove(c)
+        let score
+        if (isFirstChild) {
+          score = -negascout(columns, depth - 1, -beta, -alpha)
+          isFirstChild = false
+        } else {
+          score = -negascout(columns, depth - 1, -alpha - 1, -alpha)
+          if (score > alpha && score < beta) score = -negascout(columns, depth - 1, -beta, -score)
+        }
+        undoMove(c)
+        if (score >= beta) return score
+        if (score > alpha) alpha = score
+      }
+    }
+    return alpha
+  }
+  negascout  = decorator(negamax, () => ++searchInfo.nodes & 65535 || !timeOut())
 
   const searchInfo = {}
   const timeOut = () => Date.now() >= searchInfo.stopAt
@@ -175,6 +202,7 @@ const cfEngine = (() => {
       searchInfo.depth = depth
       searchInfo.bestMoves = []
       let score = 0
+
       for (const c of columns) {
         doMove(c)
         score = -negamax(columns, depth, -MAXVAL, +MAXVAL)
@@ -182,6 +210,7 @@ const cfEngine = (() => {
         undoMove(c)
         if (score > 0 || timeOut()) break
       }
+
       searchInfo.bestMoves.sort((a, b) => b.score - a.score)
       // console.log(`DEPTH:${searchInfo.depth} { ${movesStr(searchInfo.bestMoves)}} NODES:${searchInfo.nodes} ${t.elapsedTime()}ms ${CACHE.info()}`)
       if (score > 0 || timeOut()) break
