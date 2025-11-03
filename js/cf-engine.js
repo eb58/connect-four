@@ -183,7 +183,7 @@ const cfEngine = (() => {
     }
     return alpha
   }
-  negascout  = decorator(negamax, () => ++searchInfo.nodes & 65535 || !timeOut())
+  negascout  = decorator(negascout, () => ++searchInfo.nodes & 65535 || !timeOut())
 
   const searchInfo = {}
   const timeOut = () => Date.now() >= searchInfo.stopAt
@@ -196,7 +196,7 @@ const cfEngine = (() => {
     const columns = [3, 4, 2, 5, 1, 6, 0].filter((c) => state.heightCols[c] < ROWS)
 
     for (const c of columns)
-      if (state.heightCols[c] < ROWS && checkWinForColumn(c)) return { bestMoves: [{ move: c + 1, score: 22 - ((state.cntMoves + 2) >> 1) }], elapsedTime: t.elapsedTime() }
+      if (state.heightCols[c] < ROWS && checkWinForColumn(c)) return { bestMoves: [{ move: c, score: 22 - ((state.cntMoves + 2) >> 1) }], elapsedTime: t.elapsedTime() }
 
     for (let depth = 1; depth <= opts.maxDepth; depth++) {
       searchInfo.depth = depth
@@ -206,7 +206,7 @@ const cfEngine = (() => {
       for (const c of columns) {
         doMove(c)
         score = -negamax(columns, depth, -MAXVAL, +MAXVAL)
-        searchInfo.bestMoves.push({ move: c + 1, score: score === -0 ? 0 : score })
+        searchInfo.bestMoves.push({ move: c, score: score === -0 ? 0 : score })
         undoMove(c)
         if (score > 0 || timeOut()) break
       }
@@ -217,7 +217,7 @@ const cfEngine = (() => {
       const loosingMoves = searchInfo.bestMoves.filter(loosingMove)
       if (loosingMoves.length >= searchInfo.bestMoves.length - 1) break // all moves but one lead to disaster
     }
-    return { ...searchInfo, elapsedTime: t.elapsedTime(), CACHE }
+    return { ...searchInfo, elapsedTime: t.elapsedTime() }
   }
 
   const initGame = (fen, player) => {
@@ -245,7 +245,7 @@ const cfEngine = (() => {
     undoMove,
     findBestMove,
     isMill,
-    isAllowedMove: (m) => state.heightCols[m - 1] < ROWS && !isMill() && state.cntMoves !== ROWS * COLS,
+    isAllowedMove: (c) => state.heightCols[c] < ROWS && !isMill() && state.cntMoves !== ROWS * COLS,
     getHeightOfCol: (c) => state.heightCols[c],
     currentPlayer: () => state.currentPlayer,
     movesStr,
