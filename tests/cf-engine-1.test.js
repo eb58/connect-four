@@ -3,64 +3,46 @@ const cf = require('../js/cf-engine.js')
 const range = (n) => [...Array(n).keys()]
 const loosingMove = (m) => m.score < 0
 
-const { Player, winningRows, winningRowsForFields } = { ...cf }
+const { Player} = { ...cf }
 
 beforeEach(() => cf.init())
 
 describe('SIMPLE TESTS', () => {
-  test('code & decode is correct', () => {
-    expect(winningRows.map((wr) => cf.decode(cf.code(wr.row)).toSorted())).toEqual(winningRows.map((wr) => wr.row.toSorted()))
-  })
-
   test('initialized correctly', () => {
-    expect(winningRows.length).toBe(69)
-    expect(winningRowsForFields.length).toBe(42)
-    expect(winningRowsForFields[0]).toEqual([0, 1, 2])
-    expect(winningRowsForFields[1]).toEqual([0, 3, 4, 5])
-    expect(winningRowsForFields[10]).toEqual([7, 11, 15, 18, 21, 24, 25, 26, 48, 54])
-    expect(cf.side()).toBe(Player.ai)
+    expect(cf.currentPlayer()).toBe(Player.ai)
     range(7).forEach((c) => expect(cf.getHeightOfCol(c)).toEqual(0))
-    expect(cf.isMill()).toBeFalsy()
-  })
-
-  test('isMill', () => {
-    cf.initGame('')
-    expect(cf.isMill()).toBeFalsy()
-    cf.initGame('1414141')
-    expect(cf.isMill()).toBeTruthy()
   })
 
   test('whoseTurn works', () => {
-    expect(cf.side()).toBe(Player.ai)
+    expect(cf.currentPlayer()).toBe(Player.ai)
     cf.doMove(0)
-    expect(cf.side()).toBe(Player.hp)
+    expect(cf.currentPlayer()).toBe(Player.hp)
     cf.doMove(3)
-    expect(cf.side()).toBe(cf.Player.ai)
-    expect(cf.isMill()).toBe(false)
+    expect(cf.currentPlayer()).toBe(cf.Player.ai)
   })
 
   test('draw - full board', () => {
     cf.initGame('434447474773233337766665661111112225552525')
-    expect(cf.searchBestMove().bestMoves.length).toBe(0)
+    expect(cf.findBestMove().bestMoves.length).toBe(0)
     expect(cf.isDraw()).toBe(true)
   })
 
   test('draw - board almost full', () => {
     cf.initGame('434447474773233337766665661111112225552')
-    const si = cf.searchBestMove()
+    const si = cf.findBestMove()
     // console.log(`DEPTH:${sc.depth} {${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${sc.elapsedTime}ms}`)
     expect(si.bestMoves.length).toBe(2)
     expect(si.bestMoves[0].move === 2 || si.bestMoves[0].move === 5).toBeTruthy()
-    expect(si.bestMoves[0].score === 0).toBeTruthy() // -0!!
-    expect(si.bestMoves[1].score === 0).toBeTruthy() // -0!!
+    expect(si.bestMoves[0].score).toBe(0)
+    expect(si.bestMoves[1].score).toBe(0)
   })
 })
 
 const h = (name, t) => {
-  cf.initGame(t.fen, Player.ai)
-  const si = cf.searchBestMove({ maxDepth: t.maxDepth || t.depth || 42, maxThinkingTime: t.maxThinkingTime || 1000 })
+  cf.initGame(t.fen)
+  const si = cf.findBestMove({ maxDepth: t.maxDepth || t.depth || 42, maxThinkingTime: t.maxThinkingTime || 1000 })
 
-  // console.log(`${name} --- DEPTH:${si.depth} { ${cf.movesStr(si.bestMoves)}} NODES:${si.nodes} ${si.elapsedTime}ms ${si.CACHE?.info()} FEN:${t.fen} `)
+  console.log(`${name} --- DEPTH:${si.depth} { ${cf.movesStr(si.bestMoves)}} NODES:${si.nodes} ${si.elapsedTime}ms ${si.CACHE?.info()} FEN:${t.fen} `)
   if (t.depth) expect(si.depth).toBe(t.depth)
   if (t.bestMove) {
     if (typeof t.bestMove === 'number') expect(si.bestMoves[0].move).toBe(t.bestMove)
@@ -119,7 +101,7 @@ describe('WIN 2 ', () => {
   test('win2', () => h('win2', { fen: '4147', bestMove: 4 }))
   test('win3', () => h('win3', { fen: '15143411344433545', depth: 22, bestMove: 5 })) // ~600ms
   test('win4', () => h('win4', { fen: '443521344445336', depth: 20, bestMove: 5 })) // ~650ms
-  test('win5', () => h('win5', { fen: '414144', depth: 14, bestMove: 5, score: 86 })) // ~650ms
-  // ??? test('win6', () => h('win6', { fen: '4443424433', depth: 18, bestMove: 3, maxThinkingTime: 2000 })) // ~650ms
-  // ??? test('win7', () => h('win6', { fen: '4156', bestMove: 4, score: 82, maxThinkingTime: 30000 })) // ~5000ms
+  test('win5', () => h('win5', { fen: '414144', depth: 14, bestMove: 5, score: 11 })) // ~650ms
+  test('win6', () => h('win6', { fen: '4443424433', depth: 18, bestMove: 3, maxThinkingTime: 1500 }))
+  test('win7', () => h('win7', { fen: '4156', bestMove: 4 })) // ~5000ms
 })

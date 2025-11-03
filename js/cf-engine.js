@@ -1,12 +1,11 @@
 const timer = (start = performance.now()) => ({ elapsedTime: () => ((performance.now() - start) / 1000).toFixed(3) })
 
 const cfEngine = (() => {
-  const range = (n) => [...Array(n).keys()]
   const loosingMove = (m) => m.score < 0
 
-  const [NCOL, NROW] = [7, 6]
+  const [COLS, ROWS] = [7, 6]
   const MAXVAL = 100
-  const Player = { ai: -1, hp: +1 } // AI / human player
+  const Player = { ai: 0, hp: 1 } // AI / human player
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -36,41 +35,6 @@ const cfEngine = (() => {
       preCondition() ? f(...args) : 0
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
-  const computeWinningRows = (p, dr, dc) => {
-    // dr = delta row,  dc = delta col
-    let {r,c} = p;
-    const row = []
-    const startRow = NROW - r
-    while (r >= 0 && r < NROW && c >= 0 && c < NCOL && row.length < 4) {
-      row.push(c + NCOL * r)
-      c += dc
-      r += dr
-    }
-    return row.length < 4 ? [] : [{ row, val: dc === 0 ? 1 : (dr !== 0 ? 4 : 8) * startRow }]
-  }
-
-  // winning rows - length should be 69 for DIM (7x6)
-  const winningRows = range(NROW)
-    .reduce((acc, r) => [...acc, ...range(NCOL).map((c) => ({ r, c }))], [])
-    .reduce((acc, p) => [...acc, ...computeWinningRows(p, 0, 1), ...computeWinningRows(p, 1, 1), ...computeWinningRows(p, 1, 0), ...computeWinningRows(p, -1, 1)], [])
-
-  const code = (xs) => xs.reduce((acc, n) => acc + Math.pow(2, n), 0)
-
-  const decode = (x) => {
-    const y = Number(x)
-      .toString(2)
-      .split('')
-      .map((x) => Number(x))
-      .toReversed()
-    return y.reduce((acc, x, idx) => (x ? [...acc, idx] : acc), [])
-  }
-
-  const winningRowsX = winningRows.map((x) => code(x.row))
-
-  // list of indices on allWinningRows for each field of board
-  const winningRowsForFields = range(NCOL * NROW).map((i) => winningRows.reduce((acc, wr, j) => (wr.row.includes(i) ? [...acc, j] : acc), []))
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   /*
   const rand8 = () => Math.floor((Math.random() * 255) + 1)
@@ -90,81 +54,122 @@ const cfEngine = (() => {
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  const hash = (idxBoard) => {
-    const idx = state.side === Player.ai ? 1 : 2
-    state.hash ^= pieceKeys[idxBoard * idx] ^ sideKeys[idx]
+  const hash = (idxBoard) => (state.hash ^= pieceKeys[idxBoard * state.currentPlayer] ^ sideKeys[state.currentPlayer])
+
+  const printBoard = () => {
+    const has = (bb, idx) => (idx < 32 ? bb[0] & (1 << idx) : bb[1] & (1 << (idx - 32)))
+
+    let res = ''
+    for (let r = ROWS - 1; r >= 0; r--) {
+      let row = ''
+      for (let c = 0; c < COLS; c++) {
+        const idx = r * COLS + c
+        if (has(state.bitboards[0], idx)) row += ' X '
+        else if (has(state.bitboards[1], idx)) row += ' O '
+        else row += ' _ '
+      }
+      res += row + '\n'
+    }
+    console.log(res)
   }
 
   const state = {} // state that is used for evaluating
 
   const init = (player = Player.ai) => {
-    state.heightCols = range(NCOL).map(() => 0)
-    state.wrCounterHumanPlayer = winningRows.map(() => 0)
-    state.wrCounterAI = winningRows.map(() => 0)
-    state.side = player
+    state.moveHistory = new Uint32Array(COLS * ROWS)
+    state.heightCols = new Uint32Array(COLS)
+    state.currentPlayer = player
     state.cntMoves = 0
+    state.bitboards = [
+      [0, 0],
+      [0, 0]
+    ] // 64-bit integers simulated with two 32-bit ints, bottom and top bits
+    state.hash = 0
   }
 
   const doMove = (c) => {
-    const idxBoard = c + NCOL * state.heightCols[c]
+    const idx = c + COLS * state.heightCols[c]
+    state.bitboards[state.currentPlayer][idx < 32 ? 0 : 1] |= 1 << idx % 32
     state.heightCols[c]++
-    state.side = -state.side
-    const counters = state.side === Player.ai ? state.wrCounterAI : state.wrCounterHumanPlayer
-    winningRowsForFields[idxBoard].forEach((i) => ++counters[i])
-    state.isMill = winningRowsForFields[idxBoard].some((i) => counters[i] >= 4)
-    state.cntMoves++
-    hash(idxBoard)
+    state.currentPlayer = 1 - state.currentPlayer
+    state.moveHistory[state.cntMoves++] = c
   }
 
   const undoMove = (c) => {
-    --state.heightCols[c]
-    const idxBoard = c + NCOL * state.heightCols[c]
-    const counters = state.side === Player.ai ? state.wrCounterAI : state.wrCounterHumanPlayer
-    winningRowsForFields[idxBoard].forEach((i) => counters[i]--)
-    hash(idxBoard)
-    state.side = -state.side
-    state.isMill = false
     state.cntMoves--
+    state.currentPlayer = 1 - state.currentPlayer
+    --state.heightCols[c]
+    const idx = c + COLS * state.heightCols[c]
+    state.bitboards[state.currentPlayer][idx < 32 ? 0 : 1] &= ~(1 << idx % 32)
   }
 
-  const computeScoreOfNode = (s) =>
-    s.side * winningRows.reduce((res, wr, i) => res + (s.wrCounterAI[i] > 0 && s.wrCounterHumanPlayer[i] > 0 ? 0 : s.wrCounterHumanPlayer[i] - s.wrCounterAI[i]), 0)
-
-  const isWinningColumn = (c) => {
-    const counters = state.side === Player.hp ? state.wrCounterAI : state.wrCounterHumanPlayer
-    return winningRowsForFields[c + NCOL * state.heightCols[c]].some((i) => counters[i] === 3)
+  const checkWinForBoard = () => {
+    const col = state.moveHistory[state.cntMoves - 1]
+    const row = state.heightCols[col] - 1
+    return checkWin(col, row, 1 - state.currentPlayer)
   }
 
-  let negamax = (columns, depth, maxDepth, alpha, beta) => {
-    if (depth === maxDepth || state.cntMoves === 42) return 0
+  const checkWinForColumn = (c) => checkWin(c, state.heightCols[c], state.currentPlayer)
 
-    for (const c of columns) if (state.heightCols[c] < NROW && isWinningColumn(c)) return MAXVAL - depth - 1
+  const checkWin = (col, row, player) => {
+    if (state.cntMoves < 6) return false
+
+    const bbLo = state.bitboards[player][0]
+    const bbHi = state.bitboards[player][1]
+    const has = (idx) => (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32)))
+
+    // vertical
+    for (let count = 1, r = row - 1; r >= 0 && has(r * COLS + col); r--) if (++count >= 4) return true
+
+    // horizontal
+    let count = 1
+    for (let c = col + 1; c < COLS && has(row * COLS + c); c++) if (++count >= 4) return true
+    for (let c = col - 1; c >= 0 && has(row * COLS + c); c--) if (++count >= 4) return true
+
+    // diagonal \
+    count = 1
+    for (let r = row + 1, c = col + 1; c < COLS && r < ROWS && has(r * COLS + c); r++, c++) if (++count >= 4) return true
+    for (let r = row - 1, c = col - 1; c >= 0 && r >= 0 && has(r * COLS + c); r--, c--) if (++count >= 4) return true
+
+    // diagonal /
+    count = 1
+    for (let r = row + 1, c = col - 1; c >= 0 && r < ROWS && has(r * COLS + c); r++, c--) if (++count >= 4) return true
+    for (let r = row - 1, c = col + 1; c < COLS && r >= 0 && has(r * COLS + c); r--, c++) if (++count >= 4) return true
+
+    return false
+  }
+
+  let negamax = (columns, depth, alpha, beta) => {
+    if (depth === 0 || state.cntMoves === 42) return 0
+
+    for (const c of columns) if (state.heightCols[c] < ROWS && checkWinForColumn(c)) return 22 - ((state.cntMoves + 2) >> 1)
 
     for (const c of columns)
-      if (state.heightCols[c] < NROW) {
+      if (state.heightCols[c] < ROWS) {
         doMove(c)
-        const score = -negamax(columns, depth + 1, maxDepth, -beta, -alpha)
+        const score = -negamax(columns, depth - 1, -beta, -alpha)
         undoMove(c)
+        if (score >= beta) return score
         if (score > alpha) alpha = score
-        if (alpha >= beta) return alpha
       }
     return alpha
   }
-  negamax = memoize(negamax, () => state.hash)
-  negamax = decorator(negamax, () => ++searchInfo.nodes & 65535 || !timeOut())
+
+  // negamax = memoize(negamax, () => state.hash)
+  // negamax = decorator(negamax, () => ++searchInfo.nodes & 65535 || !timeOut())
 
   const searchInfo = {}
   const timeOut = () => Date.now() >= searchInfo.stopAt
 
-  const searchBestMove = (opts) => {
-    CACHE.clear()
+  const findBestMove = (opts) => {
     const t = timer()
     opts = { maxThinkingTime: 1000, maxDepth: 42, ...opts }
     searchInfo.nodes = 0
     searchInfo.stopAt = Date.now() + opts.maxThinkingTime
-    const columns = [3, 4, 2, 5, 1, 6, 0].filter((c) => state.heightCols[c] < NROW)
+    const columns = [3, 4, 2, 5, 1, 6, 0].filter((c) => state.heightCols[c] < ROWS)
 
-    for (const c of columns) if (isWinningColumn(c)) return { nodes: 0, depth: 1, bestMoves: [{ move: c + 1, score: 1 }], elapsedTime: t.elapsedTime() }
+    for (const c of columns)
+      if (state.heightCols[c] < ROWS && checkWinForColumn(c)) return { bestMoves: [{ move: c + 1, score: 22 - ((state.cntMoves + 2) >> 1) }], elapsedTime: t.elapsedTime() }
 
     for (let depth = 1; depth <= opts.maxDepth; depth++) {
       searchInfo.depth = depth
@@ -172,8 +177,8 @@ const cfEngine = (() => {
       let score = 0
       for (const c of columns) {
         doMove(c)
-        score = -negamax(columns, 0, depth, -MAXVAL, +MAXVAL)
-        searchInfo.bestMoves.push({ move: c + 1, score })
+        score = -negamax(columns, depth, -MAXVAL, +MAXVAL)
+        searchInfo.bestMoves.push({ move: c + 1, score: score === -0 ? 0 : score })
         undoMove(c)
         if (score > 0 || timeOut()) break
       }
@@ -195,30 +200,27 @@ const cfEngine = (() => {
     moves.forEach((c) => doMove(c))
   }
 
-  const isMill = () => state.wrCounterHumanPlayer.some((i) => i >= 4) || state.wrCounterAI.some((i) => i >= 4)
+  const isMill = () => checkWinForBoard()
 
   const movesStr = (bm) => bm.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')
 
   init()
   return {
-    winningRows,
-    winningRowsForFields,
-    code,
-    decode,
-    NCOL,
-    NROW,
+    COLS,
+    ROWS,
     Player,
+    printBoard,
     init,
     initGame,
     doMove,
     undoMove,
-    searchBestMove,
+    findBestMove,
     isMill,
-    isAllowedMove: (m) => state.heightCols[m - 1] < NROW && !isMill() && state.cntMoves !== NROW * NCOL,
+    isAllowedMove: (m) => state.heightCols[m - 1] < ROWS && !isMill() && state.cntMoves !== ROWS * COLS,
     getHeightOfCol: (c) => state.heightCols[c],
-    side: () => state.side,
+    currentPlayer: () => state.currentPlayer,
     movesStr,
-    isDraw: () => state.cntMoves === NROW * NCOL && !isMill()
+    isDraw: () => state.cntMoves === ROWS * COLS && !isMill()
   }
 })()
 

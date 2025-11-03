@@ -19,7 +19,7 @@
     $(() => {
       const fen = $('#fen')
       game.renderBoard()
-      if (cfEngine.side() === cfEngine.Player.ai) game.actAsAI()
+      if (cfEngine.currentPlayer() === cfEngine.Player.ai) game.actAsAI()
 
       $('#restart').button().on('click', game.newGameDlg)
       $('#undo').button().on('click', game.undoMove)
@@ -31,7 +31,7 @@
         .selectmenu({ width: '100%', change: (_, ui) => game.setMaxThinkingTime(Number(ui.item.value)) })
       fen.on('focusout', () => game.restartFromFEN(fen.val()))
       $('#hint').on('click', () => {
-        const sc = cfEngine.searchBestMove()
+        const sc = cfEngine.findBestMove()
         console.log(`HINT DEPTH:${sc.depth} { ${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${sc.elapsedTime}ms`)
       })
     })
