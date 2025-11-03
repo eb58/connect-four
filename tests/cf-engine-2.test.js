@@ -16,31 +16,36 @@ const readData = (fileName) => {
     })
 }
 
-const testData = (fileName, depth = 30) => {
-  readData(fileName).slice(0,1000).forEach(({ input, expected }, index) => {
-    test(`Test ${index + 1}: ${input} ->  ${expected}`, () => {
-      const si = findBestMove(initGame(input), depth)
-      // console.log('FEN:', input, JSON.stringify(si))
-      const score = si.score === -0 ? 0 : si.score
-      expect(score).toBe(expected)
+const testData = (fileName) => {
+  readData(fileName)
+    .slice(0, 1000)
+    .forEach(({ input, expected }, index) => {
+      test(`Test ${index + 1}: ${input} ->  ${expected}`, () => {
+        const board = initGame(input)
+        const si = findBestMove(board)
+        // console.log('FEN:', input, JSON.stringify(si))
+        expect(si.score).toBe(expected)
+      })
     })
-  })
 }
 
 describe('Test_L1_R1', () => testData('Test_L1_R1')) // ~4.5 sec
-xdescribe('Test_L1_R2', () => testData('Test_L1_R2'))
-xdescribe('Test_L1_R3', () => testData('Test_L1_R3'))
+describe('Test_L1_R2', () => testData('Test_L1_R2'))
+describe('Test_L1_R3', () => testData('Test_L1_R3'))
 
 describe('Test_L2_R1', () => testData('Test_L2_R1')) // ~ 1 sec
-xdescribe('Test_L2_R2', () => testData('Test_L2_R2')) // ~ 6 min
+describe('Test_L2_R2', () => testData('Test_L2_R2')) // ~ 6 min
 
 describe('Test_L3_R1', () => testData('Test_L3_R1')) // ~0.5 sec
 
-test('simple', ()=> {
-  // const si = findBestMove(initGame('22144426444'), 3)
-  const b = initGame('22144426444775')
-  b.printBoard()
-  console.log(b.checkWinForBoard())
-  // expect(si.move).toBe(5)
-  //console.log( si)
+test('simple', () => {
+  // cfEngine.initGame('22144426444')
+  initGame('243335424257')
+  //cfEngine.initGame('265756512')
+  // .printBoard()
+  const si = findBestMove()
+  // console.log('FEN:', input, JSON.stringify(si))
+  let score = si.bestMoves[0].score
+  console.log( si )
+  expect(score).toBe(12)
 })

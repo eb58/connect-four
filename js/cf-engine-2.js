@@ -65,15 +65,15 @@ class Board {
   }
 
   printBoard = () => {
-    const has = (bb,idx) => (idx < 32 ? bb[0] & (1 << idx) : bb[1] & (1 << (idx - 32)))
+    const has = (bb, idx) => (idx < 32 ? bb[0] & (1 << idx) : bb[1] & (1 << (idx - 32)))
 
     let res = ''
     for (let r = ROWS - 1; r >= 0; r--) {
       let row = ''
       for (let c = 0; c < COLS; c++) {
         const idx = r * COLS + c
-        if (has(this.bitboards[1],idx)) row += ' X '
-        else if (has(this.bitboards[2],idx)) row += ' O '
+        if (has(this.bitboards[1], idx)) row += ' X '
+        else if (has(this.bitboards[2], idx)) row += ' O '
         else row += ' _ '
       }
       res += row + '\n'
@@ -119,41 +119,37 @@ class Board {
     this.bitboards[this.currentPlayer][index < 32 ? 0 : 1] &= ~(1 << index % 32)
   }
 
-  checkWinForBoard = () => {
+   checkWinForBoard = () => {
     const col = this.moveHistory[this.moveCount - 1]
     const row = this.colHeights[col] - 1
     return this.checkWin(col, row, 3 - this.currentPlayer)
   }
 
-  checkWinForColumn = (col) => {
-    const row = this.colHeights[col]
-    return this.checkWin(col, row, this.currentPlayer)
-  }
+   checkWinForColumn = (c) => this.checkWin(c, this.colHeights[c], this.currentPlayer)
 
-  checkWin(col, row, player) {
+   checkWin = (col, row, player) => {
+
     const bbLo = this.bitboards[player][0]
     const bbHi = this.bitboards[player][1]
     const has = (idx) => (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32)))
 
+    // vertical
+    for (let count = 1, r = row - 1; r >= 0 && has(r * COLS + col); r--) if (++count >= 4) return true
+
     // horizontal
     let count = 1
-    for (let c = col + 1, rr = row * COLS; c < COLS && has(rr + c); c++) if (++count >= 4) return true
-    for (let c = col - 1, rr = row * COLS; c >= 0 && has(rr + c); c--) if (++count >= 4) return true
-
-    // vertical
-    count = 1
-    for (let r = row + 1, rr = r * COLS; r < ROWS && has(rr + col); r++, rr += COLS) if (++count >= 4) return true
-    for (let r = row - 1, rr = r * COLS; r >= 0 && has(rr + col); r--, rr -= COLS) if (++count >= 4) return true
+    for (let c = col + 1; c < COLS && has(row * COLS + c); c++) if (++count >= 4) return true
+    for (let c = col - 1; c >= 0 && has(row * COLS + c); c--) if (++count >= 4) return true
 
     // diagonal \
     count = 1
-    for (let r = row + 1, c = col + 1, rr = r * COLS; c < COLS && r < ROWS && has(rr + c); r++, c++, rr += COLS) if (++count >= 4) return true
-    for (let r = row - 1, c = col - 1, rr = r * COLS; c >= 0 && r >= 0 && has(rr + c); r--, c--, rr -= COLS) if (++count >= 4) return true
+    for (let r = row + 1, c = col + 1; c < COLS && r < ROWS && has(r * COLS + c); r++, c++) if (++count >= 4) return true
+    for (let r = row - 1, c = col - 1; c >= 0 && r >= 0 && has(r * COLS + c); r--, c--) if (++count >= 4) return true
 
     // diagonal /
     count = 1
-    for (let r = row + 1, c = col - 1, rr = r * COLS; c >= 0 && r < ROWS && has(rr + c); r++, c--, rr += COLS) if (++count >= 4) return true
-    for (let r = row - 1, c = col + 1, rr = r * COLS; c < COLS && r >= 0 && has(rr + c); r--, c++, rr -= COLS) if (++count >= 4) return true
+    for (let r = row + 1, c = col - 1; c >= 0 && r < ROWS && has(r * COLS + c); r++, c--) if (++count >= 4) return true
+    for (let r = row - 1, c = col + 1; c < COLS && r >= 0 && has(r * COLS + c); r--, c++) if (++count >= 4) return true
 
     return false
   }
@@ -181,28 +177,28 @@ const negamax = (columns, board, depth, alpha, beta) => {
     if (board.colHeights[col] < ROWS && board.checkWinForColumn(col)) {
       tt.put(board.hash, 22 - ((board.moveCount + 2) >> 1), depth, flag)
       return { score: 22 - ((board.moveCount + 2) >> 1), move: col }
-    }
+  }
 
   for (const col of columns)
     if (board.colHeights[col] < ROWS) {
-      board.makeMove(col)
-      const child = negamax(columns, board, depth - 1, -beta, -alpha)
-      board.undoMove(col)
+    board.makeMove(col)
+    const child = negamax(columns, board, depth - 1, -beta, -alpha)
+    board.undoMove(col)
 
-      const score = -child.score
+    const score = -child.score
 
-      if (score >= beta) {
-        bestScore = score
-        bestMove = col
-        flag = 2
-        break
-      }
-      if (score > bestScore) {
-        bestScore = score
-        bestMove = col
-      }
-      if (score > alpha) alpha = score
+    if (score >= beta) {
+      bestScore = score
+      bestMove = col
+      flag = 2
+      break
     }
+    if (score > bestScore) {
+      bestScore = score
+      bestMove = col
+    }
+    if (score > alpha) alpha = score
+  }
 
   if (bestScore <= originalAlpha) flag = 3
   else if (bestScore >= beta) flag = 2
