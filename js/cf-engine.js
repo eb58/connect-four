@@ -103,15 +103,15 @@ const cfEngine = (() => {
     state.bitboards[state.currentPlayer][idx < 32 ? 0 : 1] &= ~(1 << idx % 32)
   }
 
-  const checkWinForBoard = () => {
+  const checkWinningBoard = () => {
     const col = state.moveHistory[state.cntMoves - 1]
     const row = state.heightCols[col] - 1
-    return checkWin(col, row, 1 - state.currentPlayer)
+    return checkWinning(col, row, 1 - state.currentPlayer)
   }
 
-  const checkWinForColumn = (c) => checkWin(c, state.heightCols[c], state.currentPlayer)
+  const checkWinningCol = (c) => checkWinning(c, state.heightCols[c], state.currentPlayer)
 
-  const checkWin = (col, row, player) => {
+  const checkWinning = (col, row, player) => {
     if (state.cntMoves < 6) return false
 
     const bbLo = state.bitboards[player][0]
@@ -119,22 +119,22 @@ const cfEngine = (() => {
     const has = (idx) => (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32)))
 
     // vertical
-    for (let count = 1, r = row - 1; r >= 0 && has(r * COLS + col); r--) if (++count >= 4) return true
+    if (row >= 3) for (let count = 1, r = row - 1; r >= 0 && has(r * COLS + col); r--) if (++count >= 4) return true
 
     // horizontal
     let count = 1
-    for (let c = col + 1; c < COLS && has(row * COLS + c); c++) if (++count >= 4) return true
     for (let c = col - 1; c >= 0 && has(row * COLS + c); c--) if (++count >= 4) return true
+    for (let c = col + 1; c < COLS && has(row * COLS + c); c++) if (++count >= 4) return true
 
     // diagonal \
     count = 1
-    for (let r = row + 1, c = col + 1; c < COLS && r < ROWS && has(r * COLS + c); r++, c++) if (++count >= 4) return true
     for (let r = row - 1, c = col - 1; c >= 0 && r >= 0 && has(r * COLS + c); r--, c--) if (++count >= 4) return true
+    for (let r = row + 1, c = col + 1; c < COLS && r < ROWS && has(r * COLS + c); r++, c++) if (++count >= 4) return true
 
     // diagonal /
     count = 1
-    for (let r = row + 1, c = col - 1; c >= 0 && r < ROWS && has(r * COLS + c); r++, c--) if (++count >= 4) return true
     for (let r = row - 1, c = col + 1; c < COLS && r >= 0 && has(r * COLS + c); r--, c++) if (++count >= 4) return true
+    for (let r = row + 1, c = col - 1; c >= 0 && r < ROWS && has(r * COLS + c); r++, c--) if (++count >= 4) return true
 
     return false
   }
@@ -142,7 +142,7 @@ const cfEngine = (() => {
   let negamax = (columns, depth, alpha, beta) => {
     if (depth === 0 || state.cntMoves === 42) return 0
 
-    for (const c of columns) if (state.heightCols[c] < ROWS && checkWinForColumn(c)) return 22 - ((state.cntMoves + 2) >> 1)
+    for (const c of columns) if (state.heightCols[c] < ROWS && checkWinningCol(c)) return 22 - ((state.cntMoves + 2) >> 1)
 
     for (const c of columns)
       if (state.heightCols[c] < ROWS) {
@@ -154,14 +154,13 @@ const cfEngine = (() => {
       }
     return alpha
   }
-
   // negamax = memoize(negamax, () => state.hash)
-   negamax = decorator(negamax, () => ++searchInfo.nodes & 65535 || !timeOut())
+  negamax = decorator(negamax, () => ++searchInfo.nodes & 65535 || !timeOut())
 
   let negascout = (columns, depth, alpha, beta) => {
     if (depth === 0 || state.cntMoves === 42) return 0
 
-    for (const c of columns) if (state.heightCols[c] < ROWS && checkWinForColumn(c)) return 22 - ((state.cntMoves + 2) >> 1)
+    for (const c of columns) if (state.heightCols[c] < ROWS && checkWinningCol(c)) return 22 - ((state.cntMoves + 2) >> 1)
 
     let isFirstChild = true
 
@@ -183,7 +182,7 @@ const cfEngine = (() => {
     }
     return alpha
   }
-  negascout  = decorator(negascout, () => ++searchInfo.nodes & 65535 || !timeOut())
+  negascout = decorator(negascout, () => ++searchInfo.nodes & 65535 || !timeOut())
 
   const searchInfo = {}
   const timeOut = () => Date.now() >= searchInfo.stopAt
@@ -195,8 +194,7 @@ const cfEngine = (() => {
     searchInfo.stopAt = Date.now() + opts.maxThinkingTime
     const columns = [3, 4, 2, 5, 1, 6, 0].filter((c) => state.heightCols[c] < ROWS)
 
-    for (const c of columns)
-      if (state.heightCols[c] < ROWS && checkWinForColumn(c)) return { bestMoves: [{ move: c, score: 22 - ((state.cntMoves + 2) >> 1) }], elapsedTime: t.elapsedTime() }
+    for (const c of columns) if (checkWinningCol(c)) return { bestMoves: [{ move: c, score: 22 - ((state.cntMoves + 2) >> 1) }], elapsedTime: t.elapsedTime() }
 
     for (let depth = 1; depth <= opts.maxDepth; depth++) {
       searchInfo.depth = depth
@@ -205,7 +203,7 @@ const cfEngine = (() => {
 
       for (const c of columns) {
         doMove(c)
-        score = -negamax(columns, depth, -MAXVAL, +MAXVAL)
+        score = -negascout(columns, depth, -MAXVAL, +MAXVAL)
         searchInfo.bestMoves.push({ move: c, score: score === -0 ? 0 : score })
         undoMove(c)
         if (score > 0 || timeOut()) break
@@ -229,7 +227,7 @@ const cfEngine = (() => {
     moves.forEach((c) => doMove(c))
   }
 
-  const isMill = () => checkWinForBoard()
+  const isMill = () => checkWinningBoard()
 
   const movesStr = (bm) => bm.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')
 
