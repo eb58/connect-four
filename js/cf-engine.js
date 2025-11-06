@@ -8,27 +8,34 @@ const cfEngine = (() => {
   const Player = { ai: 0, hp: 1 } // AI / human player
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  const cache = (insertCondition = (_) => true, c = {}, fromCache = 0) => ({
-    add: (key, val) => {
-      if (insertCondition(val)) c[key] = val
-      return val
-    },
-    get: (key) => {
-      if (c[key] !== undefined) fromCache++
-      return c[key]
-    },
-    clear: () => ((c = {}), (fromCache = 0)),
-    info: (s = '') => `${s}CACHE:{ size:${Object.keys(c).length},  hits:${fromCache} }` // ${JSON.stringify(c)}`
-  })
-  const CACHE = cache((x) => x > 0)
-  const memoize =
-    (f, hash, c = CACHE) =>
-    (...args) => {
-      const h = hash(...args)
-      const val = c.get(h)
-      return val !== undefined ? val : c.add(h, f(...args))
+  // --- Transposition Table ---
+  const TT_FLAGS = { exact: 1, lower_bound: 2, upper_bound: 3 }
+  const TT = (() => {
+    const table = {}
+    let [hits, misses] = [0, 0]
+    return {
+      store: (hash, depth, score, flag) => ((table[hash] = { depth, score, flag }), score),
+      probe: (hash, depth, alpha, beta) => {
+        const entry = table[hash]
+        if (!entry) {
+          misses++
+          return null
+        }
+        if (entry.depth < depth) return null
+        hits++
+        if (entry.flag === TT_FLAGS.exact) return entry.score
+        if (entry.flag === TT_FLAGS.lower_bound && entry.score >= beta) return entry.score
+        if (entry.flag === TT_FLAGS.upper_bound && entry.score <= alpha) return entry.score
+        return null
+      },
+      clear: () => {
+        for (const k in table) delete table[k]
+        hits = misses = 0
+      },
+      info: () => `TT size:${Object.keys(table).length} hits:${hits} misses:${misses}`
     }
+  })()
+
   const decorator =
     (f, preCondition) =>
     (...args) =>
@@ -42,7 +49,6 @@ const cfEngine = (() => {
   const sideKeys = [rand32(), rand32()]
   const pieceKeys = range(84).map(() => rand32())
   */
-  const sideKeys = [127938607, 1048855538]
   const pieceKeys = [
     227019481, 1754434862, 629481213, 887205851, 529032562, 2067323277, 1070040335, 567190488, 468610655, 1669182959, 236891527, 1211317841, 849223426, 1031915473, 315781957,
     1594703270, 114113554, 966088184, 2114417493, 340442843, 410051610, 1895709998, 502837645, 2046296443, 1720231708, 1437032187, 80592865, 1757570123, 2063094472, 1123905671,
@@ -53,8 +59,6 @@ const cfEngine = (() => {
   ]
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  const hash = (idxBoard) => (state.hash ^= pieceKeys[idxBoard * state.currentPlayer] ^ sideKeys[state.currentPlayer])
 
   const printBoard = () => {
     const has = (bb, idx) => (idx < 32 ? bb[0] & (1 << idx) : bb[1] & (1 << (idx - 32)))
@@ -80,15 +84,14 @@ const cfEngine = (() => {
     state.heightCols = new Uint32Array(COLS)
     state.currentPlayer = player
     state.cntMoves = 0
-    state.bitboards = [
-      [0, 0],
-      [0, 0]
-    ] // 64-bit integers simulated with two 32-bit ints, bottom and top bits
+    state.bitboards = [new Uint32Array(2), new Uint32Array(2)]
     state.hash = 0
+    TT.clear()
   }
 
   const doMove = (c) => {
     const idx = c + COLS * state.heightCols[c]
+    state.hash ^= pieceKeys[idx + (state.currentPlayer ? 0 : 42)]
     state.bitboards[state.currentPlayer][idx < 32 ? 0 : 1] |= 1 << idx % 32
     state.heightCols[c]++
     state.currentPlayer = 1 - state.currentPlayer
@@ -101,6 +104,7 @@ const cfEngine = (() => {
     --state.heightCols[c]
     const idx = c + COLS * state.heightCols[c]
     state.bitboards[state.currentPlayer][idx < 32 ? 0 : 1] &= ~(1 << idx % 32)
+    state.hash ^= pieceKeys[idx + (state.currentPlayer ? 0 : 42)]
   }
 
   const checkWinningBoard = () => {
@@ -160,8 +164,12 @@ const cfEngine = (() => {
   let negascout = (columns, depth, alpha, beta) => {
     if (depth === 0 || state.cntMoves === 42) return 0
 
+    const ttScore = TT.probe(state.hash, depth, alpha, beta)
+    if (ttScore !== null) return ttScore
+
     for (const c of columns) if (state.heightCols[c] < ROWS && checkWinningCol(c)) return 22 - ((state.cntMoves + 2) >> 1)
 
+    const alphaOrig = alpha
     let isFirstChild = true
 
     for (const c of columns) {
@@ -176,11 +184,11 @@ const cfEngine = (() => {
           if (score > alpha && score < beta) score = -negascout(columns, depth - 1, -beta, -score)
         }
         undoMove(c)
-        if (score >= beta) return score
+        if (score >= beta) return TT.store(state.hash, depth, score, TT_FLAGS.lower_bound)
         if (score > alpha) alpha = score
       }
     }
-    return alpha
+    return TT.store(state.hash, depth, alpha, alpha <= alphaOrig ? TT_FLAGS.upper_bound : TT_FLAGS.exact)
   }
   negascout = decorator(negascout, () => ++searchInfo.nodes & 65535 || !timeOut())
 
@@ -210,7 +218,7 @@ const cfEngine = (() => {
       }
 
       searchInfo.bestMoves.sort((a, b) => b.score - a.score)
-      // console.log(`DEPTH:${searchInfo.depth} { ${movesStr(searchInfo.bestMoves)}} NODES:${searchInfo.nodes} ${t.elapsedTime()}ms ${CACHE.info()}`)
+      // console.log(`DEPTH:${searchInfo.depth} { ${movesStr(searchInfo.bestMoves)}} NODES:${searchInfo.nodes} ${t.elapsedTime()}ms ${TT.info()}`)
       if (score > 0 || timeOut()) break
       const loosingMoves = searchInfo.bestMoves.filter(loosingMove)
       if (loosingMoves.length >= searchInfo.bestMoves.length - 1) break // all moves but one lead to disaster
