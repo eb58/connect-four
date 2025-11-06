@@ -92,7 +92,7 @@ const cfEngine = (() => {
   const doMove = (c) => {
     const idx = c + COLS * state.heightCols[c]
     state.hash ^= pieceKeys[idx + (state.currentPlayer ? 0 : 42)]
-    state.bitboards[state.currentPlayer][idx < 32 ? 0 : 1] |= 1 << idx % 32
+    state.bitboards[state.currentPlayer][idx < 32 ? 0 : 1] |= 1 << (idx < 32 ? idx : idx - 32)
     state.heightCols[c]++
     state.currentPlayer = 1 - state.currentPlayer
     state.moveHistory[state.cntMoves++] = c
@@ -103,7 +103,7 @@ const cfEngine = (() => {
     state.currentPlayer = 1 - state.currentPlayer
     --state.heightCols[c]
     const idx = c + COLS * state.heightCols[c]
-    state.bitboards[state.currentPlayer][idx < 32 ? 0 : 1] &= ~(1 << idx % 32)
+    state.bitboards[state.currentPlayer][idx < 32 ? 0 : 1] &= ~(1 << (idx < 32 ? idx : idx - 32))
     state.hash ^= pieceKeys[idx + (state.currentPlayer ? 0 : 42)]
   }
 
@@ -118,8 +118,9 @@ const cfEngine = (() => {
   const checkWinning = (col, row, player) => {
     if (state.cntMoves < 6) return false
 
-    const bbLo = state.bitboards[player][0]
-    const bbHi = state.bitboards[player][1]
+    const bb = state.bitboards[player]
+    const bbLo = bb[0]
+    const bbHi = bb[1]
     const has = (idx) => (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32)))
 
     // vertical
@@ -146,19 +147,22 @@ const cfEngine = (() => {
   let negamax = (columns, depth, alpha, beta) => {
     if (depth === 0 || state.cntMoves === 42) return 0
 
+    const ttScore = TT.probe(state.hash, depth, alpha, beta)
+    if (ttScore !== null) return ttScore
+
     for (const c of columns) if (state.heightCols[c] < ROWS && checkWinningCol(c)) return 22 - ((state.cntMoves + 2) >> 1)
 
+    const alphaOrig = alpha
     for (const c of columns)
       if (state.heightCols[c] < ROWS) {
         doMove(c)
         const score = -negamax(columns, depth - 1, -beta, -alpha)
         undoMove(c)
-        if (score >= beta) return score
+        if (score >= beta) return TT.store(state.hash, depth, score, TT_FLAGS.lower_bound)
         if (score > alpha) alpha = score
       }
-    return alpha
+    return TT.store(state.hash, depth, alpha, alpha <= alphaOrig ? TT_FLAGS.upper_bound : TT_FLAGS.exact)
   }
-  // negamax = memoize(negamax, () => state.hash)
   negamax = decorator(negamax, () => ++searchInfo.nodes & 65535 || !timeOut())
 
   let negascout = (columns, depth, alpha, beta) => {
@@ -211,7 +215,7 @@ const cfEngine = (() => {
 
       for (const c of columns) {
         doMove(c)
-        score = -negascout(columns, depth, -MAXVAL, +MAXVAL)
+        score = -negamax(columns, depth, -MAXVAL, +MAXVAL)
         searchInfo.bestMoves.push({ move: c, score: score === -0 ? 0 : score })
         undoMove(c)
         if (score > 0 || timeOut()) break
