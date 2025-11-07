@@ -7,75 +7,21 @@ const cfGame = (cfEngine, divId) => {
   let thinking = false
   let moveHistory = []
 
-  const infoStr = (sc) => {
-    const scores = cfEngine.movesStr(sc.bestMoves)
-    const currentPlayer = moveHistory[0]?.currentPlayer === cfEngine.Player.ai ? 'ai' : 'hp'
-    const fen = `${currentPlayer}|${moveHistory
-      .map((x) => x.move)
-      .join('')
-      .trim()}`
-    return `DEPTH:${sc.depth} { ${scores} } NODES:${sc.nodes} ${sc.elapsedTime}ms FEN:${fen} ${sc.CACHE?.info()}`
+  const newGameDlg = () => {
+    $('#info').text('')
+    moveHistory = []
+    cfEngine.init(Number(gameSettings.startingPlayer))
+    renderBoard(divId)
+    if (cfEngine.currentPlayer() === cfEngine.Player.ai) actAsAI()
   }
-
-  const myAlert = (msg) =>
-    $('<div id="alert"></div')
-      .dialog({
-        open: () => $('#alert').parent().css('font-size', '24px'),
-        title: 'Meldung',
-        buttons: {
-          OK: function () {
-            $(this).dialog('close')
-          }
-        },
-        close: function () {
-          $(this).dialog('destroy')
-        }
-      })
-      .text(msg)
-      .dialog('open')
-
-  const confirm = (title, question, callbackYes, callbackNo) => {
-    question = question || ''
-    if (!callbackYes) throw new Error('confirm: please provide callback!')
-    $("<div id='dlgConfirm'></div>")
-      .dialog({
-        open: () => $('#dlgConfirm').parent().css('font-size', '24px'),
-        close: function () {
-          $(this).dialog('destroy')
-        },
-        buttons: {
-          Ja: function () {
-            callbackYes && callbackYes()
-            $(this).dialog('close')
-          },
-          Nein: function () {
-            callbackNo && callbackNo()
-            $(this).dialog('close')
-          }
-        },
-        title,
-        modal: true,
-        closeText: 'Schließen'
-      })
-      .html('<br>' + question.replace(/\n/g, '<br>'))
-  }
-
-  const newGameDlg = () =>
-    confirm('Frage', 'Neues Spiel', () => {
-      $('#info').text('')
-      moveHistory = []
-      cfEngine.init(Number(gameSettings.startingPlayer))
-      renderBoard(divId)
-      if (cfEngine.currentPlayer() === cfEngine.Player.ai) actAsAI()
-    })
 
   const onClickHandler = (m) => {
     return () => {
-      if (thinking || !cfEngine.isAllowedMove(m - 1)) return
-      doMove(m)
+      if (thinking || !cfEngine.isAllowedMove(m)) return
+      doMoveGUI(m)
       $('#info').text('Dein letzter Zug:' + m)
-      if (cfEngine.isMill()) myAlert('Gratuliere, du hast gewonnen!')
-      if (cfEngine.isDraw()) myAlert('Gratuliere, du hast ein Remis geschafft!')
+      if (cfEngine.isMill()) alert('Gratuliere, du hast gewonnen!')
+      if (cfEngine.isDraw()) alert('Gratuliere, du hast ein Remis geschafft!')
       actAsAI()
     }
   }
@@ -84,21 +30,22 @@ const cfGame = (cfEngine, divId) => {
     const table = $('<table id="cf"></table>')
     for (let r = 0; r < cfEngine.ROWS; r++) {
       const row = $('<tr></tr>')
-      for (let c = 1; c <= cfEngine.COLS; c++) row.append($('<td></td>').on('click', onClickHandler(c)))
+      for (let c = 0; c < cfEngine.COLS; c++) row.append($('<td></td>').on('click', onClickHandler(c)))
       table.append(row)
     }
     $(divId).empty().append(table)
   }
 
-  const doMove = (move) => {
-    if (!cfEngine.isAllowedMove(move - 1)) return
-    const row = cfEngine.ROWS - cfEngine.getHeightOfCol(move - 1) - 1
+  const doMoveGUI = (move) => {
+    if (!cfEngine.isAllowedMove(move)) return
+    moveHistory.push({ move, currentPlayer: cfEngine.currentPlayer() })
+    const row = cfEngine.ROWS - cfEngine.getHeightOfCol(move) - 1
     const cls = cfEngine.currentPlayer() === cfEngine.Player.ai ? 'blue' : 'red'
-    $($('#cf tr > td:nth-child(' + move + ')')[row]).addClass(cls)
-    cfEngine.doMove(move - 1)
+    $($('#cf tr > td:nth-child(' + (move + 1) + ')')[row]).addClass(cls)
+    cfEngine.doMove(move)
   }
 
-  const undoMove = () => {
+  const undoMoveGUI = () => {
     if (thinking || moveHistory.length < 2) return
     const moves = moveHistory.slice(0, -2).map((m) => m.move)
     restart(moveHistory[0].currentPlayer, moves)
@@ -113,11 +60,11 @@ const cfGame = (cfEngine, divId) => {
       thinking = false
       $('body').css('cursor', 'default')
       // $.ajax(`https://ludolab.net/solve/connect4?position=${moveHistory.map(m => m.move).join('')}&level=10`).done(res => console.log(res))
-      console.log(infoStr(sc))
-      doMove(sc.bestMoves[0].move+1)
-      $('#info').text('Mein letzter Zug:' + sc.bestMoves[0].move+1)
-      if (cfEngine.isMill()) myAlert('Bedaure, du hast verloren!')
-      if (cfEngine.isDraw()) myAlert('Gratuliere, du hast ein Remis geschafft!')
+      console.log(cfEngine.infoStr(sc))
+      doMoveGUI(sc.bestMoves[0].move)
+      $('#info').text('Mein letzter Zug:' + (sc.bestMoves[0].move + 1))
+      if (cfEngine.isMill()) alert('Bedaure, du hast verloren!')
+      if (cfEngine.isDraw()) alert('Gratuliere, du hast ein Remis geschafft!')
     }, 10)
   }
 
@@ -125,7 +72,7 @@ const cfGame = (cfEngine, divId) => {
     moveHistory = []
     renderBoard()
     cfEngine.init(currentPlayer)
-    moves.forEach((m) => doMove(m))
+    moves.forEach((m) => doMoveGUI(m-1))
     if (cfEngine.currentPlayer() === cfEngine.Player.ai) actAsAI()
     else $('#info').text(moves.length === 0 ? '' : 'Mein letzter Zug:' + moves[moves.length - 1])
   }
@@ -138,7 +85,7 @@ const cfGame = (cfEngine, divId) => {
 
   return {
     // Interface
-    undoMove,
+    undoMoveGUI,
     renderBoard,
     newGameDlg,
     actAsAI,

@@ -22,7 +22,7 @@
       if (cfEngine.currentPlayer() === cfEngine.Player.ai) game.actAsAI()
 
       $('#restart').button().on('click', game.newGameDlg)
-      $('#undo').button().on('click', game.undoMove)
+      $('#undo').button().on('click', game.undoMoveGUI)
       $('#startingPlayer')
         .val(game.gameSettings.startingPlayer)
         .selectmenu({ width: '100%', change: (_, ui) => game.setStartingPlayer(ui.item.value) })
@@ -49,8 +49,8 @@
   <div>
     <label for="startingPlayer">Wer fängt an:</label>
     <select id="startingPlayer">
-      <option value="-1">Computer</option>
-      <option value="+1">Spieler</option>
+      <option value="0">Computer</option>
+      <option value="1">Spieler</option>
     </select>
   </div>
   <div>
