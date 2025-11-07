@@ -11,12 +11,13 @@ const cfEngine = (() => {
   // --- Transposition Table ---
   const TT_FLAGS = { exact: 1, lower_bound: 2, upper_bound: 3 }
   const TT = (() => {
-    let table = {}
-    let [hits, misses] = [0, 0]
+    const table = new Map()
+    let hits = 0,
+      misses = 0
     return {
-      store: (hash, depth, score, flag) => ((table[hash] = { depth, score, flag }), score),
+      store: (hash, depth, score, flag) => (table.set(hash, { depth, score, flag }), score),
       probe: (hash, depth, alpha, beta) => {
-        const entry = table[hash]
+        const entry = table.get(hash)
         if (!entry) {
           misses++
           return null
@@ -28,15 +29,10 @@ const cfEngine = (() => {
         if (entry.flag === TT_FLAGS.upper_bound && entry.score <= alpha) return entry.score
         return null
       },
-      clear: () => ((table = {}), (hits = misses = 0)),
-      info: () => `TT size:${Object.keys(table).length} hits:${hits} misses:${misses}`
+      clear: () => (table.clear(), (hits = misses = 0)),
+      info: () => `TT size:${table.size} hits:${hits} misses:${misses}`
     }
   })()
-
-  const decorator =
-    (f, preCondition) =>
-    (...args) =>
-      preCondition() ? f(...args) : 0
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -103,6 +99,11 @@ const cfEngine = (() => {
     state.hash ^= pieceKeys[idx + (state.currentPlayer ? 0 : 42)]
   }
 
+  const checkWinningBoard = (lastCol) => {
+    const row = state.heightCols[lastCol] - 1
+    return checkWinning(lastCol, row, 1 - state.currentPlayer)
+  }
+
   const checkWinningCol = (c, player = state.currentPlayer) => checkWinning(c, state.heightCols[c], player)
 
   const checkWinning = (col, row, player) => {
@@ -135,12 +136,13 @@ const cfEngine = (() => {
   }
 
   let negamax = (columns, depth, alpha, beta) => {
+    if ((++searchInfo.nodes & 65535) === 0 && timeOut()) return 0
     if (depth === 0 || state.cntMoves === 42) return 0
 
     const ttScore = TT.probe(state.hash, depth, alpha, beta)
     if (ttScore !== null) return ttScore
 
-    for (const c of columns) if (state.heightCols[c] < ROWS && checkWinningCol(c)) return MAXVAL
+    for (const c of columns) if (state.heightCols[c] < ROWS && checkWinningCol(c)) return MAXVAL - depth
 
     const alphaOrig = alpha
     for (const c of columns)
@@ -148,43 +150,11 @@ const cfEngine = (() => {
         doMove(c)
         const score = -negamax(columns, depth - 1, -beta, -alpha)
         undoMove(c)
-        if (score >= beta) return score // TT.store(state.hash, depth, score, TT_FLAGS.lower_bound)
+        if (score >= beta) return score // TT.store(state.hash, depth, score, TT_FLAGS.lower_bound) //  faster without this!!!!!!!
         if (score > alpha) alpha = score
       }
-    return TT.store(state.hash, depth, alpha, alpha <= alphaOrig ? TT_FLAGS.upper_bound : TT_FLAGS.exact) //  faster without this!!!!!!!
-  }
-  negamax = decorator(negamax, () => ++searchInfo.nodes & 65535 || !timeOut())
-
-  let negascout = (columns, depth, alpha, beta) => {
-    if (depth === 0 || state.cntMoves === 42) return 0
-
-    const ttScore = TT.probe(state.hash, depth, alpha, beta)
-    if (ttScore !== null) return ttScore
-
-    for (const c of columns) if (state.heightCols[c] < ROWS && checkWinningCol(c)) return 22 - ((state.cntMoves + 2) >> 1)
-
-    const alphaOrig = alpha
-    let isFirstChild = true
-
-    for (const c of columns) {
-      if (state.heightCols[c] < ROWS) {
-        doMove(c)
-        let score
-        if (isFirstChild) {
-          score = -negascout(columns, depth - 1, -beta, -alpha)
-          isFirstChild = false
-        } else {
-          score = -negascout(columns, depth - 1, -alpha - 1, -alpha)
-          if (score > alpha && score < beta) score = -negascout(columns, depth - 1, -beta, -score)
-        }
-        undoMove(c)
-        if (score >= beta) return TT.store(state.hash, depth, score, TT_FLAGS.lower_bound)
-        if (score > alpha) alpha = score
-      }
-    }
     return TT.store(state.hash, depth, alpha, alpha <= alphaOrig ? TT_FLAGS.upper_bound : TT_FLAGS.exact)
   }
-  negascout = decorator(negascout, () => ++searchInfo.nodes & 65535 || !timeOut())
 
   const searchInfo = {}
   const timeOut = () => Date.now() >= searchInfo.stopAt
@@ -247,7 +217,7 @@ const cfEngine = (() => {
     undoMove,
     findBestMove,
     infoStr,
-    isAllowedMove: (c) => state.heightCols[c] < ROWS,
+    checkWinningBoard,
     getHeightOfCol: (c) => state.heightCols[c],
     currentPlayer: () => state.currentPlayer,
     isDraw: () => state.cntMoves === ROWS * COLS

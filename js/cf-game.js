@@ -17,11 +17,11 @@ const cfGame = (cfEngine, divId) => {
 
   const onClickHandler = (m) => {
     return () => {
-      if (thinking || !cfEngine.isAllowedMove(m)) return
+      if (thinking || !isAllowedMove(m)) return
       doMoveGUI(m)
       $('#info').text('Dein letzter Zug:' + m)
-      if (cfEngine.isMill()) alert('Gratuliere, du hast gewonnen!')
-      if (cfEngine.isDraw()) alert('Gratuliere, du hast ein Remis geschafft!')
+      if (isMill()) alert('Gratuliere, du hast gewonnen!')
+      if (isDraw()) alert('Gratuliere, du hast ein Remis geschafft!')
       actAsAI()
     }
   }
@@ -37,7 +37,7 @@ const cfGame = (cfEngine, divId) => {
   }
 
   const doMoveGUI = (move) => {
-    if (!cfEngine.isAllowedMove(move)) return
+    if (!isAllowedMove(move)) return
     moveHistory.push({ move, currentPlayer: cfEngine.currentPlayer() })
     const row = cfEngine.ROWS - cfEngine.getHeightOfCol(move) - 1
     const cls = cfEngine.currentPlayer() === cfEngine.Player.ai ? 'blue' : 'red'
@@ -47,12 +47,12 @@ const cfGame = (cfEngine, divId) => {
 
   const undoMoveGUI = () => {
     if (thinking || moveHistory.length < 2) return
-    const moves = moveHistory.slice(0, -2).map((m) => m.move)
+    const moves = moveHistory.slice(0, -2).map((m) => m.move + 1)
     restart(moveHistory[0].currentPlayer, moves)
   }
 
   const actAsAI = () => {
-    if (cfEngine.isMill() || cfEngine.isDraw()) return
+    if (isMill() || isDraw()) return
     thinking = true
     $('body').css('cursor', 'progress')
     setTimeout(() => {
@@ -63,8 +63,8 @@ const cfGame = (cfEngine, divId) => {
       console.log(cfEngine.infoStr(sc))
       doMoveGUI(sc.bestMoves[0].move)
       $('#info').text('Mein letzter Zug:' + (sc.bestMoves[0].move + 1))
-      if (cfEngine.isMill()) alert('Bedaure, du hast verloren!')
-      if (cfEngine.isDraw()) alert('Gratuliere, du hast ein Remis geschafft!')
+      if (isMill()) alert('Bedaure, du hast verloren!')
+      if (isDraw()) alert('Gratuliere, du hast ein Remis geschafft!')
     }, 10)
   }
 
@@ -72,7 +72,7 @@ const cfGame = (cfEngine, divId) => {
     moveHistory = []
     renderBoard()
     cfEngine.init(currentPlayer)
-    moves.forEach((m) => doMoveGUI(m-1))
+    moves.forEach((m) => doMoveGUI(m - 1))
     if (cfEngine.currentPlayer() === cfEngine.Player.ai) actAsAI()
     else $('#info').text(moves.length === 0 ? '' : 'Mein letzter Zug:' + moves[moves.length - 1])
   }
@@ -83,8 +83,11 @@ const cfGame = (cfEngine, divId) => {
       fen.split('').map((x) => +x)
     )
 
+  const isMill = () => moveHistory.length > 5 &&  cfEngine.checkWinningBoard(moveHistory[moveHistory.length - 1].move)
+  const isAllowedMove = (c) => cfEngine.getHeightOfCol(c) < cfEngine.ROWS && !isMill()
+  const isDraw = () => cfEngine.isDraw() && !isMill()
+
   return {
-    // Interface
     undoMoveGUI,
     renderBoard,
     newGameDlg,
