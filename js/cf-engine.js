@@ -83,7 +83,7 @@ const cfEngine = (() => {
 
   const doMove = (c) => {
     const idx = c + COLS * state.heightCols[c]
-    state.hash ^= pieceKeys[idx + (state.currentPlayer ? 0 : 42)]
+    state.hash ^= pieceKeys[state.currentPlayer ? idx : idx + 42]
     state.bitboards[state.currentPlayer][idx < 32 ? 0 : 1] |= 1 << (idx < 32 ? idx : idx - 32)
     state.heightCols[c]++
     state.currentPlayer = 1 - state.currentPlayer
@@ -96,12 +96,7 @@ const cfEngine = (() => {
     --state.heightCols[c]
     const idx = c + COLS * state.heightCols[c]
     state.bitboards[state.currentPlayer][idx < 32 ? 0 : 1] &= ~(1 << (idx < 32 ? idx : idx - 32))
-    state.hash ^= pieceKeys[idx + (state.currentPlayer ? 0 : 42)]
-  }
-
-  const checkWinningBoard = (lastCol) => {
-    const row = state.heightCols[lastCol] - 1
-    return checkWinning(lastCol, row, 1 - state.currentPlayer)
+    state.hash ^= pieceKeys[state.currentPlayer ? idx : idx + 42]
   }
 
   const checkWinningCol = (c, player = state.currentPlayer) => checkWinning(c, state.heightCols[c], player)
@@ -142,7 +137,7 @@ const cfEngine = (() => {
     const ttScore = TT.probe(state.hash, depth, alpha, beta)
     if (ttScore !== null) return ttScore
 
-    for (const c of columns) if (state.heightCols[c] < ROWS && checkWinningCol(c)) return MAXVAL - depth
+    for (const c of columns) if (state.heightCols[c] < ROWS && checkWinningCol(c)) return MAXVAL
 
     const alphaOrig = alpha
     for (const c of columns)
@@ -217,9 +212,10 @@ const cfEngine = (() => {
     undoMove,
     findBestMove,
     infoStr,
-    checkWinningBoard,
+    checkWinning,
     getHeightOfCol: (c) => state.heightCols[c],
     currentPlayer: () => state.currentPlayer,
+    opponentPlayer: () => 1 - state.currentPlayer,
     isDraw: () => state.cntMoves === ROWS * COLS
   }
 })()

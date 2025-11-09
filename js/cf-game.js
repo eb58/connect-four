@@ -83,7 +83,8 @@ const cfGame = (cfEngine, divId) => {
       fen.split('').map((x) => +x)
     )
 
-  const isMill = () => moveHistory.length > 5 &&  cfEngine.checkWinningBoard(moveHistory[moveHistory.length - 1].move)
+  const checkWinningBoard = (c) => cfEngine.checkWinning(c, cfEngine.getHeightOfCol(c) - 1, cfEngine.opponentPlayer())
+  const isMill = () => moveHistory.length > 0 && checkWinningBoard(moveHistory[moveHistory.length - 1].move)
   const isAllowedMove = (c) => cfEngine.getHeightOfCol(c) < cfEngine.ROWS && !isMill()
   const isDraw = () => cfEngine.isDraw() && !isMill()
 
