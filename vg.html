@@ -95,17 +95,17 @@
 
           if (!currentPlayerIsHuman) return
 
-          if (this.board.colHeights[col] < 6) {
+          if (this.board.heightCols[col] < 6) {
             this.makeMove(col)
           }
         }
 
         makeMove(col) {
-          this.board.makeMove(col)
+          this.board.doMove(col)
           this.updateUI()
 
           if (this.board.checkWinForBoard()) this.handleGameEnd()
-          else if (this.board.moveCount >= 42) this.handleDraw()
+          else if (this.board.cntMoves >= 42) this.handleDraw()
           else setTimeout(() => this.makeAIMoveIfNeeded(), 100)
         }
 
@@ -132,7 +132,7 @@
         }
 
         undoMove() {
-          if (this.board.moveCount > 1) {
+          if (this.board.cntMoves > 1) {
             this.board.undoMove()
             this.board.undoMove()
             this.isGameOver = false
@@ -210,7 +210,7 @@
 
           // Aktualisiere Statistiken
           document.getElementById('stats').textContent =
-            `Zug:${this.stats.move || ''} | Score:${this.stats.score} | Tiefe:${this.stats.depth || ''} | Züge:${this.board.moveCount} | Knoten:${this.stats.nodes} | `
+            `Zug:${this.stats.move || ''} | Score:${this.stats.score} | Tiefe:${this.stats.depth || ''} | Züge:${this.board.cntMoves} | Knoten:${this.stats.nodes} | `
         }
       }
 
