@@ -40,7 +40,7 @@ const h = (name, t) => {
   cf.initGame(t.fen)
   const si = cf.findBestMove({ maxDepth: t.maxDepth || t.depth || 42, maxThinkingTime: t.maxThinkingTime || 1000 })
 
-  console.log(`${name} --- ${cf.infoStr(si)} FEN:${t.fen}`, si.bestMoves.slice(1))
+  // console.log(`${name} --- ${cf.infoStr(si)} FEN:${t.fen}`, si.bestMoves.slice(1))
   if (t.depth) expect(si.depth).toBe(t.depth)
   if (t.bestMove) {
     if (typeof t.bestMove === 'number') expect(si.bestMoves[0].move + 1).toBe(t.bestMove)
