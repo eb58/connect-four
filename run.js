@@ -1,9 +1,5 @@
-const cf = require('./js/cf-engine.js')
+const cf = require('./js/cf-engine-2.js')
 
-const fen = '4'
-const moves = fen.split('').map((x) => +x)
-
-cf.init(cf.Player.hp)
-moves.forEach((v) => cf.doMove(v))
-const sc = cf.findBestMove({ maxThinkingTime: 311000 })
+cf.initGame('')
+const sc = cf.findBestMove({ maxThinkingTime: Infinity })
 console.log(`DEPTH:${sc.depth} { ${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${sc.elapsedTime}ms ***`)

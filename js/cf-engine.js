@@ -1,49 +1,14 @@
+const { TT_FLAGS, getTTSizeForDepth, TranspositionTable, pieceKeys } = require('./cf-transpositionTable')
+
 const timer = (start = performance.now()) => ({ elapsedTime: () => ((performance.now() - start) / 1000).toFixed(3) })
 const [COLS, ROWS] = [7, 6]
-const BOARD_SIZE = COLS * ROWS
 const MAXVAL = 100
 const Player = { ai: 0, hp: 1 } // AI / human player
-const TT_FLAGS = { exact: 1, lower_bound: 2, upper_bound: 3 }
-
-const TT = (() => {
-  const table = new Map()
-  let hits = 0,
-    misses = 0
-  return {
-    store: (hash, depth, score, flag) => (table.set(hash, { depth, score, flag }), score),
-    probe: (hash, depth, alpha, beta) => {
-      if (table.size > 10000000) table.clear()
-      const entry = table.get(hash)
-      if (!entry) {
-        misses++
-        return null
-      }
-      if (entry.depth < depth) return null
-      hits++
-      if (entry.flag === TT_FLAGS.exact) return entry.score
-      if (entry.flag === TT_FLAGS.lower_bound && entry.score >= beta) return entry.score
-      if (entry.flag === TT_FLAGS.upper_bound && entry.score <= alpha) return entry.score
-      return null
-    },
-    clear: () => (table.clear(), (hits = misses = 0)),
-    info: () => `TT size:${table.size} hits:${hits} misses:${misses}`
-  }
-})()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const pieceKeys = [
-  227019481, 1754434862, 629481213, 887205851, 529032562, 2067323277, 1070040335, 567190488, 468610655, 1669182959, 236891527, 1211317841, 849223426, 1031915473, 315781957,
-  1594703270, 114113554, 966088184, 2114417493, 340442843, 410051610, 1895709998, 502837645, 2046296443, 1720231708, 1437032187, 80592865, 1757570123, 2063094472, 1123905671,
-  901800952, 1894943568, 732390329, 401463737, 2055893758, 1688751506, 115630249, 391883254, 249795256, 1341740832, 807352454, 2122692086, 851678180, 1154773536, 64453931,
-  311845715, 1173309830, 1855940732, 1662371745, 998042207, 2121332908, 1905657426, 873276463, 1048910740, 1181863470, 136324833, 881754029, 1037297764, 1385633069, 2037058967,
-  398045724, 1522858950, 1892619084, 1364648567, 771375215, 983991136, 260316522, 648466817, 1502780386, 1733680598, 401803338, 2136229086, 718267066, 485772484, 1936892066,
-  1051148609, 1018878751, 1721684837, 1720651398, 2073094346, 526823540, 1170625524, 465996760, 1587572180
-]
-
 const cfEngine = (() => {
   const loosingMove = (m) => m.score < 0
-
 
   const printBoard = () => {
     const has = (bb, idx) => (idx < 32 ? bb[0] & (1 << idx) : bb[1] & (1 << (idx - 32)))
@@ -68,7 +33,6 @@ const cfEngine = (() => {
     state.cntMoves = 0
     state.bitboards = [new Uint32Array(2), new Uint32Array(2)]
     state.hash = 0
-    TT.clear()
   }
 
   const doMove = (c) => {
@@ -126,10 +90,14 @@ const cfEngine = (() => {
     if ((++searchInfo.nodes & 65535) === 0 && timeOut()) return 0
     if (depth === 0 || state.cntMoves === 42) return 0
 
-    const ttScore = TT.probe(state.hash, depth, alpha, beta)
-    if (ttScore !== null) return ttScore
+    const score  = tt.getScore(state.hash, depth, alpha, beta)
+    if (score !== null) return score
 
-    for (const c of columns) if (state.heightCols[c] < ROWS && checkWinningCol(c)) return MAXVAL
+    for (const c of columns)
+      if (state.heightCols[c] < ROWS && checkWinningCol(c)) {
+        tt.store(state.hash, depth, MAXVAL, TT_FLAGS.exact)
+        return MAXVAL
+      }
 
     const alphaOrig = alpha
     for (const c of columns)
@@ -137,24 +105,27 @@ const cfEngine = (() => {
         doMove(c)
         const score = -negamax(columns, depth - 1, -beta, -alpha)
         undoMove(c)
-        if (score >= beta) return score // TT.store(state.hash, depth, score, TT_FLAGS.lower_bound) //  faster without this!!!!!!!
+        if (score >= beta) {
+          tt.store(state.hash, depth, score, TT_FLAGS.lower_bound) //  faster without this ????
+          return score
+        }
         if (score > alpha) alpha = score
       }
-    return TT.store(state.hash, depth, alpha, alpha <= alphaOrig ? TT_FLAGS.upper_bound : TT_FLAGS.exact)
+    tt.store(state.hash, depth, alpha, alpha <= alphaOrig ? TT_FLAGS.upper_bound : TT_FLAGS.exact)
+    return alpha
   }
 
-
   const findBestMove = (opts) => {
-    TT.clear()
     const t = timer()
     opts = { maxThinkingTime: 1000, maxDepth: 42, ...opts }
     searchInfo.nodes = 0
     searchInfo.stopAt = Date.now() + opts.maxThinkingTime
     const columns = [3, 4, 2, 5, 1, 6, 0].filter((c) => state.heightCols[c] < ROWS)
 
-    for (const c of columns) if (checkWinningCol(c)) return { ...searchInfo, bestMoves: [{ move: c, score: MAXVAL }], elapsedTime: t.elapsedTime(), TT }
+    for (const c of columns) if (checkWinningCol(c)) return { ...searchInfo, bestMoves: [{ move: c, score: MAXVAL }], elapsedTime: t.elapsedTime() }
 
     for (let depth = 1; depth <= opts.maxDepth; depth++) {
+      tt = new TranspositionTable(getTTSizeForDepth(depth))
       searchInfo.depth = depth
       searchInfo.bestMoves = []
       let score = 0
@@ -173,7 +144,8 @@ const cfEngine = (() => {
       const loosingMoves = searchInfo.bestMoves.filter(loosingMove)
       if (loosingMoves.length >= searchInfo.bestMoves.length - 1) break // all moves but one lead to disaster
     }
-    return { ...searchInfo, elapsedTime: t.elapsedTime(), TT }
+    searchInfo.bestScore = searchInfo.bestMoves[0].score
+    return { ...searchInfo, elapsedTime: t.elapsedTime() }
   }
 
   const initGame = (fen, player) => {

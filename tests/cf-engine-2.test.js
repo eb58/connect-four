@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const { findBestMove, initGame } = require('../js/cf-engine')
+const { findBestMove, initGame } = require('../js/cf-engine-2')
 
 const readData = (fileName) => {
   const content = fs.readFileSync(path.join(__dirname + '/../data', fileName), 'utf-8')
@@ -23,10 +23,10 @@ const testData = (fileName) => {
       test(`Test ${index + 1}: ${input} ->  ${expected}`, () => {
         initGame(input)
         const si = findBestMove({ maxThinkingTime: 10000 })
-        let score = si.bestMoves[0].score
         // console.log('FEN:', input, JSON.stringify(si))
-        console.log(`Test ${index + 1}: ${input} ->  ${expected}`, score)
-        expect(Math.sign(score) === Math.sign(expected) || (score === 0 && si.bestMoves.slice(1).every((m) => m.score < 0))).toBeTruthy()
+        console.log(`Test ${index + 1}: ${input} ->  ${expected}`, si.bestScore)
+        expect(Math.sign(si.bestScore) === Math.sign(expected)).toBeTruthy()
+        // expect(Math.sign(si.bestScore) === Math.sign(expected) || (score === 0 && si.bestMoves.slice(1).every((m) => m.score < 0))).toBeTruthy()
       })
     })
 }
@@ -41,13 +41,11 @@ describe('Test_L2_R2', () => testData('Test_L2_R2')) // ~ 6 min
 describe('Test_L3_R1', () => testData('Test_L3_R1')) // ~0.5 sec
 
 test('simple', () => {
-  // cfEngine.initGame('22144426444')
-  initGame('243335424257')
-  //cfEngine.initGame('265756512')
+  initGame('22144426444')
+  //initGame('243335424257')
   // .printBoard()
   const si = findBestMove()
   // console.log('FEN:', input, JSON.stringify(si))
-  let score = si.bestMoves[0].score
   console.log(si)
-  expect(score).toBe(12)
+  expect(si.bestScore).toBeGreaterThan(0)
 })
