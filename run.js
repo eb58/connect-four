@@ -1,5 +1,7 @@
-const cf = require('./js/cf-engine-2.js')
-
-cf.initGame('')
-const sc = cf.findBestMove({ maxThinkingTime: Infinity })
-console.log(`DEPTH:${sc.depth} { ${sc.bestMoves.reduce((acc, m) => acc + `${m.move}:${m.score} `, '')}} NODES:${sc.nodes} ${sc.elapsedTime}ms ***`)
+const  Board  = require('./js/cf-board')
+const  findBestMove  = require('./js/cf-engine-2')
+const fen = ''
+const board = new Board(fen)
+board.print()
+const sc = findBestMove(board, { maxThinkingTime: Infinity })
+console.log(`DEPTH:${sc.depth} SCORE:${sc.score} MOVE:${sc.move} NODES:${sc.nodes} ${sc.elapsedTime}ms ***`)

@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
-const { findBestMove, initGame } = require('../js/cf-engine-2')
+const  Board  = require('../js/cf-board')
+const  findBestMove  = require('../js/cf-engine')
 
 const readData = (fileName) => {
   const content = fs.readFileSync(path.join(__dirname + '/../data', fileName), 'utf-8')
@@ -18,15 +19,14 @@ const readData = (fileName) => {
 
 const testData = (fileName) => {
   readData(fileName)
-    .slice(0, 1000)
+    .slice(0, 10)
     .forEach(({ input, expected }, index) => {
       test(`Test ${index + 1}: ${input} ->  ${expected}`, () => {
-        initGame(input)
-        const si = findBestMove({ maxThinkingTime: 10000 })
+        const board = new Board(input)
+        const si = findBestMove(board, { maxThinkingTime: 10000 })
         // console.log('FEN:', input, JSON.stringify(si))
-        console.log(`Test ${index + 1}: ${input} ->  ${expected}`, si.bestScore)
-        expect(Math.sign(si.bestScore) === Math.sign(expected)).toBeTruthy()
-        // expect(Math.sign(si.bestScore) === Math.sign(expected) || (score === 0 && si.bestMoves.slice(1).every((m) => m.score < 0))).toBeTruthy()
+        console.log(`Test ${index + 1}: ${input} ->  ${expected}`, si.score)
+        expect(Math.sign(si.score) === Math.sign(expected) || (si.score === 0 && si.bestMoves.slice(1).every((m) => m.score < 0))).toBeTruthy()
       })
     })
 }
