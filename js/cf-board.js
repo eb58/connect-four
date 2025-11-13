@@ -46,13 +46,14 @@ class Board {
     this.hash ^= pieceKeys[this.currentPlayer ? idx : idx + 42]
   }
 
-  checkWinForColumn = (c) => this.checkWinning(c, this.heightCols[c], this.currentPlayer)
+  checkWinForColumn = (c) => this.checkWinning(c, this.currentPlayer)
 
-  checkWinning = (col, row, player) => {
+  checkWinning = (col, player) => {
     const bb = this.bitboards[player]
     const bbLo = bb[0]
     const bbHi = bb[1]
     const has = (idx) => (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32)))
+    const row = this.heightCols[col]
 
     // vertical
     for (let count = 1, r = row - 1; r >= 0 && has(r * COLS + col); r--) if (++count >= 4) return true
@@ -72,6 +73,11 @@ class Board {
     for (let r = row - 1, c = col + 1; c < COLS && r >= 0 && has(r * COLS + c); r--, c++) if (++count >= 4) return true
     for (let r = row + 1, c = col - 1; c >= 0 && r < ROWS && has(r * COLS + c); r++, c--) if (++count >= 4) return true
 
+    if (row === 0) {
+      const bb = this.bitboards[1 - this.currentPlayer][0]
+      if (has(2) && has(3) && !(bb & (1 << 1)) && !(bb & (1 << 4))) return true
+      if (has(3) && has(4) && !(bb & (1 << 2)) && !(bb & (1 << 5))) return true
+    }
     return false
   }
 
