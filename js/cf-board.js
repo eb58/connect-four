@@ -75,10 +75,10 @@ class Board {
 
     if (row === 0) {
       const bb = this.bitboards[player][0]
-      if (bb & 8) {
+      if (bb & (1 << 3)) {
         const bbX = this.bitboards[1 - player][0]
-        if (bb & 4 && !(bbX & 1) && !(bbX & (1 << 4))) return true // _ _ O O _ _ _
-        if (bb & 16 && !(bbX & (1 << 2)) && !(bbX & (1 << 5))) return true // _ _ _ O O _ _
+        if (bb & (1 << 2) && !(bbX & (1 << 1)) && !(bbX & (1 << 4))) return true // _ _ O O _ _ _
+        if (bb & (1 << 4) && !(bbX & (1 << 2)) && !(bbX & (1 << 5))) return true // _ _ _ O O _ _
       }
     }
     return false
