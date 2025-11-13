@@ -8,7 +8,6 @@ class CfEngine {
     this.tt = tt
     this.board = board
     this.searchInfo = searchInfo
-    this.bestMove = null
   }
 
   negamax = (columns, depth, alpha, beta) => {
@@ -28,7 +27,7 @@ class CfEngine {
         this.board.undoMove(c)
         if (score > bestScore) {
           bestScore = score
-          this.bestMove = c
+          this.searchInfo.bestMove = c
           if (score >= beta) return this.tt.store(this.board.hash, depth, score, TT_FLAGS.lower_bound)
         }
         if (score > alpha) alpha = score
@@ -52,11 +51,8 @@ findBestMove = (board, opts) => {
     const cf = new CfEngine(board, searchInfo, new TranspositionTable(depth))
     searchInfo.depth = depth
     searchInfo.score = cf.negamax(columns, depth, -MAXVAL, MAXVAL)
-    console.log(`DEPTH:${depth} SCORE:${searchInfo.score} MOVE:${cf.bestMove} NODES:${searchInfo.nodes} ${t.elapsedTime()}ms`)
-    if (searchInfo.score > 0 || timeOut()) {
-      searchInfo.bestMove = cf.bestMove
-      break
-    }
+    console.log(`DEPTH:${depth} SCORE:${searchInfo.score} MOVE:${searchInfo.bestMove} NODES:${searchInfo.nodes} ${t.elapsedTime()}ms`)
+    if (searchInfo.score || timeOut()) break
   }
   console.log(`DEPTH:${searchInfo.depth} SCORE:${searchInfo.score} MOVE:${searchInfo.bestMove} NODES:${searchInfo.nodes} ${t.elapsedTime()}ms`)
   return { ...searchInfo, elapsedTime: t.elapsedTime() }
