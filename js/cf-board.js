@@ -73,17 +73,27 @@ export class Board {
     for (let r = row - 1, c = col + 1; c < COLS && r >= 0 && has(r * COLS + c); r--, c++) if (++count >= 4) return true
     for (let r = row + 1, c = col - 1; c >= 0 && r < ROWS && has(r * COLS + c); r++, c--) if (++count >= 4) return true
 
-    if (row === 10) {
+    if (row === 0) {
       const bb = this.bitboards[player][0]
       const bbX = this.bitboards[1 - player][0]
-      if (bb & (1 << 2) && bb & (1 << 3) && !(bbX & (1 << 1)) && !(bbX & (1 << 4))) return true // _ _ O O _ _ _
-      if (bb & (1 << 3) && bb & (1 << 4) && !(bbX & (1 << 2)) && !(bbX & (1 << 5))) return true // _ _ _ O O _ _
+      if (bb & (1 << 2) && bb & (1 << 3) && !(bbX & (1 << 1)) && !(bbX & (1 << 4)) && (col === 1 || col === 4)) return true // _ _ O O _ _ _
+      if (bb & (1 << 3) && bb & (1 << 4) && !(bbX & (1 << 2)) && !(bbX & (1 << 5)) && (col === 2 || col === 5)) return true // _ _ _ O O _ _
 
-      if (bb & (1 << 1) && bb & (1 << 3) && !(bbX & (1 << 0)) && !(bbX & (1 << 2)) && !(bbX & (1 << 4))) return true // _ 0 _ O _ _ _
-      if (bb & (1 << 2) && bb & (1 << 4) && !(bbX & (1 << 1)) && !(bbX & (1 << 3)) && !(bbX & (1 << 5))) return true // _ _ 0 _ O _ _
-      if (bb & (1 << 3) && bb & (1 << 5) && !(bbX & (1 << 2)) && !(bbX & (1 << 4)) && !(bbX & (1 << 6))) return true // _ _ _ 0 _ O _
+      if (bb & (1 << 1) && bb & (1 << 3) && !(bbX & (1 << 0)) && !(bbX & (1 << 2)) && !(bbX & (1 << 4)) && col === 2) return true // _ 0 _ O _ _ _
+      if (bb & (1 << 2) && bb & (1 << 4) && !(bbX & (1 << 1)) && !(bbX & (1 << 3)) && !(bbX & (1 << 5)) && col === 3) return true // _ _ 0 _ O _ _
+      if (bb & (1 << 3) && bb & (1 << 5) && !(bbX & (1 << 2)) && !(bbX & (1 << 4)) && !(bbX & (1 << 6)) && col === 4) return true // _ _ _ 0 _ O _
     }
     return false
+  }
+
+  findWinningColumnForCurrentPlayer = (columns) => {
+    for (const c of columns) if (this.heightCols[c] < ROWS && this.checkWinning(c, this.currentPlayer)) return true
+    return false
+  }
+
+  findWinningColumnForOpponentPlayer = (columns) => {
+    for (const c of columns) if (this.heightCols[c] < ROWS && this.checkWinning(c, 1 - this.currentPlayer)) return c
+    return null
   }
 
   print = () => {

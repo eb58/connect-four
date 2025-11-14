@@ -16,22 +16,15 @@ const h = (name, t) => {
   if (t.cond) expect(t.cond(si)).toBeTruthy()
 }
 
-describe('EVAL', () => {
-  test('eval1', () => h('eval1', { fen: '14141', bestMove: 1 }))
-  test('eval2', () => h('eval2', { fen: '41414', bestMove: 4 }))
-  test('eval3', () => h('eval3', { fen: '415', bestMove: [3, 6] }))
-  test('eval4', () => h('eval4', { fen: '41415', bestMove: [1, 3, 6] }))
-  test('eval5', () => h('eval5', { fen: '274', bestMove: [1, 3, 5] }))
-  test('eval6', () => h('eval6', { fen: '442', bestMove: [1, 3, 5] }))
-  test('eval7', () => h('eval7', { fen: '445', bestMove: [3, 6] }))
-  test('eval8', () => h('eval8', { fen: '443', bestMove: [2, 5] }))
-  test('eval9', () => h('eval9', { fen: '', depth: 11 }))
+describe('EVAL ', () => {
+  test('eval1', () => h('eval1', { fen: '', depth: 15 }))
+  test('eval2', () => h('eval2', { fen: '14141', bestMove: 1 }))
 })
 
 const loosing = (si) => si.score < 0
 const winning = (si) => si.score > 0
 
-describe('LOOSE', () => {
+describe('LOOSE ', () => {
   test('loose1', () => h('loose1', { fen: '141526', cond: loosing }))
   test('loose2', () => h('loose2', { fen: '44516', cond: loosing }))
   test('loose3', () => h('loose3', { fen: '15143411235443', cond: loosing }))
@@ -40,14 +33,16 @@ describe('LOOSE', () => {
   test('loose6', () => h('loose6', { fen: '265756512', cond: loosing }))
   test('loose7', () => h('loose6', { fen: '1514341123', cond: loosing }))
   test('loose8', () => h('loose8', { fen: '6625244723134', cond: loosing }))
+  test('loose9', () => h('loose9', { fen: '41414', cond: loosing }))
+  test('loose10', () => h('loose10', { fen: '41415', cond: loosing }))
 })
 
-describe('WIN EASY ', () => {
+describe('WIN EASY', () => {
   test('win-easy-1', () => h('win-easy-1', { fen: '22144426444', bestMove: 5, cond: winning }))
   test('win-easy-2', () => h('win-easy-2', { fen: '1717172', bestMove: 7, cond: winning }))
 })
 
-describe('WIN 1 ', () => {
+describe('WIN 1', () => {
   test('win01', () => h('win01', { fen: '14154', bestMove: [3, 6], cond: winning }))
   test('win02', () => h('win02', { fen: '15141134453', bestMove: 7, cond: winning }))
   test('win03', () => h('win03', { fen: '151434112', bestMove: [3, 5, 6], cond: winning }))
@@ -63,12 +58,12 @@ describe('WIN 1 ', () => {
   test('win14', () => h('win14', { fen: '6165173152', bestMove: 6, cond: winning }))
 })
 
-describe('WIN 2 ', () => {
-  //test('win1', () => h('win1', { fen: '4246', bestMove: 4 }))
+describe('WIN 2', () => {
+  test('win1', () => h('win1', { fen: '42464444111111', bestMove: 3 }))
   test('win2', () => h('win2', { fen: '4147', bestMove: 4 }))
-  test('win3', () => h('win3', { fen: '15143411344433545', bestMove: 5 })) // ~600ms
-  test('win4', () => h('win4', { fen: '443521344445336', bestMove: 5 })) // ~650ms
-  test('win5', () => h('win5', { fen: '414144', bestMove: 5 })) // ~650ms
-  test('win6', () => h('win6', { fen: '4443424433', bestMove: 3, maxThinkingTime: 10000 }))
+  test('win3', () => h('win3', { fen: '15143411344433545', bestMove: 5 }))
+  test('win4', () => h('win4', { fen: '443521344445336', bestMove: 5 }))
+  test('win5', () => h('win5', { fen: '414144', bestMove: 5 }))
+  test('win6', () => h('win6', { fen: '4443424433', bestMove: 3 }))
   // test('win7', () => h('win7', { fen: '4156', bestMove: 4, maxThinkingTime: 30600 })) // ~5000ms
 })

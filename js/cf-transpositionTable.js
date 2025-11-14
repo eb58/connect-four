@@ -22,6 +22,7 @@ export class TranspositionTable {
     this.flags = new Uint8Array(size)
   }
   store(hash, depth, score, flag) {
+    score = score === -0 ? 0 : score
     this.keys[hash & this.size] = hash
     this.depths[hash & this.size] = depth
     this.scores[hash & this.size] = score
