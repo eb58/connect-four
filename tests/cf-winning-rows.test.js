@@ -1,4 +1,4 @@
-const { winningRowsBS, winningRowsForFields } = require('../js/cf-winning-rows.js')
+import { winningRowsBS, winningRowsForFields } from '../js/cf-winning-rows'
 describe('winning rows ', () => {
   test('winningRowsBS', () => {
     expect(winningRowsBS.length).toBe(69)

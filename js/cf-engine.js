@@ -1,4 +1,5 @@
-const { TT_FLAGS, TranspositionTable } = require('./cf-transpositionTable')
+import { ROWS } from './cf-board.js'
+import { TT_FLAGS, TranspositionTable } from './cf-transpositionTable.js'
 
 const timer = (start = performance.now()) => ({ elapsedTime: () => ((performance.now() - start) / 1000).toFixed(3) })
 const MAXVAL = 100
@@ -18,6 +19,9 @@ class CfEngine {
     if (cachedScore !== null) return cachedScore
 
     for (const c of columns) if (this.board.heightCols[c] < ROWS && this.board.checkWinForColumn(c)) return this.tt.store(this.board.hash, depth, MAXVAL, TT_FLAGS.exact)
+    // let cntWinningMovesForOpponent = 0
+    // for (const c of columns) if (this.board.heightCols[c] < ROWS && this.board.checkWinning(c, 1 - this.board.currentPlayer)) cntWinningMovesForOpponent++
+    // if (cntWinningMovesForOpponent >= 2) return this.tt.store(this.board.hash, depth, -MAXVAL, TT_FLAGS.exact)
 
     let bestScore = alpha
     for (const c of columns)
@@ -36,7 +40,7 @@ class CfEngine {
   }
 }
 
-findBestMove = (board, opts) => {
+export const findBestMove = (board, opts) => {
   const t = timer()
   opts = { maxThinkingTime: 1000, maxDepth: 42, ...opts }
   const searchInfo = { nodes: 0, stopAt: Date.now() + opts.maxThinkingTime }
@@ -44,8 +48,9 @@ findBestMove = (board, opts) => {
 
   const columns = [3, 2, 4, 1, 5, 0, 6].filter((c) => board.heightCols[c] < ROWS)
 
-  for (const c of columns)
-    if (board.checkWinForColumn(c)) return { ...searchInfo, depth: 1, score: MAXVAL, move: c, bestMoves: [{ move: c, score: MAXVAL }], elapsedTime: t.elapsedTime() }
+  for (const c of columns) if (board.checkWinForColumn(c)) return { ...searchInfo, depth: 1, score: MAXVAL, bestMove: c, elapsedTime: t.elapsedTime() }
+  for (const c of columns) if (board.heightCols[c] < ROWS && board.checkWinning(c, 1 - board.currentPlayer)) return { ...searchInfo, depth: 1, score: 0, bestMove: c, elapsedTime: t.elapsedTime() }
+
 
   for (let depth = 1; depth <= opts.maxDepth; depth++) {
     const cf = new CfEngine(board, searchInfo, new TranspositionTable(depth))
@@ -57,5 +62,3 @@ findBestMove = (board, opts) => {
   console.log(`DEPTH:${searchInfo.depth} SCORE:${searchInfo.score} MOVE:${searchInfo.bestMove} NODES:${searchInfo.nodes} ${t.elapsedTime()}ms`)
   return { ...searchInfo, elapsedTime: t.elapsedTime() }
 }
-
-if (typeof module !== 'undefined') module.exports = findBestMove

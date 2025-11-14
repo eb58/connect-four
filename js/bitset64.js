@@ -6,7 +6,7 @@ const countBits = (n) => {
   return res
 }
 
-class BitSet64 {
+export class BitSet64 {
   constructor(lo, hi) {
     this.lo = 0
     this.hi = 0
@@ -39,5 +39,3 @@ class BitSet64 {
   toArray = () => range(64).reduce((acc, n) => (this.has(n) ? [...acc, n] : acc), [])
   toString = () => `[${this.toArray().join(', ')}]`
 }
-
-if (typeof module !== 'undefined') module.exports = BitSet64

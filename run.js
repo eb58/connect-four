@@ -1,9 +1,8 @@
-const Board = require('./js/cf-board')
-const findBestMove = require('./js/cf-engine')
+import { Board } from './js/cf-board.js'
+import { findBestMove } from './js/cf-engine.js'
 
-process.argv.slice(2).forEach((fen) => {
-  fen = fen || ''
-  const board = new Board(fen)
-  board.print()
-  findBestMove(board, { maxThinkingTime: Infinity })
-})
+const board = new Board('')
+board.print()
+const si = findBestMove(board, { maxThinkingTime: 30000 })
+
+console.log('Result:', si)

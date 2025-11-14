@@ -1,4 +1,4 @@
-const TT_FLAGS = { exact: 1, lower_bound: 2, upper_bound: 3 }
+export const TT_FLAGS = { exact: 1, lower_bound: 2, upper_bound: 3 }
 
 const getTTSizeForDepth = (depth) => (1 << (depth >= 38 ? 28 : depth >= 36 ? 26 : depth >= 18 ? 23 : 16)) - 1
 
@@ -12,7 +12,7 @@ const XXgetTTSizeForDepth = (depth) => {
   return (1 << 16) - 1
 }
 
-class TranspositionTable {
+export class TranspositionTable {
   constructor(depth) {
     const size = getTTSizeForDepth(depth)
     this.size = size

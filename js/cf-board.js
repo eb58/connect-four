@@ -1,5 +1,5 @@
-COLS = 7
-ROWS = 6
+export const COLS = 7
+export const ROWS = 6
 const pieceKeys = [
   227019481, 1754434862, 629481213, 887205851, 529032562, 2067323277, 1070040335, 567190488, 468610655, 1669182959, 236891527, 1211317841, 849223426, 1031915473, 315781957,
   1594703270, 114113554, 966088184, 2114417493, 340442843, 410051610, 1895709998, 502837645, 2046296443, 1720231708, 1437032187, 80592865, 1757570123, 2063094472, 1123905671,
@@ -9,7 +9,7 @@ const pieceKeys = [
   1051148609, 1018878751, 1721684837, 1720651398, 2073094346, 526823540, 1170625524, 465996760, 1587572180
 ]
 
-class Board {
+export class Board {
   Player = { ai: 0, hp: 1 } // AI / human player
   heightCols
 
@@ -23,8 +23,8 @@ class Board {
 
   constructor(FEN = '') {
     this.init()
-    this.FEN = FEN
-    const moves = FEN.trim().split('')
+    this.FEN = FEN.trim().replaceAll(' ', '')
+    const moves = this.FEN.trim().split('')
     moves.forEach((c) => this.doMove(c - 1))
   }
 
@@ -73,13 +73,15 @@ class Board {
     for (let r = row - 1, c = col + 1; c < COLS && r >= 0 && has(r * COLS + c); r--, c++) if (++count >= 4) return true
     for (let r = row + 1, c = col - 1; c >= 0 && r < ROWS && has(r * COLS + c); r++, c--) if (++count >= 4) return true
 
-    if (row === 0) {
+    if (row === 10) {
       const bb = this.bitboards[player][0]
-      if (bb & (1 << 3)) {
-        const bbX = this.bitboards[1 - player][0]
-        if (bb & (1 << 2) && !(bbX & (1 << 1)) && !(bbX & (1 << 4))) return true // _ _ O O _ _ _
-        if (bb & (1 << 4) && !(bbX & (1 << 2)) && !(bbX & (1 << 5))) return true // _ _ _ O O _ _
-      }
+      const bbX = this.bitboards[1 - player][0]
+      if (bb & (1 << 2) && bb & (1 << 3) && !(bbX & (1 << 1)) && !(bbX & (1 << 4))) return true // _ _ O O _ _ _
+      if (bb & (1 << 3) && bb & (1 << 4) && !(bbX & (1 << 2)) && !(bbX & (1 << 5))) return true // _ _ _ O O _ _
+
+      if (bb & (1 << 1) && bb & (1 << 3) && !(bbX & (1 << 0)) && !(bbX & (1 << 2)) && !(bbX & (1 << 4))) return true // _ 0 _ O _ _ _
+      if (bb & (1 << 2) && bb & (1 << 4) && !(bbX & (1 << 1)) && !(bbX & (1 << 3)) && !(bbX & (1 << 5))) return true // _ _ 0 _ O _ _
+      if (bb & (1 << 3) && bb & (1 << 5) && !(bbX & (1 << 2)) && !(bbX & (1 << 4)) && !(bbX & (1 << 6))) return true // _ _ _ 0 _ O _
     }
     return false
   }
@@ -92,8 +94,8 @@ class Board {
       let row = ''
       for (let c = 0; c < COLS; c++) {
         const idx = r * COLS + c
-        if (has(this.bitboards[0], idx)) row += ' X '
-        else if (has(this.bitboards[1], idx)) row += ' O '
+        if (has(this.bitboards[this.Player.hp], idx)) row += ' X '
+        else if (has(this.bitboards[this.Player.ai], idx)) row += ' O '
         else row += ' _ '
       }
       res += row + '\n'
@@ -101,5 +103,3 @@ class Board {
     console.log('FEN:', this.FEN, '\n', res.trim())
   }
 }
-
-if (typeof module !== 'undefined') module.exports = Board

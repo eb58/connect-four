@@ -1,4 +1,4 @@
-const BitSet64 = require('../js/bitset64.js')
+import { BitSet64 } from '../js/bitset64.js'
 
 const a = new BitSet64([5, 10])
 const b = new BitSet64([5, 10, 15, 20])

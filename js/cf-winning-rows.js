@@ -1,8 +1,7 @@
-const BitSet64 = require('./bitset64')
+import { BitSet64 } from './bitset64'
 
 const range = (n) => [...Array(n).keys()]
 const [COLS, ROWS] = [7, 6]
-
 
 /* layout
    0  1  2  3  4  5  6
@@ -29,7 +28,6 @@ const cfWinningRows = range(ROWS)
   .reduce((acc, r) => [...acc, ...range(COLS).map((c) => ({ r, c }))], [])
   .reduce((acc, p) => [...acc, ...computeWinningRows(p, 0, 1), ...computeWinningRows(p, 1, 1), ...computeWinningRows(p, 1, 0), ...computeWinningRows(p, -1, 1)], [])
 
-const winningRowsBS = cfWinningRows.map((x) => new BitSet64(x))
-const winningRowsForFields = range(COLS * ROWS).map((i) => cfWinningRows.reduce((acc, wr, j) => (wr.includes(i) ? [...acc, j] : acc), []))
+export const winningRowsBS = cfWinningRows.map((x) => new BitSet64(x))
+export const winningRowsForFields = range(COLS * ROWS).map((i) => cfWinningRows.reduce((acc, wr, j) => (wr.includes(i) ? [...acc, j] : acc), []))
 // console.log(winningRowsForFields)
-if (typeof module !== 'undefined') module.exports = { cfWinningRows, winningRowsBS, winningRowsForFields }
