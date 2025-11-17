@@ -50,11 +50,13 @@ export class Board {
   checkWinForColumn = (c) => this.checkWinning(c, this.currentPlayer)
 
   checkWinning = (col, player) => {
+    const row = this.heightCols[col]
+    if (row >= ROWS) return false
+
     const bb = this.bitboards[player]
     const bbLo = bb[0]
     const bbHi = bb[1]
     const has = (idx) => (idx < 32 ? bbLo & (1 << idx) : bbHi & (1 << (idx - 32)))
-    const row = this.heightCols[col]
 
     // vertical
     for (let count = 1, r = row - 1; r >= 0 && has(r * COLS + col); r--) if (++count >= 4) return true
@@ -98,13 +100,11 @@ export class Board {
   }
 
   toString = () => {
-    const symbol = (idx) => {
-      const has = (bb, idx) => (idx < 32 ? bb[0] & (1 << idx) : bb[1] & (1 << (idx - 32)))
-      if (has(this.bitboards[this.Player.hp], idx)) return ' X '
-      if (has(this.bitboards[this.Player.ai], idx)) return ' O '
-      return ' _ '
-    }
-    return range(ROWS).reduce((acc, r) => acc + range(COLS).reduce((acc, c) => acc + symbol((ROWS - r - 1) * COLS + c), '') + '\n', '')
+    const bb = this.bitboards
+    const has = (bb, idx) => (idx < 32 ? bb[0] & (1 << idx) : bb[1] & (1 << (idx - 32)))
+    const symbol = (idx) => (has(bb[0], idx) ? ' X ' : has(bb[1], idx) ? ' O ' : ' _ ')
+    return range(ROWS).reduce((a, r) => a + range(COLS).reduce((a, c) => a + symbol((ROWS - r - 1) * COLS + c), '') + '\n', '')
   }
-  print = () => console.log('FEN:', this.FEN, '\n', this.toString())
+
+  print = () => console.log('FEN:', this.FEN, '\n', this.toString().trim())
 }

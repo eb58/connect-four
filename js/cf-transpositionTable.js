@@ -1,25 +1,13 @@
 export const TT_FLAGS = { exact: 1, lower_bound: 2, upper_bound: 3 }
-
 const getTTSizeForDepth = (depth) => (1 << (depth >= 38 ? 28 : depth >= 36 ? 26 : depth >= 18 ? 23 : 16)) - 1
-
-const XXgetTTSizeForDepth = (depth) => {
-  if (depth >= 38) return (1 << 28) - 1
-  if (depth >= 36) return (1 << 26) - 1
-  if (depth >= 32) return (1 << 25) - 1
-  if (depth >= 28) return (1 << 24) - 1
-  if (depth >= 24) return (1 << 23) - 1
-  if (depth >= 18) return (1 << 22) - 1
-  return (1 << 16) - 1
-}
 
 export class TranspositionTable {
   constructor(depth) {
-    const size = getTTSizeForDepth(depth)
-    this.size = size
-    this.keys = new Uint32Array(size)
-    this.scores = new Int16Array(size)
-    this.depths = new Int8Array(size)
-    this.flags = new Uint8Array(size)
+    this.size = getTTSizeForDepth(depth)
+    this.keys = new Uint32Array(this.size)
+    this.scores = new Int8Array(this.size)
+    this.depths = new Int8Array(this.size)
+    this.flags = new Int8Array(this.size)
   }
   store(hash, depth, score, flag) {
     score = score === -0 ? 0 : score
@@ -40,5 +28,3 @@ export class TranspositionTable {
     return null
   }
 }
-
-if (typeof module !== 'undefined') module.exports = { TT_FLAGS, TranspositionTable }
