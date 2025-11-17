@@ -1,3 +1,5 @@
+const range = (n) => [...Array(n).keys()]
+
 export const COLS = 7
 export const ROWS = 6
 const pieceKeys = [
@@ -96,20 +98,14 @@ export class Board {
     return null
   }
 
-  print = () => {
-    const has = (bb, idx) => (idx < 32 ? bb[0] & (1 << idx) : bb[1] & (1 << (idx - 32)))
-
-    let res = ''
-    for (let r = ROWS - 1; r >= 0; r--) {
-      let row = ''
-      for (let c = 0; c < COLS; c++) {
-        const idx = r * COLS + c
-        if (has(this.bitboards[this.Player.hp], idx)) row += ' X '
-        else if (has(this.bitboards[this.Player.ai], idx)) row += ' O '
-        else row += ' _ '
-      }
-      res += row + '\n'
+  toString = () => {
+    const symbol = (idx) => {
+      const has = (bb, idx) => (idx < 32 ? bb[0] & (1 << idx) : bb[1] & (1 << (idx - 32)))
+      if (has(this.bitboards[this.Player.hp], idx)) return ' X '
+      if (has(this.bitboards[this.Player.ai], idx)) return ' O '
+      return ' _ '
     }
-    console.log('FEN:', this.FEN, '\n', res.trim())
+    return range(ROWS).reduce((acc, r) => acc + range(COLS).reduce((acc, c) => acc + symbol((ROWS - r - 1) * COLS + c), '') + '\n', '')
   }
+  print = () => console.log('FEN:', this.FEN, '\n', this.toString())
 }
