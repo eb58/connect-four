@@ -26,8 +26,7 @@ export class Board {
   constructor(FEN = '') {
     this.init()
     this.FEN = FEN.trim().replaceAll(' ', '')
-    const moves = this.FEN.trim().split('')
-    moves.forEach((c) => this.doMove(c - 1))
+    this.FEN.split('').forEach((c) => this.doMove(c - 1))
   }
 
   doMove = (c) => {
