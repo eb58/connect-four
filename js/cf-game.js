@@ -85,7 +85,7 @@ const cfGame = (cfEngine, divId) => {
 
   const checkWinningBoard = (c) => cfEngine.checkWinning(c, cfEngine.getHeightOfCol(c) - 1, cfEngine.opponentPlayer())
   const isMill = () => moveHistory.length > 0 && checkWinningBoard(moveHistory[moveHistory.length - 1].move)
-  const isAllowedMove = (c) => cfEngine.getHeightOfCol(c) < cfEngine.ROWS && !isMill()
+  const isAllowedMove = (c) => cfEngine.HeightOfCol(c) < cfEngine.ROWS && !isMill()
   const isDraw = () => cfEngine.isDraw() && !isMill()
 
   return {

@@ -1,5 +1,18 @@
-import { Board } from '../js/cf-board'
-import { findBestMove } from '../js/cf-engine'
+import { Board, findBestMove } from '../js/cf-engine'
+
+describe('BOARD', () => {
+  test('for debug ', () => {
+    expect(new Board('12 12 12').checkWinForColumn(0)).toBe(true)
+  })
+
+  test('easy tests ', () => {
+    expect(new Board('112233').checkWinForColumn(3)).toBe(true)
+    expect(new Board('12 12 12').checkWinForColumn(0)).toBe(true)
+    expect(new Board('23 23 23').findWinningColumnForCurrentPlayer([0,1,2,3,4,5,6])).toBe(1)
+    expect(new Board('23 23 2').findWinningColumnForOpponentPlayer([0,1,2,3,4,5,6])).toBe(1)
+  })
+})
+
 
 const h = (name, t) => {
   const board = new Board(t.fen)

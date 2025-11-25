@@ -1,8 +1,7 @@
-import { Board } from './js/cf-board.js'
-import { findBestMove } from './js/cf-engine.js'
+import { Board, findBestMove } from './js/cf-engine.js'
 
 const board = new Board('')
 board.print()
-const si = findBestMove(board, { minDepth: 1, maxThinkingTime: Infinity })
+const si = findBestMove(board, { xminDepth: 42, maxThinkingTime: 40000 })
 
 console.log('Result:', si)

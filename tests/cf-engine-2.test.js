@@ -1,8 +1,6 @@
-const fs = require('fs')
-const path = require('path')
-
-import { Board } from '../js/cf-board'
-import { findBestMove } from '../js/cf-engine'
+import fs from 'fs'
+import path from 'path'
+import { Board, findBestMove } from '../js/cf-engine'
 
 const readData = (fileName) => {
   const content = fs.readFileSync(path.join(__dirname + '/../data', fileName), 'utf-8')
@@ -20,12 +18,12 @@ const readData = (fileName) => {
 
 const testData = (fileName) => {
   readData(fileName)
-    .slice(0, 100)
+    .slice(0, 1000)
     .forEach(({ input, expected }, index) =>
       test(`Test ${index + 1}: ${input} ->  ${expected}`, () => {
         const board = new Board(input)
         board.print()
-        const si = findBestMove(board, { maxThinkingTime: 3000 })
+        const si = findBestMove(board, { maxThinkingTime: 5000 })
         // console.log('FEN:', input, JSON.stringify(si))
         console.log(`Test ${index + 1}: ${input} ->  ${expected}`, si.score)
         expect(Math.sign(si.score)).toBe(Math.sign(expected))
