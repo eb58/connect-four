@@ -7,3 +7,12 @@
 # System files
 .DS_Store
 Thumbs.db
+/c/.vscode/launch.json
+/c/.vscode/c_cpp_properties.json
+/c/build/Debug/cf.o
+/c/build/Release/cf.o
+/c/build/Debug/outDebug.exe
+/c/build/Release/outRelease.exe
+/c/.vscode/settings.json
+/tests/simple.test.js
+/c/.vscode/tasks.json
