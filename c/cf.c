@@ -8,7 +8,6 @@
 #define MAXVAL 100
 #define COLS 7
 #define ROWS 6
-#define BOARD_SIZE (COLS * ROWS)
 
 typedef enum { TT_EXACT = 1, TT_LOWER_BOUND = 2, TT_UPPER_BOUND = 3 } TTFlag;
 typedef enum { PLAYER_AI = 0, PLAYER_HP = 1} Player;
@@ -30,29 +29,24 @@ typedef struct {
 } Board;
 
 typedef struct {
-    int nodes;
+    uint64_t nodes;
     int depth;
     int score;
     int bestMove;
     long stopAt;
 } SearchInfo;
 
-// Timer
-typedef struct {
-    clock_t start;
-} Timer;
-
-
 // Timer functions
+typedef struct { clock_t start; } Timer;
 Timer timer_create() { Timer t; t.start = clock(); return t;}
 double timer_elapsed(Timer *t) { return ((double)(clock() - t->start)) / CLOCKS_PER_SEC; }
 
 // Transposition Table functions
 uint32_t tt_get_size_for_depth(int depth) {
-    if (depth >= 38) return (1ULL << 28) - 1;
-    if (depth >= 36) return (1ULL << 26) - 1;
-    if (depth >= 18) return (1ULL << 23) - 1;
-    return (1ULL << 16) - 1;
+    if (depth >= 38) return (1ULL << 32) - 1;
+    if (depth >= 36) return (1ULL << 28) - 1;
+    if (depth >= 18) return (1ULL << 25) - 1;
+    return (1ULL << 20) - 1;
 }
 
 TranspositionTable* tt_create(int depth) {
@@ -135,7 +129,6 @@ void board_do_move(Board *board, int c) {
     board->cntMoves++;
     board->currentPlayer = 1 - board->currentPlayer;
     board->heightCols[c]++;
-    // printf( ">> doMove %d\n ", c);    board_print( board ); printf( "<< doMove\n ");
 }
 
 void board_undo_move(Board *board, int c) {
@@ -146,7 +139,6 @@ void board_undo_move(Board *board, int c) {
     int idx = c + COLS * board->heightCols[c];
     board->hash ^= pieceKeys[board->currentPlayer ? idx : idx + 42];
     board->bitboards[board->currentPlayer] &= ~(1ULL << idx);
-    // printf( ">> undoMove %d\n", c);   board_print( board ); printf( "<< undoMove\n ");
 }
 
 bool board_check_winning(Board *board, int col, Player player) {
@@ -164,24 +156,16 @@ bool board_check_winning(Board *board, int col, Player player) {
     for (int c = col - 1; c >= 0 && has_piece(bb, row * COLS + c); c--) if (++count >= 4) return true;
     for (int c = col + 1; c < COLS && has_piece(bb, row * COLS + c); c++) if (++count >= 4) return true;
 
-    // Diagonal \ // 
+    // Diagonal 1
     count = 1;
     for (int r = row - 1, c = col - 1; c >= 0 && r >= 0 && has_piece(bb, r * COLS + c); r--, c--) if (++count >= 4) return true;
     for (int r = row + 1, c = col + 1; c < COLS && r < ROWS && has_piece(bb, r * COLS + c); r++, c++) if (++count >= 4) return true;
 
-    // Diagonal /
+    // Diagonal 2
     count = 1;
     for (int r = row - 1, c = col + 1; c < COLS && r >= 0 && has_piece(bb, r * COLS + c); r--, c++) if (++count >= 4) return true;
     for (int r = row + 1, c = col - 1; c >= 0 && r < ROWS && has_piece(bb, r * COLS + c); r++, c--) if (++count >= 4) return true;
 
-    if (false) {
-        uint64_t bbX = board->bitboards[1 - player];
-        if ((bb & (1ULL << 2)) && (bb & (1ULL << 3)) && !(bbX & (1ULL << 1)) && !(bbX & (1ULL << 4)) && (col == 1 || col == 4)) return true; // _ _ O O _ _ _
-        if ((bb & (1ULL << 3)) && (bb & (1ULL << 4)) && !(bbX & (1ULL << 2)) && !(bbX & (1ULL << 5)) && (col == 2 || col == 5)) return true; // _ _ _ O O _ _
-        if ((bb & (1ULL << 1)) && (bb & (1ULL << 3)) && !(bbX & (1ULL << 0)) && !(bbX & (1ULL << 2)) && !(bbX & (1ULL << 4)) && col == 2) return true;  // _ 0 _ O _ _ _
-        if ((bb & (1ULL << 2)) && (bb & (1ULL << 4)) && !(bbX & (1ULL << 1)) && !(bbX & (1ULL << 3)) && !(bbX & (1ULL << 5)) && col == 3) return true; // _ _ 0 _ O _ _
-        if ((bb & (1ULL << 3)) && (bb & (1ULL << 5)) && !(bbX & (1ULL << 2)) && !(bbX & (1ULL << 4)) && !(bbX & (1ULL << 6)) && col == 4) return true;  // _ _ _ 0 _ O _
-    }
     return false;
 }
 
@@ -190,16 +174,15 @@ bool board_check_win_for_column(Board *board, int c) { return board_check_winnin
 Board* board_create(const char *fen) {
     Board *board = malloc(sizeof(Board));
     board_init(board, PLAYER_AI);
-    if (!fen || strlen(fen) == 0)  return board;
+    if (!fen || strlen(fen) == 0) return board;
     for (int i = 0; fen[i] != '\0'; i++) if (fen[i] >= '1' && fen[i] <= '7') {
         int c = fen[i] - '1';
-        if (c >= 0 && c < COLS) board_do_move(board,c);
+        if (c >= 0 && c < COLS) board_do_move(board, c);
     }
     return board;
 }
 
 void board_destroy(Board *board) { free(board); }
-
 
 int8_t negamax(Board *board, TranspositionTable *tt, SearchInfo *info,  int *columns, int numCols, uint8_t depth, int8_t alpha, int8_t beta) {
     info->nodes++;
@@ -214,7 +197,7 @@ int8_t negamax(Board *board, TranspositionTable *tt, SearchInfo *info,  int *col
         return tt_store(tt, board->hash, depth, MAXVAL, TT_EXACT);
     }
 
-    for (int i = 0; i < numCols; i++)  if (board->heightCols[columns[i]] < ROWS) {
+    for (int i = 0; i < numCols; i++) if (board->heightCols[columns[i]] < ROWS) {
         board_do_move(board, columns[i]);
         int8_t score = -negamax(board, tt, info, columns, numCols, depth - 1, -beta, -alpha);
         board_undo_move(board, columns[i]);
@@ -224,9 +207,9 @@ int8_t negamax(Board *board, TranspositionTable *tt, SearchInfo *info,  int *col
     return tt_store(tt, board->hash, depth, alpha, TT_UPPER_BOUND);
 }
 
-SearchInfo find_best_move(Board *board, int maxThinkingTime ) {
+SearchInfo find_best_move(Board *board, int maxThinkingTime) {
     Timer timer = timer_create();
-    SearchInfo info = {0};
+    SearchInfo info = {};
     info.stopAt = (long)(clock() + maxThinkingTime * CLOCKS_PER_SEC / 1000);
 
     const int COLUMNS[COLS] = {3, 2, 4, 1, 5, 0, 6};
@@ -234,32 +217,30 @@ SearchInfo find_best_move(Board *board, int maxThinkingTime ) {
     int numCols = 0;
     for (int i = 0; i < COLS; i++) if (board->heightCols[COLUMNS[i]] < ROWS) columns[numCols++] = COLUMNS[i];
 
-    // printf("Valid columns: ");  for (int i = 0; i < numCols; i++)  printf("%d ", columns[i]); printf("\n");
-
-    for (uint8_t depth = 42; depth <= 42; depth++) {
+    for (uint8_t depth = 42; depth <= 42 - board->cntMoves; depth++) {
         TranspositionTable *tt = tt_create(depth);
         info.depth = depth;
         info.score = negamax(board, tt, &info, columns, numCols, depth, -MAXVAL, MAXVAL);
-        printf("DEPTH:%d SCORE:%d MOVE:%d NODES:%d TIME:%.3fs\n", depth, info.score, info.bestMove, info.nodes, timer_elapsed(&timer));
+        printf("DEPTH:%d SCORE:%d MOVE:%d NODES:%llu TIME:%.3fs\n", depth, info.score, info.bestMove, info.nodes, timer_elapsed(&timer));
         tt_destroy(tt);
         if (info.score != 0 || clock() >= info.stopAt) break;
     }
-    printf("FINAL - DEPTH:%d SCORE:%d MOVE:%d NODES:%d TIME:%.3fs\n", info.depth, info.score, info.bestMove, info.nodes, timer_elapsed(&timer));
+    printf("FINAL - DEPTH:%d SCORE:%d MOVE:%d NODES:%llu TIME:%.3fs\n", info.depth, info.score, info.bestMove, info.nodes, timer_elapsed(&timer));
     return info;
 }
 
-int main() { // Example usage
- const char *fen = "";
+int main() {
+    const char *fen = "";
     // const char *fen = "6625477334543176";
     // const char *fen = "1415251";
     Board* board = board_create(fen);
     printf("Connect Four AI %s\n", fen);
 
     board_print(board);
-
-    SearchInfo result = find_best_move(board, 400000);
-    printf("\nBest move: %d\n", result.bestMove);
-
+    
+    SearchInfo result = find_best_move(board, 500000);
+    printf("\nBest move: %d (column %d)\n", result.bestMove, result.bestMove + 1);
+    
     board_destroy(board);
     return 0;
 }
