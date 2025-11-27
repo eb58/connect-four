@@ -24,7 +24,7 @@ typedef struct {
     int heightCols[COLS];
     Player currentPlayer;
     int cntMoves;
-    uint64_t bitboards[2];  // [player]
+    uint64_t bitboards[2];
     uint32_t hash;
 } Board;
 
@@ -44,9 +44,9 @@ double timer_elapsed(Timer *t) { return ((double)(clock() - t->start)) / CLOCKS_
 // Transposition Table functions
 uint32_t tt_get_size_for_depth(int depth) {
     if (depth >= 38) return (1ULL << 32) - 1;
-    if (depth >= 36) return (1ULL << 28) - 1;
-    if (depth >= 18) return (1ULL << 25) - 1;
-    return (1ULL << 20) - 1;
+    if (depth >= 36) return (1ULL << 26) - 1;
+    if (depth >= 18) return (1ULL << 23) - 1;
+    return (1ULL << 16) - 1;
 }
 
 TranspositionTable* tt_create(int depth) {
@@ -54,8 +54,8 @@ TranspositionTable* tt_create(int depth) {
     tt->size = tt_get_size_for_depth(depth);
     tt->keys = calloc(tt->size, sizeof(uint32_t));
     tt->scores = calloc(tt->size, sizeof(int8_t));
-    tt->depths = calloc(tt->size, sizeof(int8_t));
-    tt->flags = calloc(tt->size, sizeof(int8_t));
+    tt->depths = calloc(tt->size, sizeof(uint8_t));
+    tt->flags = calloc(tt->size, sizeof(uint8_t));
     return tt;
 }
 
@@ -88,7 +88,7 @@ bool tt_get_score(TranspositionTable *tt, uint32_t hash, int depth, int alpha, i
     return false;
 }
 
-static const uint32_t pieceKeys[84] = {
+static const uint32_t pieceKeys[] = {
   227019481, 1754434862, 629481213, 887205851, 529032562, 2067323277, 1070040335, 567190488, 468610655, 1669182959, 236891527, 1211317841, 849223426, 1031915473, 315781957,
   1594703270, 114113554, 966088184, 2114417493, 340442843, 410051610, 1895709998, 502837645, 2046296443, 1720231708, 1437032187, 80592865, 1757570123, 2063094472, 1123905671,
   901800952, 1894943568, 732390329, 401463737, 2055893758, 1688751506, 115630249, 391883254, 249795256, 1341740832, 807352454, 2122692086, 851678180, 1154773536, 64453931,
@@ -99,7 +99,7 @@ static const uint32_t pieceKeys[84] = {
 
 // Board functions
 void board_init(Board *board, Player player) {
-    for( int i = 0; i < COLS; i++) board->heightCols[i] = 0;
+    for(int i = 0; i < COLS; i++) board->heightCols[i] = 0;
     board->currentPlayer = player;
     board->cntMoves = 0;
     board->bitboards[PLAYER_AI] = 0;
@@ -107,7 +107,7 @@ void board_init(Board *board, Player player) {
     board->hash = 0;
 }
 
-bool has_piece(uint64_t bb, int idx) { return bb & (1ULL << idx);  }
+bool has_piece(uint64_t bb, int idx) { return bb & (1ULL << idx); }
 
 void board_print(Board *board) {
     for (int r = ROWS - 1; r >= 0; r--) {
@@ -184,8 +184,12 @@ Board* board_create(const char *fen) {
 
 void board_destroy(Board *board) { free(board); }
 
-int8_t negamax(Board *board, TranspositionTable *tt, SearchInfo *info,  int *columns, int numCols, uint8_t depth, int8_t alpha, int8_t beta) {
-    info->nodes++;
+SearchInfo info = {};
+Board *board;
+TranspositionTable *tt;
+
+int8_t negamax( int *columns, int numCols, uint8_t depth, int8_t alpha, int8_t beta) {
+    info.nodes++;
 
     if (depth == 0 || board->cntMoves == 42) return 0;
 
@@ -193,34 +197,33 @@ int8_t negamax(Board *board, TranspositionTable *tt, SearchInfo *info,  int *col
     if (tt_get_score(tt, board->hash, depth, alpha, beta, &cachedScore)) return cachedScore;
 
     for (int i = 0; i < numCols; i++) if (board_check_win_for_column(board, columns[i])) {
-        info->bestMove = columns[i];
+        info.bestMove = columns[i];
         return tt_store(tt, board->hash, depth, MAXVAL, TT_EXACT);
     }
 
     for (int i = 0; i < numCols; i++) if (board->heightCols[columns[i]] < ROWS) {
         board_do_move(board, columns[i]);
-        int8_t score = -negamax(board, tt, info, columns, numCols, depth - 1, -beta, -alpha);
+        int8_t score = -negamax(columns, numCols, depth - 1, -beta, -alpha);
         board_undo_move(board, columns[i]);
-        if (score > alpha) { alpha = score; info->bestMove = columns[i]; }
+        if (score > alpha) { alpha = score; info.bestMove = columns[i]; }
         if (alpha >= beta) return tt_store(tt, board->hash, depth, alpha, TT_LOWER_BOUND);
     }
     return tt_store(tt, board->hash, depth, alpha, TT_UPPER_BOUND);
 }
 
-SearchInfo find_best_move(Board *board, int maxThinkingTime) {
+SearchInfo find_best_move(int maxThinkingTime) {
     Timer timer = timer_create();
-    SearchInfo info = {};
     info.stopAt = (long)(clock() + maxThinkingTime * CLOCKS_PER_SEC / 1000);
 
-    const int COLUMNS[COLS] = {3, 2, 4, 1, 5, 0, 6};
+    const int COLUMNS[] = {3, 2, 4, 1, 5, 0, 6};
     int columns[COLS];
     int numCols = 0;
     for (int i = 0; i < COLS; i++) if (board->heightCols[COLUMNS[i]] < ROWS) columns[numCols++] = COLUMNS[i];
 
     for (uint8_t depth = 42; depth <= 42 - board->cntMoves; depth++) {
-        TranspositionTable *tt = tt_create(depth);
+        tt = tt_create(depth);
         info.depth = depth;
-        info.score = negamax(board, tt, &info, columns, numCols, depth, -MAXVAL, MAXVAL);
+        info.score = negamax( columns, numCols, depth, -MAXVAL, MAXVAL);
         printf("DEPTH:%d SCORE:%d MOVE:%d NODES:%llu TIME:%.3fs\n", depth, info.score, info.bestMove, info.nodes, timer_elapsed(&timer));
         tt_destroy(tt);
         if (info.score != 0 || clock() >= info.stopAt) break;
@@ -233,14 +236,12 @@ int main() {
     const char *fen = "";
     // const char *fen = "6625477334543176";
     // const char *fen = "1415251";
-    Board* board = board_create(fen);
     printf("Connect Four AI %s\n", fen);
-
+    board = board_create(fen);
     board_print(board);
-    
-    SearchInfo result = find_best_move(board, 500000);
+
+    SearchInfo result = find_best_move(1000*1000);
     printf("\nBest move: %d (column %d)\n", result.bestMove, result.bestMove + 1);
     
-    board_destroy(board);
     return 0;
 }
