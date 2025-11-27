@@ -36,9 +36,9 @@ describe('Test_L1_R2 ', () => testData('Test_L1_R2'))
 describe('Test_L1_R3 ', () => testData('Test_L1_R3'))
 
 describe('Test_L2_R1 ', () => testData('Test_L2_R1')) // ~ 1 sec ok
-describe('Test_L2_R2 ', () => testData('Test_L2_R2')) // ~ 6 min
+describe('Test_L2_R2 ', () => testData('Test_L2_R2')) // ~ 3 min 15 sec
 
-describe('Test_L3_R1 ', () => testData('Test_L3_R1')) // ~0.5 sec
+describe('Test_L3_R1 ', () => testData('Test_L3_R1')) // ~0.4 sec
 
 test('simple', () => {
   const board = new Board('')

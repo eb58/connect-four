@@ -7,7 +7,7 @@ const ROWS = 6
 
 const TT_FLAGS = { exact: 1, lower_bound: 2, upper_bound: 3 }
 class TranspositionTable {
-  getTTSizeForDepth = (depth) => (1 << (depth >= 38 ? 28 : depth >= 36 ? 26 : depth >= 18 ? 23 : 16)) - 1
+  getTTSizeForDepth = (depth) => (1 << (depth >= 38 ? 32 : depth >= 36 ? 26 : depth >= 18 ? 23 : 16)) - 1
   constructor(depth) {
     this.size = this.getTTSizeForDepth(depth)
     this.keys = new Uint32Array(this.size)
@@ -66,18 +66,20 @@ export class Board {
     const idx = c + COLS * this.heightCols[c]
     this.hash ^= pieceKeys[this.currentPlayer ? idx : idx + 42]
     this.bitboards[this.currentPlayer][idx < 32 ? 0 : 1] |= 1 << (idx < 32 ? idx : idx - 32)
-    this.heightCols[c]++
-    this.currentPlayer = 1 - this.currentPlayer
+
     this.cntMoves++
+    this.currentPlayer = 1 - this.currentPlayer
+    this.heightCols[c]++
   }
 
   undoMove = (c) => {
     this.cntMoves--
     this.currentPlayer = 1 - this.currentPlayer
     this.heightCols[c]--
+
     const idx = c + COLS * this.heightCols[c]
-    this.bitboards[this.currentPlayer][idx < 32 ? 0 : 1] &= ~(1 << (idx < 32 ? idx : idx - 32))
     this.hash ^= pieceKeys[this.currentPlayer ? idx : idx + 42]
+    this.bitboards[this.currentPlayer][idx < 32 ? 0 : 1] &= ~(1 << (idx < 32 ? idx : idx - 32))
   }
 
   checkWinForColumn = (c) => this.checkWinning(c, this.currentPlayer)
